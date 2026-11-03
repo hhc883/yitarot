@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { MasterPortalHero } from '@/components/portal/MasterPortalHero';
+import { MasterScrollytellingHero } from '@/components/portal/MasterScrollytellingHero';
 import { HeroFloatingCards } from '@/components/tarot/HeroFloatingCards';
 import { DailyDrawWidget } from '@/components/tarot/DailyDrawWidget';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Heart } from 'lucide-react';
@@ -15,8 +15,8 @@ export default async function MasterPortalPage({
 
   return (
     <div className="w-full flex flex-col items-center overflow-hidden">
-      {/* 1. 核心双门入口 (GSAP 3D 对立微动效) */}
-      <MasterPortalHero lang={lang} />
+      {/* 1. 核心双门开幕：Marvis 同款 900% GSAP 钉图深度长卷 */}
+      <MasterScrollytellingHero lang={lang} />
 
       {/* 2. 东方周易特质专区展示 */}
       <section className="w-full max-w-6xl mx-auto px-5 py-16 border-t border-[#111111]/8">
