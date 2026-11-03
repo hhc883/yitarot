@@ -10,6 +10,8 @@
     "seo:verify": "node scripts/verify-seo.mjs"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "gsap": "^3.15.0",
     "lucide-react": "^1.66.0",
     "lunar-typescript": "^1.8.6",
     "next": "16.4.3",

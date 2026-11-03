@@ -1,73 +1,137 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700;900&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #080b11;
-  --foreground: #f1f5f9;
-  --card-bg: rgba(16, 22, 34, 0.75);
-  --card-border: rgba(212, 175, 55, 0.15);
-  --gold: #d4af37;
-  --gold-glow: rgba(212, 175, 55, 0.25);
+  --font-brand: 'Fredoka', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif-sc: 'Noto Serif SC', "Songti SC", SimSun, Georgia, serif;
+  
+  /* Tarotip 逆向精选色彩系统 */
+  --paper: #F7F3EF;
+  --cream: #FFFDF9;
+  --subtle-paper: #F2EDE6;
+  --ink: #111111;
+  --star: #FFE59A;
+  --star-gold: #E8CF86;
+  --sky: #A9D3FF;
+  --pinky: #FFB5C1;
+  --minty: #B7E1D1;
+  
+  --card-bg: #FFFDF9;
+  --card-border: rgba(17, 17, 17, 0.08);
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-brand);
   overflow-x: hidden;
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 60%),
-    radial-gradient(circle at 10% 30%, rgba(56, 189, 248, 0.03) 0%, transparent 40%),
-    radial-gradient(circle at 90% 70%, rgba(239, 68, 68, 0.03) 0%, transparent 40%);
+    radial-gradient(circle at 10% 20%, rgba(169, 211, 255, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 30%, rgba(255, 181, 193, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(255, 229, 154, 0.12) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
-/* Glassmorphism Cards */
-.zen-card {
-  background-color: var(--card-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--card-border);
-  border-radius: 1rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* 标题专属字体 */
+.font-brand {
+  font-family: var(--font-brand);
 }
 
-.zen-card:hover {
-  border-color: rgba(212, 175, 55, 0.35);
-  box-shadow: 0 0 25px rgba(212, 175, 55, 0.08);
+.font-serif-sc {
+  font-family: var(--font-serif-sc);
 }
 
-/* Gold glow text */
-.gold-gradient-text {
-  background: linear-gradient(135deg, #fff2cc 0%, #d4af37 50%, #aa820a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Tarotip 专属 Float 浮动核心动效 */
+@keyframes floaty {
+  0%, 100% {
+    transform: translateY(0px) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-12px) rotate(var(--r, 0deg));
+  }
 }
 
-/* Subtle glow badge */
-.zen-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.85rem;
-  border-radius: 9999px;
-  background: rgba(212, 175, 55, 0.1);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  color: #f5d77f;
-  font-size: 0.825rem;
-  font-weight: 500;
-  letter-spacing: 0.025em;
+@keyframes menu-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-/* Custom scrollbars */
+@keyframes card-deal {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-floaty {
+  animation: 6s ease-in-out infinite floaty;
+}
+
+.animate-floaty-slow {
+  animation: 9s ease-in-out infinite floaty;
+}
+
+.animate-menu-in {
+  animation: 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards menu-in;
+}
+
+.animate-card-deal {
+  animation: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards card-deal;
+}
+
+/* 3D 翻牌物理属性 */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* 手作纸感卡片 */
+.paper-card {
+  background-color: var(--cream);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(17, 17, 17, 0.04), 0 2px 6px -1px rgba(17, 17, 17, 0.02);
+  border-radius: 1.5rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.paper-card:hover {
+  border-color: rgba(17, 17, 17, 0.16);
+  box-shadow: 0 12px 32px -4px rgba(17, 17, 17, 0.08), 0 4px 12px -2px rgba(232, 207, 134, 0.2);
+}
+
+/* 自定义柔和滚动条 */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #080b11;
+  background: var(--paper);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e2638;
+  background: #E5DFD5;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #d4af37;
+  background: #CBBFA8;
 }

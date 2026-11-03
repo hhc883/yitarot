@@ -1,51 +1,59 @@
-import type { MetadataRoute } from "next";
-import { getAll144CompatibilitySlugs } from "@/lib/metaphysics/compatibility";
+import type { MetadataRoute } from 'next';
+import { getAllCards } from '@/lib/tarot/deck';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://qicosmos.com";
+  const baseUrl = 'https://qicosmos.com';
   const now = new Date();
 
   const coreRoutes = [
-    "",
-    "/calculator/bazi",
-    "/compatibility",
-    "/calculator/iching",
-    "/knowledge",
-    "/about",
+    '',
+    // 东方周易命理 (FateMaster)
+    '/fatemaster',
+    '/fatemaster/bazi',
+    '/fatemaster/liuyao',
+    '/fatemaster/compatibility',
+    // 西方塔罗 (Tarotip)
+    '/reading',
+    '/yes-no',
+    '/love',
+    '/fortune/daily',
+    '/cards',
+    '/spreads',
+    '/pricing'
   ];
 
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
-  // Core pages in both en and zh
+  // Core pages in both zh and en
   for (const route of coreRoutes) {
-    sitemapEntries.push({
-      url: `${baseUrl}/en${route}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: route === "" ? 1.0 : 0.9,
-    });
     sitemapEntries.push({
       url: `${baseUrl}/zh${route}`,
       lastModified: now,
-      changeFrequency: "weekly",
-      priority: route === "" ? 0.9 : 0.8,
+      changeFrequency: 'daily',
+      priority: route === '' ? 1.0 : 0.9
+    });
+    sitemapEntries.push({
+      url: `${baseUrl}/en${route}`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: route === '' ? 0.9 : 0.8
     });
   }
 
-  // Programmatic SEO 144 combinations
-  const compatibilityPairs = getAll144CompatibilitySlugs();
-  for (const pair of compatibilityPairs) {
+  // 78 张牌单独详情页（高权重 SEO）
+  const cards = getAllCards();
+  for (const card of cards) {
     sitemapEntries.push({
-      url: `${baseUrl}/en/compatibility/${pair.slug}`,
+      url: `${baseUrl}/zh/cards/${card.slug}`,
       lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
+      changeFrequency: 'weekly',
+      priority: card.arcana === 'major' ? 0.8 : 0.6
     });
     sitemapEntries.push({
-      url: `${baseUrl}/zh/compatibility/${pair.slug}`,
+      url: `${baseUrl}/en/cards/${card.slug}`,
       lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
+      changeFrequency: 'weekly',
+      priority: card.arcana === 'major' ? 0.7 : 0.5
     });
   }
 

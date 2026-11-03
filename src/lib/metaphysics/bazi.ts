@@ -288,7 +288,7 @@ const DAY_MASTER_DETAILS: Record<string, Omit<DayMasterProfile, "stem">> = {
   }
 };
 
-const ELEMENT_COLORS: Record<WuXing, string> = {
+export const ELEMENT_COLORS: Record<WuXing, string> = {
   Wood: "#10B981",
   Fire: "#EF4444",
   Earth: "#F59E0B",
@@ -296,7 +296,7 @@ const ELEMENT_COLORS: Record<WuXing, string> = {
   Water: "#06B6D4"
 };
 
-const ELEMENT_ZH_MAP: Record<WuXing, string> = {
+export const ELEMENT_ZH_MAP: Record<WuXing, string> = {
   Wood: "木",
   Fire: "火",
   Earth: "土",
