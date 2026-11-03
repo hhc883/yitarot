@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { Sparkles, ArrowRight, Compass, ShieldCheck, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import { BaguaOrbitalCompass } from '@/components/fatemaster/BaguaOrbitalCompass';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -194,12 +195,12 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
 
         {/* 中央舞台核心视差层 */}
         <div className="relative z-20 flex-1 flex items-center justify-center w-full max-w-6xl mx-auto px-4">
-          {/* 阶段 1：中心巨幅缩放太极印 */}
+          {/* 阶段 1：中心巨幅缩放八卦星轨罗盘 (南孚同心圆点阵灵感) */}
           <div
             ref={centralSymbolRef}
-            className="absolute flex items-center justify-center text-7xl sm:text-8xl select-none filter drop-shadow-2xl"
+            className="absolute flex items-center justify-center select-none filter drop-shadow-2xl scale-75 sm:scale-100"
           >
-            ☯️
+            <BaguaOrbitalCompass size={380} interactive={false} accentColor="#DC2626" />
           </div>
 
           {/* 阶段 1 文案：混沌无极 */}

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Flame, BookOpen } from 'lucide-react';
+import { BaguaOrbitalCompass } from '@/components/fatemaster/BaguaOrbitalCompass';
 
 export default async function FateMasterHomePage({
   params
@@ -44,6 +45,11 @@ export default async function FateMasterHomePage({
             <span>周易六爻神谕</span>
             <Compass className="w-4 h-4 text-[#8C6D23]" />
           </Link>
+        </div>
+
+        {/* 南孚灵感：八卦周天星轨同心罗盘核心展台 */}
+        <div className="mt-14 flex flex-col items-center">
+          <BaguaOrbitalCompass size={440} accentColor="#DC2626" interactive={true} />
         </div>
       </section>
 
