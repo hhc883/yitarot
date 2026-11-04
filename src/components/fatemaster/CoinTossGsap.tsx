@@ -368,30 +368,35 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
                     {idx === 1 ? '初爻' : idx === 6 ? '上爻' : `第 ${idx} 爻`}
                   </span>
 
-                  {/* 爻线图形 */}
+                  {/* 爻线图形 (阳爻、阴爻、动爻统一严格等长 112px，左右对齐) */}
                   <div className="flex-1 flex justify-center px-2">
-                    {lineData ? (
-                      lineData.isYang ? (
-                        /* 阳爻 ⚊ */
-                        <div className="h-2 w-28 bg-[#111111] rounded-xs relative flex items-center justify-center">
-                          {lineData.isChanging && (
-                            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white absolute" />
-                          )}
-                        </div>
+                    <div className="relative w-28 h-2 flex items-center justify-between">
+                      {lineData ? (
+                        lineData.isYang ? (
+                          /* 阳爻 ⚊ (实线全通 112px) */
+                          <>
+                            <div className="w-full h-full bg-[#111111] rounded-xs shadow-xs" />
+                            {lineData.isChanging && (
+                              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-rose-500 ring-2 ring-[#FAF6ED] shadow-xs" />
+                            )}
+                          </>
+                        ) : (
+                          /* 阴爻 ⚋ (两段各 48px + 中间 16px 空档，总长严格为 112px) */
+                          <>
+                            <div className="w-[calc(50%-8px)] h-full bg-[#111111] rounded-xs shadow-xs" />
+                            {lineData.isChanging && (
+                              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[11px] text-rose-600 font-bold leading-none select-none">
+                                ✕
+                              </span>
+                            )}
+                            <div className="w-[calc(50%-8px)] h-full bg-[#111111] rounded-xs shadow-xs" />
+                          </>
+                        )
                       ) : (
-                        /* 阴爻 ⚋ */
-                        <div className="flex gap-2 items-center justify-center">
-                          <div className="h-2 w-12 bg-[#111111] rounded-xs" />
-                          {lineData.isChanging && (
-                            <span className="text-[10px] text-rose-600 font-bold">✕</span>
-                          )}
-                          <div className="h-2 w-12 bg-[#111111] rounded-xs" />
-                        </div>
-                      )
-                    ) : (
-                      /* 未掷爻占位虚线 */
-                      <div className="h-2 w-28 border-b-2 border-dashed border-[#111111]/20" />
-                    )}
+                        /* 未掷爻占位虚线 (等长 112px) */
+                        <div className="w-full h-full border-b-2 border-dashed border-[#111111]/25" />
+                      )}
+                    </div>
                   </div>
 
                   <span className="text-[10px] text-[#8C6D23] font-medium w-14 text-right">

@@ -236,16 +236,16 @@ export default function CoinTossAnimation({ lang }: Props) {
                   {lang === "en" ? `L${line.lineIndex}` : `第${line.lineIndex}爻`}
                 </span>
 
-                {/* Line Visual (Solid for Yang, Broken for Yin) */}
+                {/* Line Visual (Solid for Yang, Broken for Yin, equal length) */}
                 <div className="flex-1 flex justify-center items-center px-4">
                   {line.isYang ? (
                     // Solid Yang line ⚊
                     <div className="w-full h-2 rounded bg-amber-400/90 shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
                   ) : (
                     // Broken Yin line ⚋
-                    <div className="w-full flex gap-2">
-                      <div className="w-1/2 h-2 rounded bg-slate-400" />
-                      <div className="w-1/2 h-2 rounded bg-slate-400" />
+                    <div className="w-full h-2 flex justify-between items-center">
+                      <div className="w-[calc(50%-6px)] h-full rounded bg-slate-400" />
+                      <div className="w-[calc(50%-6px)] h-full rounded bg-slate-400" />
                     </div>
                   )}
                 </div>
