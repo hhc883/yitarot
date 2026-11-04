@@ -10,8 +10,31 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isEastern = pathname.includes('/fatemaster');
-  const isTarot = pathname.includes('/reading') || pathname.includes('/cards') || pathname.includes('/yes-no') || pathname.includes('/love');
+  const isHome = pathname === `/${lang}` || pathname === `/${lang}/` || pathname === '/';
+  const isEastern = pathname.includes('/fatemaster') || pathname.includes('/calculator');
+  const isCards = pathname.includes('/cards');
+  const isTarot = !isCards && (
+    pathname.includes('/reading') ||
+    pathname.includes('/spreads') ||
+    pathname.includes('/yes-no') ||
+    pathname.includes('/love') ||
+    pathname.includes('/fortune')
+  );
+  const isPricing = pathname.includes('/pricing');
+
+  const navItemClass = (isActive: boolean) =>
+    `px-3 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all ${
+      isActive
+        ? 'bg-[#111111] text-[#FFFDF9] shadow-xs'
+        : 'text-[#5C5549] hover:bg-[#FAF6ED] hover:text-[#111111]'
+    }`;
+
+  const mobileItemClass = (isActive: boolean) =>
+    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+      isActive
+        ? 'bg-[#111111] text-[#FFFDF9] font-semibold'
+        : 'text-[#111111] hover:bg-[#FAF6ED]'
+    }`;
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#FAF7F2]/90 backdrop-blur-md border-b border-[#111111]/10 transition-colors">
@@ -35,52 +58,42 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
         <nav className="hidden md:flex items-center gap-1.5 lg:gap-3">
           <Link
             href={`/${lang}`}
-            className={`px-3 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-colors ${
-              pathname === `/${lang}`
-                ? 'bg-[#111111] text-[#FFFDF9]'
-                : 'text-[#5C5549] hover:bg-[#FAF6ED] hover:text-[#111111]'
-            }`}
+            className={navItemClass(isHome)}
           >
-            双门首页
+            {lang === 'en' ? 'Home' : '双门首页'}
           </Link>
 
           {/* 东方周易 */}
           <Link
             href={`/${lang}/fatemaster`}
-            className={`px-3 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-colors flex items-center gap-1.5 ${
-              isEastern
-                ? 'bg-[#111111] text-[#FFFDF9]'
-                : 'text-[#5C5549] hover:bg-[#FAF6ED] hover:text-[#111111]'
-            }`}
+            className={`${navItemClass(isEastern)} flex items-center gap-1.5`}
           >
             <YinYangFish size={15} spin={false} />
-            <span>东方周易</span>
+            <span>{lang === 'en' ? 'I Ching' : '东方周易'}</span>
           </Link>
 
           {/* 西方塔罗 */}
           <Link
             href={`/${lang}/reading`}
-            className={`px-3 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-colors flex items-center gap-1 ${
-              isTarot
-                ? 'bg-[#111111] text-[#FFFDF9]'
-                : 'text-[#5C5549] hover:bg-[#FAF6ED] hover:text-[#111111]'
-            }`}
+            className={`${navItemClass(isTarot)} flex items-center gap-1`}
           >
-            <span>🔮 西方塔罗</span>
+            <span>🔮 {lang === 'en' ? 'Tarot' : '西方塔罗'}</span>
           </Link>
 
+          {/* 78 牌义库 */}
           <Link
             href={`/${lang}/cards`}
-            className="px-3 py-1.5 rounded-full text-xs lg:text-sm font-medium text-[#5C5549] hover:bg-[#FAF6ED] hover:text-[#111111]"
+            className={navItemClass(isCards)}
           >
-            78 牌义库
+            {lang === 'en' ? '78 Deck' : '78 牌义库'}
           </Link>
 
+          {/* 会员订阅 */}
           <Link
             href={`/${lang}/pricing`}
-            className="px-3 py-1.5 rounded-full text-xs lg:text-sm font-medium text-[#5C5549] hover:bg-[#FAF6ED] hover:text-[#111111]"
+            className={navItemClass(isPricing)}
           >
-            会员订阅
+            {lang === 'en' ? 'Pricing' : '会员订阅'}
           </Link>
         </nav>
 
@@ -98,7 +111,7 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] shadow-xs transition-all hover:scale-102"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#FFE59A]" />
-            <span>问问牌</span>
+            <span>{lang === 'en' ? 'Draw Cards' : '问问牌'}</span>
           </Link>
         </div>
 
@@ -108,7 +121,7 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             href={`/${lang}/reading`}
             className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#111111] text-[#FFFDF9]"
           >
-            占卜
+            {lang === 'en' ? 'Tarot' : '占卜'}
           </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -126,38 +139,38 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
           <Link
             href={`/${lang}`}
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#111111] hover:bg-[#FAF6ED]"
+            className={mobileItemClass(isHome)}
           >
-            双门首页
+            {lang === 'en' ? 'Home' : '双门首页'}
           </Link>
           <Link
             href={`/${lang}/fatemaster`}
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-[#111111] hover:bg-[#FAF6ED]"
+            className={mobileItemClass(isEastern)}
           >
             <YinYangFish size={16} spin={false} />
-            <span>东方周易 · FateMaster</span>
+            <span>{lang === 'en' ? 'Eastern I Ching · FateMaster' : '东方周易 · FateMaster'}</span>
           </Link>
           <Link
             href={`/${lang}/reading`}
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#111111] hover:bg-[#FAF6ED]"
+            className={mobileItemClass(isTarot)}
           >
-            🔮 西方塔罗 · Tarotip
+            🔮 {lang === 'en' ? 'Western Tarot · Tarotip' : '西方塔罗 · Tarotip'}
           </Link>
           <Link
             href={`/${lang}/cards`}
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#111111] hover:bg-[#FAF6ED]"
+            className={mobileItemClass(isCards)}
           >
-            78 牌义库
+            {lang === 'en' ? '78 Card Deck' : '78 牌义库'}
           </Link>
           <Link
             href={`/${lang}/pricing`}
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#111111] hover:bg-[#FAF6ED]"
+            className={mobileItemClass(isPricing)}
           >
-            会员订阅
+            {lang === 'en' ? 'Pricing & Plans' : '会员订阅'}
           </Link>
           <div className="pt-3 border-t border-[#111111]/10 flex justify-between items-center px-3">
             <span className="text-xs text-[#736B5E]">当前语言</span>
