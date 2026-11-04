@@ -110,7 +110,7 @@ export function MasterPortalHero({ lang = 'zh' }: { lang?: string }) {
 
           <div>
             <div className="flex items-center justify-between mb-6">
-              <span className="text-3xl">☯️</span>
+              <YinYangFish size={32} />
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#111111] text-[#FFFDF9]">
                 东方智慧系统
               </span>

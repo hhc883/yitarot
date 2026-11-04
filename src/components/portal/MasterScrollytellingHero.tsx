@@ -6,7 +6,6 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { Sparkles, ArrowRight, Compass, ShieldCheck, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-import { BaguaOrbitalCompass } from '@/components/fatemaster/BaguaOrbitalCompass';
 import { YinYangFish } from '@/components/common/YinYangFish';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -27,7 +26,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
   const cardsGroupRef = useRef<HTMLDivElement>(null);
   const heroCoinRef = useRef<HTMLDivElement>(null);
   const heroTarotRef = useRef<HTMLDivElement>(null);
-  const finaleBaguaRef = useRef<HTMLDivElement>(null); // 最后一幕：从小变大向外扩张淡化的八卦阵
+  const finaleSymbolRef = useRef<HTMLDivElement>(null); // 最后一幕：从小变大向外扩张淡化的阴阳鱼图腾
   const portalsFinalRef = useRef<HTMLDivElement>(null);
 
   // 5 步步进状态
@@ -130,17 +129,17 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
         { backgroundColor: '#FAF7F2', color: '#111111', duration: 2, ease: 'power1.inOut' },
         '<'
       )
-      // 【用户核心要求】最后一幕：八卦阵从小变大向外扩张逐渐淡化
-      // 步骤 a: 八卦阵自中心从小凝聚显现 (scale: 0.25 -> 1, opacity: 0 -> 1)
+      // 【用户核心要求】最后一幕：太极阴阳鱼从小变大向外扩张逐渐淡化
+      // 步骤 a: 纯净阴阳鱼自中心从小凝聚显现 (scale: 0.25 -> 1, opacity: 0 -> 1)
       .fromTo(
-        finaleBaguaRef.current,
+        finaleSymbolRef.current,
         { scale: 0.25, opacity: 0, rotation: -60 },
         { scale: 1, opacity: 1, rotation: 0, duration: 1.6, ease: 'power2.out' },
         '-=1.3'
       )
-      // 步骤 b: 随着滚轮滑动，八卦阵向外巨幅扩散 (scale: 1 -> 4.5)，并逐渐淡化消散 (opacity: 1 -> 0)
+      // 步骤 b: 随着滚轮滑动，阴阳鱼向外巨幅扩散 (scale: 1 -> 4.5)，并逐渐淡化消散 (opacity: 1 -> 0)
       .to(
-        finaleBaguaRef.current,
+        finaleSymbolRef.current,
         {
           scale: isMobile ? 3.0 : 4.6,
           opacity: 0,
@@ -149,7 +148,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
           ease: 'power1.inOut'
         }
       )
-      // 步骤 c: 伴随八卦阵光环向外荡漾消散，双门入口端然落定
+      // 步骤 c: 伴随太极光波向外荡漾消散，双门入口端然落定
       .fromTo(
         portalsFinalRef.current,
         { yPercent: 60, opacity: 0, scale: 0.85 },
@@ -162,7 +161,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
     { step: 1, nameZh: '混沌初开', nameEn: 'The Void' },
     { step: 2, nameZh: '两仪显化', nameEn: 'Dual Archetypes' },
     { step: 3, nameZh: '数象相生', nameEn: 'Oracle Resonance' },
-    { step: 4, nameZh: '八卦化境', nameEn: 'Bagua Expansion' },
+    { step: 4, nameZh: '太极归真', nameEn: 'Taiji Expansion' },
     { step: 5, nameZh: '双门齐开', nameEn: 'Dual Portals' }
   ];
 
@@ -308,12 +307,12 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             </div>
           </div>
 
-          {/* 最后一幕：八卦阵从小变大向外扩张逐渐淡化 (位于双门背后作为盛大背景光波) */}
+          {/* 最后一幕：纯净太极阴阳鱼从小变大向外扩张逐渐淡化 (位于双门背后作为盛大背景光波) */}
           <div
-            ref={finaleBaguaRef}
+            ref={finaleSymbolRef}
             className="absolute flex items-center justify-center pointer-events-none z-10 filter drop-shadow-2xl opacity-0"
           >
-            <BaguaOrbitalCompass size={560} interactive={false} accentColor="#DC2626" />
+            <YinYangFish size={240} glow={true} spin={true} />
           </div>
 
           {/* 阶段 4 & 5：双门现世定格入口 (Final Portals Settle) */}
@@ -325,7 +324,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/12 shadow-xl flex flex-col justify-between text-left hover:scale-102 transition-transform">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-3xl">☯️</span>
+                  <YinYangFish size={28} />
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#111111] text-[#FFFDF9]">
                     {lang === 'zh' ? '东方系统' : 'Eastern'}
                   </span>

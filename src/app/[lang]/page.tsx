@@ -4,6 +4,7 @@ import { MasterScrollytellingHero } from '@/components/portal/MasterScrollytelli
 import { HeroFloatingCards } from '@/components/tarot/HeroFloatingCards';
 import { DailyDrawWidget } from '@/components/tarot/DailyDrawWidget';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Heart } from 'lucide-react';
+import { YinYangFish } from '@/components/common/YinYangFish';
 
 export default async function MasterPortalPage({
   params
@@ -118,7 +119,11 @@ export default async function MasterPortalPage({
       {/* 4. 东西合璧哲学背景 (荣格心理学共时性) */}
       <section className="w-full max-w-4xl mx-auto px-5 py-16">
         <div className="rounded-3xl bg-[#FAF6ED] ring-1 ring-[#111111]/10 p-8 sm:p-12 text-center">
-          <span className="text-3xl mb-3 block">☯️ ✦ 🔮</span>
+          <div className="flex items-center justify-center gap-2 mb-3 text-xl text-[#8C6D23]">
+            <YinYangFish size={24} spin={false} />
+            <span>✦</span>
+            <span>🔮</span>
+          </div>
           <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#111111] mb-3">
             东方生克，西方原型 · 终归天人之镜
           </h2>

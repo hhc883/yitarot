@@ -11,6 +11,7 @@ import {
   HexagramData
 } from '@/lib/metaphysics/iching';
 import { Sparkles, RotateCcw, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { YinYangFish } from '@/components/common/YinYangFish';
 
 gsap.registerPlugin(useGSAP);
 
@@ -250,8 +251,9 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
     <div ref={containerRef} className="w-full max-w-4xl mx-auto flex flex-col items-center">
       {/* 提问框 */}
       <div className="w-full max-w-2xl mb-8 p-5 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs">
-        <label className="block text-xs font-semibold text-[#8C6D23] mb-2">
-          ☯️ 凝神默念心事，向周易六十四卦叩问
+        <label className="flex items-center gap-1.5 text-xs font-semibold text-[#8C6D23] mb-2">
+          <YinYangFish size={14} spin={false} />
+          <span>凝神默念心事，向周易六十四卦叩问</span>
         </label>
         <input
           type="text"

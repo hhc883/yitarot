@@ -47,13 +47,14 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
           {/* 东方周易 */}
           <Link
             href={`/${lang}/fatemaster`}
-            className={`px-3 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-colors flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-colors flex items-center gap-1.5 ${
               isEastern
                 ? 'bg-[#111111] text-[#FFFDF9]'
                 : 'text-[#5C5549] hover:bg-[#FAF6ED] hover:text-[#111111]'
             }`}
           >
-            <span>☯️ 东方周易</span>
+            <YinYangFish size={15} spin={false} />
+            <span>东方周易</span>
           </Link>
 
           {/* 西方塔罗 */}
@@ -132,9 +133,10 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
           <Link
             href={`/${lang}/fatemaster`}
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#111111] hover:bg-[#FAF6ED]"
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-[#111111] hover:bg-[#FAF6ED]"
           >
-            ☯️ 东方周易 · FateMaster
+            <YinYangFish size={16} spin={false} />
+            <span>东方周易 · FateMaster</span>
           </Link>
           <Link
             href={`/${lang}/reading`}
