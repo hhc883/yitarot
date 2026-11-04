@@ -6,6 +6,12 @@ import { DailyDrawWidget } from '@/components/tarot/DailyDrawWidget';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Heart } from 'lucide-react';
 import { YinYangFish } from '@/components/common/YinYangFish';
 
+export const instant = false;
+
+export async function generateStaticParams() {
+  return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
 export default async function MasterPortalPage({
   params
 }: {

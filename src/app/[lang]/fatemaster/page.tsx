@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Flame, BookOpen } from 'lucide-react';
 import { YinYangFish } from '@/components/common/YinYangFish';
 
+export const instant = false;
+
+export async function generateStaticParams() {
+  return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
 export default async function FateMasterHomePage({
   params
 }: {
