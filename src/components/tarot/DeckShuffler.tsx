@@ -147,10 +147,13 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
 
   const allFlipped = drawnCards.length > 0 && flippedStates.length === spread.cardCount && flippedStates.every(Boolean);
 
-  // 当全部翻开时触发父组件回调
+  // 当全部翻开时，延迟 1.4 秒平滑过渡，让用户清晰看到全部抽出的牌面
   useEffect(() => {
     if (allFlipped && drawnCards.length === spread.cardCount) {
-      onCardsReady(drawnCards);
+      const timer = setTimeout(() => {
+        onCardsReady(drawnCards);
+      }, 1400);
+      return () => clearTimeout(timer);
     }
   }, [allFlipped, drawnCards, onCardsReady, spread.cardCount]);
 
@@ -258,10 +261,21 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
             })}
           </div>
 
-          {!allFlipped && (
+          {!allFlipped ? (
             <div className="mt-8 text-center text-xs text-[#736B5E] flex items-center justify-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-[#E8CF86]" />
               <span>凭你的最初直觉逐一点选翻牌，感受潜意识的第一瞬触动。</span>
+            </div>
+          ) : (
+            <div className="mt-8 flex flex-col items-center animate-in fade-in zoom-in-95 duration-500">
+              <button
+                type="button"
+                onClick={() => onCardsReady(drawnCards)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] shadow-xl border border-[#E8CF86]/40 text-xs sm:text-sm font-serif font-medium transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-[#FFE59A] animate-spin" />
+                <span>牌阵全部揭晓 · 正在推演解牌中...</span>
+              </button>
             </div>
           )}
         </div>

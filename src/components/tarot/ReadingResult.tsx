@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { DrawnCard } from '@/lib/tarot/deck';
 import { TarotReader } from '@/lib/tarot/readers';
+import { TarotCardView } from './TarotCardView';
 import { Sparkles, Share2, MessageCircle, Send, RotateCcw, Copy, Check } from 'lucide-react';
 
 interface ReadingResultProps {
@@ -111,24 +112,50 @@ export function ReadingResult({
         </div>
       </div>
 
-      {/* 牌卡摘要胶囊列 */}
-      <div className="w-full flex flex-wrap items-center justify-center gap-2.5 mb-6">
-        {drawnCards.map((c, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#FFFDF9] border border-[#1E1B18]/10 shadow-xs text-xs"
-          >
-            <span className="text-[#8C6D23] font-serif font-bold">[{c.positionName}]</span>
-            <span className="font-medium text-[#1E1B18]">{c.card.nameZh}</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-sm ${
-                c.isReversed ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
-              }`}
-            >
-              {c.isReversed ? '逆位' : '正位'}
-            </span>
+      {/* 核心抽牌牌阵展示区 (绝不折叠，高清大图完整展现) */}
+      <div className="w-full mb-8">
+        <div className="flex items-center justify-between mb-4 px-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#8C6D23] animate-pulse" />
+            <h3 className="font-serif font-bold text-sm sm:text-base text-[#1E1B18]">
+              所抽神谕牌阵（共 {drawnCards.length} 张）
+            </h3>
           </div>
-        ))}
+          <span className="text-[11px] text-[#736B5E] font-serif">
+            点击卡牌可翻转查看背影
+          </span>
+        </div>
+
+        {/* 卡牌横排网格 */}
+        <div className="w-full flex flex-wrap justify-center gap-4 sm:gap-6 items-start">
+          {drawnCards.map((c, i) => (
+            <div
+              key={i}
+              className="flex flex-col items-center p-3 sm:p-4 rounded-3xl bg-[#FFFDF9] border border-[#1E1B18]/10 shadow-xs hover:shadow-md hover:border-[#C29026]/40 transition-all"
+            >
+              {/* 站位标签 */}
+              <div className="text-center mb-3">
+                <span className="inline-block text-[11px] font-semibold text-[#8C6D23] bg-[#FFE59A]/35 px-2.5 py-0.5 rounded-full mb-1">
+                  {i + 1}. {c.positionName}
+                </span>
+                {c.positionDesc && (
+                  <p className="text-[10px] text-[#736B5E] max-w-[150px] truncate" title={c.positionDesc}>
+                    {c.positionDesc}
+                  </p>
+                )}
+              </div>
+
+              {/* 3D 卡牌实体 */}
+              <TarotCardView
+                card={c.card}
+                isReversed={c.isReversed}
+                isFlipped={true}
+                size="md"
+                showDetails={true}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* AI 解读正文报告 */}
