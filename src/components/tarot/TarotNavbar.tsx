@@ -81,17 +81,6 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
           >
             会员订阅
           </Link>
-
-          <Link
-            href={`/${lang}/demo`}
-            className={`px-3 py-1.5 rounded-full text-xs lg:text-sm font-medium transition-colors flex items-center gap-1 ${
-              pathname.includes('/demo')
-                ? 'bg-[#E8CF86] text-[#111111] font-bold shadow-xs'
-                : 'text-[#8C6D23] bg-[#FFE59A]/30 hover:bg-[#FFE59A]/50'
-            }`}
-          >
-            <span>✨ 动效实验室</span>
-          </Link>
         </nav>
 
         {/* 右侧操作区 */}
@@ -167,13 +156,6 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#111111] hover:bg-[#FAF6ED]"
           >
             会员订阅
-          </Link>
-          <Link
-            href={`/${lang}/demo`}
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#8C6D23] font-bold bg-[#FFE59A]/30 hover:bg-[#FFE59A]/50"
-          >
-            ✨ 动效实验室 (Marvis 实验)
           </Link>
           <div className="pt-3 border-t border-[#111111]/10 flex justify-between items-center px-3">
             <span className="text-xs text-[#736B5E]">当前语言</span>

@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Flame, BookOpen } from 'lucide-react';
-import { BaguaOrbitalCompass } from '@/components/fatemaster/BaguaOrbitalCompass';
+import { YinYangFish } from '@/components/common/YinYangFish';
 
 export default async function FateMasterHomePage({
   params
@@ -15,6 +15,11 @@ export default async function FateMasterHomePage({
     <div className="w-full flex flex-col items-center">
       {/* 头部 Hero */}
       <section className="w-full max-w-5xl mx-auto px-4 pt-16 pb-20 text-center flex flex-col items-center">
+        {/* 太极阴阳鱼核心图腾 */}
+        <div className="mb-6 flex justify-center">
+          <YinYangFish size={84} spin={true} glow={true} />
+        </div>
+
         <div className="inline-flex items-center gap-2 rounded-full bg-[#FFE59A]/30 border border-[#E8CF86]/50 px-4 py-1.5 text-xs font-medium text-[#8C6D23] mb-6">
           <Sparkles className="w-3.5 h-3.5" />
           <span>FateMaster · AI 驱动的东方智慧解析系统</span>
@@ -45,11 +50,6 @@ export default async function FateMasterHomePage({
             <span>周易六爻神谕</span>
             <Compass className="w-4 h-4 text-[#8C6D23]" />
           </Link>
-        </div>
-
-        {/* 南孚灵感：八卦周天星轨同心罗盘核心展台 */}
-        <div className="mt-14 flex flex-col items-center">
-          <BaguaOrbitalCompass size={440} accentColor="#DC2626" interactive={true} />
         </div>
       </section>
 
