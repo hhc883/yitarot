@@ -5,6 +5,7 @@ import Link from 'next/link';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Flame } from 'lucide-react';
+import { YinYangFish } from '@/components/common/YinYangFish';
 
 gsap.registerPlugin(useGSAP);
 
@@ -90,12 +91,12 @@ export function MasterPortalHero({ lang = 'zh' }: { lang?: string }) {
         onMouseLeave={handleMouseLeave}
         className="relative grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-5xl mx-auto"
       >
-        {/* 中心阴阳连结标牌 */}
+        {/* 中心阴阳连结标牌 (纯矢量清晰阴阳鱼) */}
         <div
           ref={centerSymbolRef}
-          className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 w-16 h-16 rounded-full bg-[#FFFDF9] border-2 border-[#E8CF86] shadow-xl items-center justify-center pointer-events-none select-none text-2xl"
+          className="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none select-none filter drop-shadow-xl"
         >
-          ☯️
+          <YinYangFish size={58} spin={false} glow={true} />
         </div>
 
         {/* 东方门：FateMaster (周易 / 八字 / 六爻) */}

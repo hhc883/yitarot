@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Sparkles, Menu, X, ChevronDown } from 'lucide-react';
+import { YinYangFish } from '@/components/common/YinYangFish';
 
 export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   const pathname = usePathname();
@@ -17,8 +18,8 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* 左侧品牌 Logo */}
         <Link href={`/${lang}`} className="flex items-center gap-2 group">
-          <div className="w-9 h-9 rounded-xl bg-[#111111] flex items-center justify-center text-[#FFE59A] shadow-xs group-hover:scale-105 transition-transform text-lg">
-            ☯️
+          <div className="w-9 h-9 rounded-xl bg-[#FFFDF9] border border-[#E8CF86]/60 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+            <YinYangFish size={26} spin={false} glow={false} />
           </div>
           <div className="flex flex-col">
             <span className="font-serif font-black text-lg sm:text-xl tracking-tight text-[#111111]">

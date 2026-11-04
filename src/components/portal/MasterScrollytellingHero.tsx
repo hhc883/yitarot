@@ -7,6 +7,7 @@ import { useGSAP } from '@gsap/react';
 import { Sparkles, ArrowRight, Compass, ShieldCheck, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { BaguaOrbitalCompass } from '@/components/fatemaster/BaguaOrbitalCompass';
+import { YinYangFish } from '@/components/common/YinYangFish';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -217,14 +218,12 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
 
         {/* 中央舞台核心视差层 */}
         <div className="relative z-20 flex-1 flex items-center justify-center w-full max-w-6xl mx-auto px-4">
-          {/* 阶段 1：中心巨幅缩放太极印 */}
+          {/* 阶段 1：中心高精度清晰阴阳鱼 (纯矢量自生成，温润宣纸与浓淡墨韵) */}
           <div
             ref={centralSymbolRef}
             className="absolute flex items-center justify-center select-none filter drop-shadow-2xl"
           >
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-2 border-[#E8CF86]/70 bg-[#FFFDF9] shadow-2xl flex items-center justify-center text-5xl sm:text-6xl animate-[spin_30s_linear_infinite]">
-              ☯️
-            </div>
+            <YinYangFish size={150} spin={true} glow={true} accentColor="#8C6D23" />
           </div>
 
           {/* 阶段 1 文案：混沌无极 */}
