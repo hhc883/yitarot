@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-import { Sparkles, ArrowRight, Compass, ShieldCheck, ChevronDown } from 'lucide-react';
+import { Sparkles, ArrowRight, Compass, ShieldCheck, ChevronDown, SkipForward } from 'lucide-react';
 import Link from 'next/link';
 import { YinYangFish } from '@/components/common/YinYangFish';
 
@@ -17,6 +17,7 @@ interface MasterScrollytellingHeroProps {
 export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pinStageRef = useRef<HTMLDivElement>(null);
+  const scrollTriggerInstanceRef = useRef<ScrollTrigger | null>(null);
 
   // 动画图层与节点
   const bgLayerRef = useRef<HTMLDivElement>(null);
@@ -26,18 +27,32 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
   const cardsGroupRef = useRef<HTMLDivElement>(null);
   const heroCoinRef = useRef<HTMLDivElement>(null);
   const heroTarotRef = useRef<HTMLDivElement>(null);
-  const finaleSymbolRef = useRef<HTMLDivElement>(null); // 最后一幕：从小变大向外扩张淡化的阴阳鱼图腾
   const portalsFinalRef = useRef<HTMLDivElement>(null);
 
-  // 5 步步进状态
+  // 4 步步进状态
   const [activeStep, setActiveStep] = useState<number>(1);
+
+  // 跳过交互直接前往双门定格
+  const handleSkip = () => {
+    if (scrollTriggerInstanceRef.current) {
+      window.scrollTo({
+        top: scrollTriggerInstanceRef.current.end,
+        behavior: 'smooth'
+      });
+    } else if (containerRef.current) {
+      window.scrollTo({
+        top: containerRef.current.offsetTop + containerRef.current.offsetHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   useGSAP(() => {
     if (!pinStageRef.current || !containerRef.current) return;
 
-    // 响应式滚动配置 (Desktop +=600%, Mobile +=450%)
+    // 响应式滚动配置 (Desktop +=500%, Mobile +=380%)
     const isMobile = window.innerWidth < 768;
-    const endDistance = isMobile ? '+=450%' : '+=600%';
+    const endDistance = isMobile ? '+=380%' : '+=500%';
     const zoomScale = isMobile ? 4.5 : 6.8;
 
     const tl = gsap.timeline({
@@ -49,12 +64,15 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
         end: endDistance,
         invalidateOnRefresh: true,
         onUpdate: (self) => {
+          scrollTriggerInstanceRef.current = self;
           const p = self.progress;
-          const step = p < 0.2 ? 1 : p < 0.4 ? 2 : p < 0.6 ? 3 : p < 0.8 ? 4 : 5;
+          const step = p < 0.25 ? 1 : p < 0.5 ? 2 : p < 0.75 ? 3 : 4;
           setActiveStep(step);
         }
       }
     });
+
+    scrollTriggerInstanceRef.current = tl.scrollTrigger ?? null;
 
     // 1. 阶段一：太极图腾极速巨幅推进 (scale: 1 -> 6.8)，背景自暖纸色嬗变为深夜星空
     tl.fromTo(
@@ -115,8 +133,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
       )
       .to(title2Ref.current, { yPercent: -100, opacity: 0, duration: 1.2 }, '-=1');
 
-    // 4. 阶段四 & 五（最后一幕核心）：
-    // 铜钱与塔罗牌散作星光退场，八卦阵自中心从小变大向外扩张并逐渐淡化，双门开幕
+    // 4. 阶段四（终幕开门）：铜钱与塔罗牌退场，背景归于澄澈暖纸色，双门端然落定
     tl.to(cardsGroupRef.current, {
       yPercent: -120,
       opacity: 0,
@@ -129,31 +146,11 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
         { backgroundColor: '#FAF7F2', color: '#111111', duration: 2, ease: 'power1.inOut' },
         '<'
       )
-      // 【用户核心要求】最后一幕：太极阴阳鱼从小变大向外扩张逐渐淡化
-      // 步骤 a: 纯净阴阳鱼自中心从小凝聚显现 (scale: 0.25 -> 1, opacity: 0 -> 1)
-      .fromTo(
-        finaleSymbolRef.current,
-        { scale: 0.25, opacity: 0, rotation: -60 },
-        { scale: 1, opacity: 1, rotation: 0, duration: 1.6, ease: 'power2.out' },
-        '-=1.3'
-      )
-      // 步骤 b: 随着滚轮滑动，阴阳鱼向外巨幅扩散 (scale: 1 -> 4.5)，并逐渐淡化消散 (opacity: 1 -> 0)
-      .to(
-        finaleSymbolRef.current,
-        {
-          scale: isMobile ? 3.0 : 4.6,
-          opacity: 0,
-          rotation: 60,
-          duration: 2.4,
-          ease: 'power1.inOut'
-        }
-      )
-      // 步骤 c: 伴随太极光波向外荡漾消散，双门入口端然落定
       .fromTo(
         portalsFinalRef.current,
         { yPercent: 60, opacity: 0, scale: 0.85 },
         { yPercent: 0, opacity: 1, scale: 1, duration: 2.2, ease: 'back.out(1.4)' },
-        '-=2.0'
+        '-=1.2'
       );
   }, { scope: containerRef });
 
@@ -161,8 +158,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
     { step: 1, nameZh: '混沌初开', nameEn: 'The Void' },
     { step: 2, nameZh: '两仪显化', nameEn: 'Dual Archetypes' },
     { step: 3, nameZh: '数象相生', nameEn: 'Oracle Resonance' },
-    { step: 4, nameZh: '太极归真', nameEn: 'Taiji Expansion' },
-    { step: 5, nameZh: '双门齐开', nameEn: 'Dual Portals' }
+    { step: 4, nameZh: '双门齐开', nameEn: 'Dual Portals' }
   ];
 
   return (
@@ -307,15 +303,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             </div>
           </div>
 
-          {/* 最后一幕：纯净太极阴阳鱼从小变大向外扩张逐渐淡化 (位于双门背后作为盛大背景光波) */}
-          <div
-            ref={finaleSymbolRef}
-            className="absolute flex items-center justify-center pointer-events-none z-10 filter drop-shadow-2xl opacity-0"
-          >
-            <YinYangFish size={240} glow={true} spin={true} />
-          </div>
-
-          {/* 阶段 4 & 5：双门现世定格入口 (Final Portals Settle) */}
+          {/* 阶段 4：双门现世定格入口 (Final Portals Settle) */}
           <div
             ref={portalsFinalRef}
             className="relative z-20 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 p-4"
@@ -388,10 +376,30 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
           </div>
         </div>
 
-        {/* 底部微信息与步骤计数 */}
-        <div className="relative z-30 max-w-7xl mx-auto w-full px-5 pb-5 flex justify-between items-center text-[11px] opacity-60">
-          <span>{lang === 'zh' ? '双门合一 · 荣格共时性驱动' : 'Dual Portals · Powered by Synchronicity'}</span>
-          <span>{lang === 'zh' ? `步骤 ${activeStep} / 5` : `Step ${activeStep} / 5`}</span>
+        {/* 底部微信息与步骤计数 & 右下角跳过交互按钮 */}
+        <div className="relative z-30 max-w-7xl mx-auto w-full px-5 pb-5 flex justify-between items-center text-[11px]">
+          <span className="hidden sm:inline opacity-60">
+            {lang === 'zh' ? '双门合一 · 荣格共时性驱动' : 'Dual Portals · Powered by Synchronicity'}
+          </span>
+
+          <div className="flex items-center gap-3 ml-auto">
+            <span className="opacity-60 font-serif mr-1">
+              {lang === 'zh' ? `步骤 ${activeStep} / 4` : `Step ${activeStep} / 4`}
+            </span>
+
+            {/* 右下角跳过交互按钮 */}
+            {activeStep < 4 && (
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#111111]/85 hover:bg-[#111111] backdrop-blur-md text-[#FFFDF9] text-xs font-serif font-medium shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 group border border-white/15 cursor-pointer"
+                title={lang === 'zh' ? '跳过开幕交互，直接启幕双门' : 'Skip intro and reveal portals'}
+              >
+                <span>{lang === 'zh' ? '跳过交互' : 'Skip Intro'}</span>
+                <SkipForward className="w-3.5 h-3.5 text-[#E8CF86] group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </section>
