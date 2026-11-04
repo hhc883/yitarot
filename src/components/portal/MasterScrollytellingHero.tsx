@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -291,24 +292,32 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
               </div>
             </div>
 
-            {/* 西方代表：韦特命运之轮立体金卡 */}
+            {/* 西方代表：韦特命运之轮立体金卡 (真实高清艺术插画) */}
             <div
               ref={heroTarotRef}
-              className="w-32 h-50 sm:w-44 sm:h-64 rounded-3xl bg-[#FFFDF9] ring-2 ring-[#E8CF86] p-4 shadow-2xl flex flex-col justify-between text-[#111111]"
+              className="w-34 h-54 sm:w-46 sm:h-72 rounded-3xl bg-[#FFFDF9] ring-2 ring-[#E8CF86] p-2.5 sm:p-3 shadow-2xl flex flex-col justify-between text-[#111111] overflow-hidden"
             >
-              <div className="flex justify-between items-center text-xs text-[#8C6D23] font-serif">
-                <span>X</span>
-                <span>ROTA</span>
+              <div className="flex justify-between items-center text-[10px] sm:text-xs text-[#8C6D23] font-serif font-bold pb-1 border-b border-[#E8CF86]/40">
+                <span>X · ROTA</span>
+                <span>WHEEL OF FORTUNE</span>
               </div>
-              <div className="text-center my-auto">
-                <span className="text-3xl sm:text-4xl block mb-2">🎡</span>
-                <span className="font-serif font-black text-xs sm:text-sm block">WHEEL OF FORTUNE</span>
-                <span className="text-[10px] text-[#736B5E] block mt-1">
-                  {lang === 'zh' ? '命运之轮' : 'The Destiny'}
-                </span>
+
+              {/* 核心真实塔罗插画 */}
+              <div className="relative my-1 flex-1 w-full rounded-xl overflow-hidden border border-[#C29026]/30 shadow-inner bg-[#FAF6ED]">
+                <Image
+                  src="/cards/major-arcana/wheel-of-fortune.webp"
+                  alt="Wheel of Fortune"
+                  fill
+                  sizes="(max-width: 640px) 140px, 200px"
+                  className="object-cover"
+                  priority
+                />
+                <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-black/5 via-transparent to-white/10" />
               </div>
-              <div className="text-center text-[9px] text-[#8C6D23] font-serif">
-                T-A-R-O
+
+              <div className="pt-1 border-t border-[#E8CF86]/40 flex justify-between items-center px-1 text-[9px] sm:text-[10px] font-serif text-[#8C6D23]">
+                <span className="font-bold">{lang === 'zh' ? '命运之轮' : 'The Destiny'}</span>
+                <span className="tracking-widest">T-A-R-O</span>
               </div>
             </div>
           </div>

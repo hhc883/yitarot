@@ -58,10 +58,10 @@ export default function CardsEncyclopediaPage() {
           {[
             { id: 'all' as TabType, label: '全部 (78)' },
             { id: 'major' as TabType, label: '大阿卡纳 (22)' },
-            { id: 'wands' as TabType, label: '权杖 (火)' },
-            { id: 'cups' as TabType, label: '圣杯 (水)' },
-            { id: 'swords' as TabType, label: '宝剑 (风)' },
-            { id: 'pentacles' as TabType, label: '星币 (土)' }
+            { id: 'wands' as TabType, label: '权杖 · 火 (14)' },
+            { id: 'cups' as TabType, label: '圣杯 · 水 (14)' },
+            { id: 'swords' as TabType, label: '宝剑 · 风 (14)' },
+            { id: 'pentacles' as TabType, label: '星币 · 土 (14)' }
           ].map(tab => (
             <button
               key={tab.id}

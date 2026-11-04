@@ -786,7 +786,1622 @@ export const TAROT_DECK: TarotCardData[] = [
     symbolism: '成熟葡萄藤与公牛代表金牛座的沉稳、丰裕与坚实资产。',
     visualTheme: { primaryColor: '#1B5E20', accentColor: '#E8F5E9', motif: 'vine-bull-throne' }
   }
+,
+{
+  "id": "wands_2",
+  "slug": "two-of-wands",
+  "number": 2,
+  "nameZh": "权杖二",
+  "nameEn": "Two of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "远景规划",
+    "踌躇满志",
+    "掌控局面",
+    "蓄势出征"
+  ],
+  "uprightKeywords": [
+    "登高谋远",
+    "决策时刻",
+    "胸怀寰宇",
+    "拓展野心"
+  ],
+  "reversedKeywords": [
+    "瞻前顾后",
+    "惧怕未知",
+    "计划滞后",
+    "眼高手低"
+  ],
+  "uprightMeaning": "立于城堡城墙之上的领主手握地球仪，凝望远方海天一色。你已经打下坚实基础，此刻正站在人生的十字路口，筹谋更宏大的出海航程。",
+  "reversedMeaning": "面对走出舒适圈的未知感到犹豫不决，或是规划过于脱离实际。需要果断下定决心，脚踏实地迈出第一步。",
+  "loveMeaning": "正位预示共同规划长远未来与人生蓝图；逆位提示对异地或未来方向产生分歧。",
+  "careerMeaning": "正位是制定战略扩张、跨行业发展的黄金期；逆位提醒谨防眼高手低。",
+  "advice": "世界尽在你的掌握之中，相信你的远见并制定缜密的行动方案。",
+  "symbolism": "地球仪代表全球视野与远大野心，玫瑰与百合雕刻象征热情与纯正动机。",
+  "visualTheme": {
+    "primaryColor": "#E65100",
+    "accentColor": "#FFF3E0",
+    "motif": "globe-battlements"
+  }
+},
+{
+  "id": "wands_5",
+  "slug": "five-of-wands",
+  "number": 5,
+  "nameZh": "权杖五",
+  "nameEn": "Five of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "良性竞争",
+    "头脑风暴",
+    "意见分歧",
+    "混战试炼"
+  ],
+  "uprightKeywords": [
+    "竞技切磋",
+    "各抒己见",
+    "活力碰撞",
+    "脱颖而出"
+  ],
+  "reversedKeywords": [
+    "恶性内耗",
+    "无端冲突",
+    "逃避竞争",
+    "疲于应对"
+  ],
+  "uprightMeaning": "五位青年手持木杖各显身手，相互比试切磋。这并非你死我活的搏杀，而是思想、才智与能力的试金石，是一次充满活力的良性竞争。",
+  "reversedMeaning": "警惕团队内部由良性讨论演变为意气之争或毫无意义的内耗。学会倾听并寻找共识。",
+  "loveMeaning": "正位提示恋爱关系中的欢喜冤家斗嘴磨合；逆位提醒注意别把玩笑上升为伤害。",
+  "careerMeaning": "正位代表职场竞争激烈但充满机遇，头脑风暴激发灵感；逆位警惕部门内卷。",
+  "advice": "在竞争中展现你的独门才华，把分歧当作成长的催化剂。",
+  "symbolism": "交错的长杖代表各方力量的碰撞与平衡。",
+  "visualTheme": {
+    "primaryColor": "#D84315",
+    "accentColor": "#FBE9E7",
+    "motif": "clashing-staves"
+  }
+},
+{
+  "id": "wands_6",
+  "slug": "six-of-wands",
+  "number": 6,
+  "nameZh": "权杖六",
+  "nameEn": "Six of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "胜利凯旋",
+    "众望所归",
+    "公开表彰",
+    "荣耀桂冠"
+  ],
+  "uprightKeywords": [
+    "大获全胜",
+    "名誉加身",
+    "自信昂扬",
+    "备受瞩目"
+  ],
+  "reversedKeywords": [
+    "骄兵必败",
+    "短暂风光",
+    "跌落神坛",
+    "缺乏认同"
+  ],
+  "uprightMeaning": "头戴月桂冠的骑士骑着披挂整齐的白马凯旋而归，随从们手持权杖夹道欢呼。你在经历一番奋斗后赢得了瞩目的成功与公众的认可。",
+  "reversedMeaning": "成就未能获得预期赞赏，或因过早自满而忽视潜在隐患。保持谦逊，真正的胜利经得起时间考验。",
+  "loveMeaning": "正位预示恋情得到众人祝福，双方相互仰慕；逆位提示一方过于自负导致失衡。",
+  "careerMeaning": "正位代表晋升获誉、项目大成、在行业中声名鹊起；逆位警惕过誉后心态失衡。",
+  "advice": "享受胜利的荣光，同时感恩一路相伴支持你的伙伴。",
+  "symbolism": "月桂冠与白马代表纯洁而崇高的胜利，群众的长杖象征集体力量的支持。",
+  "visualTheme": {
+    "primaryColor": "#FF6F00",
+    "accentColor": "#FFF8E1",
+    "motif": "laurel-white-horse"
+  }
+},
+{
+  "id": "wands_7",
+  "slug": "seven-of-wands",
+  "number": 7,
+  "nameZh": "权杖七",
+  "nameEn": "Seven of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "据守阵地",
+    "孤身坚守",
+    "以一敌众",
+    "顽强不屈"
+  ],
+  "uprightKeywords": [
+    "居高临下",
+    "寸土不让",
+    "坚守原则",
+    "化解围攻"
+  ],
+  "reversedKeywords": [
+    "孤立无援",
+    "被迫退让",
+    "精疲力竭",
+    "防线崩溃"
+  ],
+  "uprightMeaning": "青年站在高岗之上，手持权杖顽强抵御下方六根长杖的进攻。尽管面临多方质疑与竞争挑战，但由于占据制高点，只要坚守立场必能笑到最后。",
+  "reversedMeaning": "外部压力排山倒海，感到身心俱疲。需要重新评估防守策略，适时寻求盟友支援。",
+  "loveMeaning": "正位代表排除万难捍卫真爱；逆位提示外在舆论或家庭反对给感情造成沉重压力。",
+  "careerMeaning": "正位是面对同行竞争或团队异见坚守自己方案并成功突围；逆位警惕孤立无援。",
+  "advice": "站稳脚跟，你占据着道德或战略的高地，胜利属于坚毅者。",
+  "symbolism": "悬崖峭壁代表优势地形，不同鞋子暗示局势的突发与紧迫。",
+  "visualTheme": {
+    "primaryColor": "#E64A19",
+    "accentColor": "#FBE9E7",
+    "motif": "ridge-defender"
+  }
+},
+{
+  "id": "wands_8",
+  "slug": "eight-of-wands",
+  "number": 8,
+  "nameZh": "权杖八",
+  "nameEn": "Eight of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "急速进展",
+    "喜讯传来",
+    "势如破竹",
+    "空中飞驰"
+  ],
+  "uprightKeywords": [
+    "速战速决",
+    "消息通畅",
+    "一马平川",
+    "迅速成真"
+  ],
+  "reversedKeywords": [
+    "杂乱无章",
+    "计划延误",
+    "沟通受阻",
+    "草率冲动"
+  ],
+  "uprightMeaning": "八根长杖在澄澈晴空中如箭矢般整齐划一地飞向大地。停滞与阻碍已经烟消云散，所有的构想与愿望正在以难以置信的速度落地生根。",
+  "reversedMeaning": "进展受阻出现延迟，或是节奏过快导致细节出错。请深呼吸，理顺事务的轻重缓急。",
+  "loveMeaning": "正位象征闪电恋爱、迅速确立关系或远方爱人的飞奔而至；逆位提醒节奏过快缺乏了解。",
+  "careerMeaning": "正位预示项目超速推进、重要商务邀约密集降临；逆位警惕信息过载。",
+  "advice": "顺应这股飞驰的势头，瞄准目标全力以赴，好消息即将敲门。",
+  "symbolism": "飞行的长杖没有任何人物，象征纯粹不受阻碍的动态能量。",
+  "visualTheme": {
+    "primaryColor": "#F57C00",
+    "accentColor": "#FFF3E0",
+    "motif": "flying-staves"
+  }
+},
+{
+  "id": "wands_9",
+  "slug": "nine-of-wands",
+  "number": 9,
+  "nameZh": "权杖九",
+  "nameEn": "Nine of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "坚韧不拔",
+    "最后一役",
+    "伤痕警惕",
+    "筑牢防线"
+  ],
+  "uprightKeywords": [
+    "咬牙坚持",
+    "百折不挠",
+    "保持戒备",
+    "曙光在望"
+  ],
+  "reversedKeywords": [
+    "心力交瘁",
+    "疑神疑鬼",
+    "卸下防备",
+    "临阵放弃"
+  ],
+  "uprightMeaning": "额头缠着绷带的战士手握长杖，身后整齐矗立着坚固的八根栅栏。虽然历经征战伤痕累累，但他依然斗志昂扬。再坚持最后一步，胜利终将属于你。",
+  "reversedMeaning": "过度防备导致神经衰弱，或者在最后关头萌生退意。允许自己短暂喘息，别把所有人都当成敌人。",
+  "loveMeaning": "正位提示过往情伤让你心存戒备，需要时间重新建立信任；逆位建议放下心理包袱。",
+  "careerMeaning": "正位代表项目攻坚最后阶段，咬紧牙关即可突围；逆位警惕过劳。",
+  "advice": "你已经走过了最艰难的九十九步，稳住防线，终点就在眼前。",
+  "symbolism": "绷带代表过往风霜与经验，坚固栅栏象征无懈可击的安全界限。",
+  "visualTheme": {
+    "primaryColor": "#BF360C",
+    "accentColor": "#FBE9E7",
+    "motif": "bandaged-sentinel"
+  }
+},
+{
+  "id": "wands_10",
+  "slug": "ten-of-wands",
+  "number": 10,
+  "nameZh": "权杖十",
+  "nameEn": "Ten of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "重任在肩",
+    "负重前行",
+    "压力巅峰",
+    "交付在即"
+  ],
+  "uprightKeywords": [
+    "承担责任",
+    "坚持不懈",
+    "即将抵达",
+    "分权减负"
+  ],
+  "reversedKeywords": [
+    "重压垮塌",
+    "越俎代庖",
+    "不堪重负",
+    "学会放手"
+  ],
+  "uprightMeaning": "农夫吃力地抱着十根沉重的长杖，步履艰难却坚定地走向不远处的城市。你承担了过多的期望与责任，虽然沉重，但目的地已近在咫尺。",
+  "reversedMeaning": "压力超出负荷极限，不仅影响健康也拖慢效率。学会合理分工，不必事必躬亲。",
+  "loveMeaning": "正位提示一方在感情中承担了过多压力；逆位建议双方坦诚分担生活琐事。",
+  "careerMeaning": "正位象征即将交卷的大项目，虽累但成果丰硕；逆位警惕被无关紧要的杂事压垮。",
+  "advice": "抬头看一看，城镇就在前方。完成这次冲刺后，务必学会给心灵减负。",
+  "symbolism": "被长杖遮挡的视线象征只顾埋头苦干，远方城镇代表即将到来的安宁。",
+  "visualTheme": {
+    "primaryColor": "#A84300",
+    "accentColor": "#FFF3E0",
+    "motif": "heavy-burden-town"
+  }
+},
+{
+  "id": "wands_page",
+  "slug": "page-of-wands",
+  "number": 11,
+  "nameZh": "权杖侍从",
+  "nameEn": "Page of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "探索信使",
+    "好奇热情",
+    "新奇创意",
+    "跃跃欲试"
+  ],
+  "uprightKeywords": [
+    "灵感萌动",
+    "求知若渴",
+    "探索精神",
+    "乐观无畏"
+  ],
+  "reversedKeywords": [
+    "心浮气躁",
+    "眼高手低",
+    "三分钟热度",
+    "不可靠消息"
+  ],
+  "uprightMeaning": "年轻的侍从身着缀满火蜥蜴的华服，双手扶着长杖注视着杖顶长出的绿芽。他充满了对未知世界的好奇心与创造欲，带来充满激情的喜讯。",
+  "reversedMeaning": "空有热情却缺乏持久的执行力，或是轻信了不切实际的传言。",
+  "loveMeaning": "正位预示收到令人心动的表白或开启充满新鲜感的互动；逆位警惕感情中的幼稚不成熟。",
+  "careerMeaning": "正位适合尝试新技能、新岗位或开拓新业务线；逆位提醒落实细节。",
+  "advice": "保持这颗赤诚好奇的童心，大胆去尝试你想做的事情。",
+  "symbolism": "火蜥蜴羽饰象征火元素生生不息的创造活力。",
+  "visualTheme": {
+    "primaryColor": "#FF6D00",
+    "accentColor": "#FFF8E1",
+    "motif": "salamander-page"
+  }
+},
+{
+  "id": "wands_knight",
+  "slug": "knight-of-wands",
+  "number": 12,
+  "nameZh": "权杖骑士",
+  "nameEn": "Knight of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "披荆斩棘",
+    "雷厉风行",
+    "热烈冒险",
+    "勇往直前"
+  ],
+  "uprightKeywords": [
+    "行动敏捷",
+    "魅力四射",
+    "敢打敢拼",
+    "突破局限"
+  ],
+  "reversedKeywords": [
+    "鲁莽冲动",
+    "后劲不足",
+    "脾气暴躁",
+    "半途而废"
+  ],
+  "uprightMeaning": "身披战甲与火焰披风的骑士骑着烈马奔腾向前，手持权杖誓要征服前方的一切险阻。行动力与魄力的巅峰代表，凡事绝不拖泥带水。",
+  "reversedMeaning": "冲动往往伴随着盲目，因急躁冒进导致失误，或承诺过多却无法兑现。",
+  "loveMeaning": "正位象征炙热而猛烈的追求，极具个人魅力；逆位警惕热度来得快去得快。",
+  "careerMeaning": "正位是开拓市场、危机公关的先锋大将；逆位提醒谋定而后动。",
+  "advice": "展现你的魄力与决断，但请给狂奔的骏马套上一根理性的缰绳。",
+  "symbolism": "扬蹄奔腾的战马与飘扬火焰披风象征无可阻挡的意志力。",
+  "visualTheme": {
+    "primaryColor": "#FF3D00",
+    "accentColor": "#FBE9E7",
+    "motif": "charging-fire-knight"
+  }
+},
+{
+  "id": "wands_king",
+  "slug": "king-of-wands",
+  "number": 14,
+  "nameZh": "权杖国王",
+  "nameEn": "King of Wands",
+  "arcana": "minor",
+  "suit": "wands",
+  "element": "fire",
+  "keywords": [
+    "领袖风范",
+    "开创新局",
+    "高瞻远瞩",
+    "振臂一呼"
+  ],
+  "uprightKeywords": [
+    "卓越领导力",
+    "激励人心",
+    "宏图大略",
+    "果敢担当"
+  ],
+  "reversedKeywords": [
+    "专制独裁",
+    "固执己见",
+    "刚愎自用",
+    "急功近利"
+  ],
+  "uprightMeaning": "威严的国王坐在饰有狮子与火蜥蜴的宝座上，手持生机盎然的权杖。他兼具远大抱负与卓越执行力，是充满领袖魅力、能够带领团队开疆拓土的核心人物。",
+  "reversedMeaning": "过于强硬独断，听不进他人的建议，或是制定了不符合实际的过高指标。",
+  "loveMeaning": "正位代表有责任担当、成熟而充满激情的优质伴侣；逆位提示大男子主义倾向。",
+  "careerMeaning": "正位象征英明的创始人、高级总监或战略指挥官；逆位提醒重塑团队民主。",
+  "advice": "用你的热情与愿景去感染身边的人，真正的领袖是在成就他人中成就自己。",
+  "symbolism": "狮子与咬尾火蜥蜴象征完全被驯服与掌控的火之意志。",
+  "visualTheme": {
+    "primaryColor": "#BF360C",
+    "accentColor": "#FFF3E0",
+    "motif": "lion-salamander-throne"
+  }
+},
+{
+  "id": "cups_3",
+  "slug": "three-of-cups",
+  "number": 3,
+  "nameZh": "圣杯三",
+  "nameEn": "Three of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "欢聚庆典",
+    "闺蜜知己",
+    "丰收分享",
+    "举杯同欢"
+  ],
+  "uprightKeywords": [
+    "友谊长青",
+    "团队胜利",
+    "举杯欢庆",
+    "心意相通"
+  ],
+  "reversedKeywords": [
+    "小圈子排挤",
+    "流于表面",
+    "纵欲过度",
+    "聚散匆匆"
+  ],
+  "uprightMeaning": "三位头戴花环的少女在硕果累累的庄园里高举圣杯，翩翩起舞。象征着真挚的情感共鸣、团队的成功庆祝与深厚的友谊。",
+  "reversedMeaning": "社交生活过于频繁导致精力涣散，或者在小圈子中产生微妙的嫉妒与猜疑。",
+  "loveMeaning": "正位预示喜结良缘并获得亲友祝福，或是在社交圈中觅得良人；逆位警惕第三者暧昧插足。",
+  "careerMeaning": "正位代表团队协作无间、项目圆满收尾并举行业务庆功；逆位提示防范无效社交。",
+  "advice": "敞开心扉与你信任的伙伴分享快乐，幸福在分享中成倍增长。",
+  "symbolism": "葡萄与南瓜象征大地与心灵的丰收，三位少女代表三位一体的情感连结。",
+  "visualTheme": {
+    "primaryColor": "#0288D1",
+    "accentColor": "#E1F5FE",
+    "motif": "dancing-maidens"
+  }
+},
+{
+  "id": "cups_4",
+  "slug": "four-of-cups",
+  "number": 4,
+  "nameZh": "圣杯四",
+  "nameEn": "Four of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "情绪倦怠",
+    "错失机缘",
+    "沉溺内省",
+    "冷淡拒绝"
+  ],
+  "uprightKeywords": [
+    "暂时厌倦",
+    "忽视好意",
+    "渴望突破",
+    "反思现状"
+  ],
+  "reversedKeywords": [
+    "重拾热情",
+    "发现新机",
+    "走出封闭",
+    "接受好意"
+  ],
+  "uprightMeaning": "男子双臂抱胸背靠大树，对眼前摆放的三只圣杯视而不见，甚至对云中神手递来的第四只全新圣杯也漠不关心。代表情绪上的倦怠期与对现状的厌倦。",
+  "reversedMeaning": "从封闭低迷的情绪中苏醒过来，重新注意到周围一直被忽略的美好与机会。",
+  "loveMeaning": "正位提示感情进入平淡期或过于挑剔；逆位意味着重新敞开心扉接受浪漫。",
+  "careerMeaning": "正位代表对目前工作失去新鲜感与动力；逆位预示走出迷茫并发现新转机。",
+  "advice": "低头沉思虽好，但也别忘了抬头看看——宇宙赠予你的新礼物正悬于空中。",
+  "symbolism": "交叉的双臂代表防卫与封闭的心境，云中圣杯象征来自更高维度的礼物。",
+  "visualTheme": {
+    "primaryColor": "#0097A7",
+    "accentColor": "#E0F7FA",
+    "motif": "meditating-tree-cups"
+  }
+},
+{
+  "id": "cups_5",
+  "slug": "five-of-cups",
+  "number": 5,
+  "nameZh": "圣杯五",
+  "nameEn": "Five of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "哀悼失去",
+    "执念过往",
+    "尚存希望",
+    "疗愈转念"
+  ],
+  "uprightKeywords": [
+    "伤感遗憾",
+    "聚焦缺憾",
+    "忽视转机",
+    "接纳悲伤"
+  ],
+  "reversedKeywords": [
+    "走出阴霾",
+    "重燃希望",
+    "破涕为笑",
+    "接纳新生"
+  ],
+  "uprightMeaning": "身披黑袍的人物低头哀悼倒在地上、美酒流淌的三只圣杯。然而，只要他转过身来，就会发现身后依然直立着两只装满希望的圣杯。",
+  "reversedMeaning": "你开始从遗憾中汲取智慧，放下对过去的执念，转身拥抱依然留在身边的美好。",
+  "loveMeaning": "正位提示正在经历失恋或感情裂痕的痛楚；逆位预示伤痛痊愈，迎来情感重生。",
+  "careerMeaning": "正位代表某个方案受挫引发懊恼；逆位提醒聚焦剩余的核心资源另辟蹊径。",
+  "advice": "允许自己悲伤，但不要让悲伤遮蔽双眼。转身看看，生活依然为你留有温存。",
+  "symbolism": "倾倒流出的酒水象征情感的宣泄，身后的河流与桥梁代表通往新天地的通路。",
+  "visualTheme": {
+    "primaryColor": "#37474F",
+    "accentColor": "#ECEFF1",
+    "motif": "cloak-spilled-cups"
+  }
+},
+{
+  "id": "cups_6",
+  "slug": "six-of-cups",
+  "number": 6,
+  "nameZh": "圣杯六",
+  "nameEn": "Six of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "童年回忆",
+    "纯真温情",
+    "故人重逢",
+    "温存赠礼"
+  ],
+  "uprightKeywords": [
+    "昔日情怀",
+    "无私关怀",
+    "美好重现",
+    "安全避风港"
+  ],
+  "reversedKeywords": [
+    "沉溺过去",
+    "逃避成年",
+    "告别旧人",
+    "面向未来"
+  ],
+  "uprightMeaning": "在古朴的城堡庭院中，大男孩将一只盛满白花的圣杯温柔地递给小女孩。象征着纯真无瑕的善意、温暖的回忆、故人重聚以及对初心的回归。",
+  "reversedMeaning": "过度怀旧沉湎于旧时光，不愿面对当下的挑战；或是决定告别过去，勇敢走向成熟。",
+  "loveMeaning": "正位预示旧爱重燃、青梅竹马或是像孩子般纯粹的相互照拂；逆位提醒别把回忆当成现实。",
+  "careerMeaning": "正位代表得到老同事、老导师的提携扶持；逆位提示业务需要与时俱进。",
+  "advice": "回忆是力量的源泉，带着那份纯粹的爱与温柔，好好照亮今天的路。",
+  "symbolism": "盛开的白色五瓣花象征无染的纯真，巡逻卫兵代表绝对的安心与守护。",
+  "visualTheme": {
+    "primaryColor": "#0288D1",
+    "accentColor": "#E1F5FE",
+    "motif": "children-flowered-cups"
+  }
+},
+{
+  "id": "cups_7",
+  "slug": "seven-of-cups",
+  "number": 7,
+  "nameZh": "圣杯七",
+  "nameEn": "Seven of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "梦幻泡影",
+    "选择迷局",
+    "欲望诱惑",
+    "看清本质"
+  ],
+  "uprightKeywords": [
+    "丰富想象",
+    "眼花缭乱",
+    "空中楼阁",
+    "甄别虚实"
+  ],
+  "reversedKeywords": [
+    "拨云见日",
+    "目标明确",
+    "脚踏实地",
+    "破除幻想"
+  ],
+  "uprightMeaning": "黑影凝视着云层中漂浮的七只圣杯，每只杯中都装着不同的幻象：城堡、珠宝、桂冠、巨蛇、怪兽、神灵与蒙面人。代表欲望诱惑与眼花缭乱的选择。",
+  "reversedMeaning": "看穿泡沫与虚假承诺，收敛散乱的思绪，选择最务实可行的道路前行。",
+  "loveMeaning": "正位提示过于理想化伴侣或陷入多个暧昧选择；逆位代表看清内心真正所需。",
+  "careerMeaning": "正位警惕画大饼式的商业项目；逆位是去伪存真，聚焦核心商业价值。",
+  "advice": "做梦是创造的第一步，但千万不要在幻境里迷路。用理性刺破泡影，选择真正值得追求的宝石。",
+  "symbolism": "云中各异的奇景象征人类内心不同层次的潜意识欲望与恐惧。",
+  "visualTheme": {
+    "primaryColor": "#5C6BC0",
+    "accentColor": "#EDE7F6",
+    "motif": "cloud-mirage-cups"
+  }
+},
+{
+  "id": "cups_8",
+  "slug": "eight-of-cups",
+  "number": 8,
+  "nameZh": "圣杯八",
+  "nameEn": "Eight of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "转身离去",
+    "精神苦旅",
+    "追求更高",
+    "舍弃安逸"
+  ],
+  "uprightKeywords": [
+    "告别执念",
+    "追寻真理",
+    "深层觉悟",
+    "踏上新途"
+  ],
+  "reversedKeywords": [
+    "安于现状",
+    "惧怕改变",
+    "拖延告别",
+    "徘徊不前"
+  ],
+  "uprightMeaning": "在冷峻的月色下，红袍男子手拄长杖，毅然转身离开精心叠放的八只圣杯，踏上通往崇山峻岭的小径。他并非失败，而是领悟到世俗的圆满已无法满足灵魂的渴望。",
+  "reversedMeaning": "明明知道某段关系或状态已经毫无滋养，却因惧怕孤独或未知而迟迟无法迈出离别的脚步。",
+  "loveMeaning": "正位代表平静地离开一段食之无味弃之可惜的感情；逆位提醒勇敢做出对彼此负责的抉择。",
+  "careerMeaning": "正位预示离开舒适圈去追寻更具精神价值的事业；逆位警惕在鸡肋岗位空耗光阴。",
+  "advice": "有时候离开才是最勇敢的进取。听从内心的召唤，去寻找能真正点亮灵魂的源泉。",
+  "symbolism": "叠放整齐的圣杯代表被主动放弃的世俗成就，残月日食象征心境的深刻蜕变。",
+  "visualTheme": {
+    "primaryColor": "#283593",
+    "accentColor": "#E8EAF6",
+    "motif": "departure-moonlit-mountain"
+  }
+},
+{
+  "id": "cups_9",
+  "slug": "nine-of-cups",
+  "number": 9,
+  "nameZh": "圣杯九",
+  "nameEn": "Nine of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "愿望成真",
+    "心满意足",
+    "富足安康",
+    "神谕许愿"
+  ],
+  "uprightKeywords": [
+    "美梦成真",
+    "喜上眉梢",
+    "怡然自得",
+    "丰盛自足"
+  ],
+  "reversedKeywords": [
+    "贪得无厌",
+    "骄奢淫逸",
+    "表面风光",
+    "虚幻满足"
+  ],
+  "uprightMeaning": "富态安详的男子双臂抱胸，身后整齐弧形陈列着九只金光闪闪的圣杯。这是塔罗中最著名的“许愿牌”，象征着愿望成真、情感富足与对生活的美好享受。",
+  "reversedMeaning": "物质虽然丰厚但精神依然空虚，或是为了虚荣过度消费。",
+  "loveMeaning": "正位代表沉浸在极度甜蜜与满足的情感生活；逆位警惕将伴侣当作炫耀工具。",
+  "careerMeaning": "正位预示达成了梦寐以求的阶段目标并收获满满；逆位提示戒骄戒躁。",
+  "advice": "感恩生活赐予你的丰饶盛宴，你的付出配得上这份从容与满足。",
+  "symbolism": "蓝布背景代表宁静祥和的心态，弧形陈列象征圆融无碍的保护圈。",
+  "visualTheme": {
+    "primaryColor": "#0277BD",
+    "accentColor": "#E1F5FE",
+    "motif": "satisfied-merchant-cups"
+  }
+},
+{
+  "id": "cups_page",
+  "slug": "page-of-cups",
+  "number": 11,
+  "nameZh": "圣杯侍从",
+  "nameEn": "Page of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "灵感信使",
+    "初尝爱意",
+    "创意童真",
+    "直觉萌芽"
+  ],
+  "uprightKeywords": [
+    "浪漫心意",
+    "艺术天赋",
+    "温柔敏感",
+    "善意交流"
+  ],
+  "reversedKeywords": [
+    "情绪脆弱",
+    "过度敏感",
+    "空想幼稚",
+    "玻璃心"
+  ],
+  "uprightMeaning": "清秀的侍从身着印有睡莲的华服站在波光粼粼的岸边，惊奇地注视着从他手中圣杯里探出头来的金色小鱼。象征着浪漫情愫的萌芽、直觉带来的艺术灵感与纯真的善意。",
+  "reversedMeaning": "过于玻璃心、容易被无意之言伤害，或沉溺于白日梦无法落实行动。",
+  "loveMeaning": "正位预示收到温柔动人的情书或心动信号；逆位警惕不切实际的情感寄托。",
+  "careerMeaning": "正位适合从事创意写作、艺术设计或心理咨询；逆位提醒提高抗压能力。",
+  "advice": "像那只从杯中探头的鱼儿一样，倾听内心的直觉之声，用柔软去拥抱世界。",
+  "symbolism": "从圣杯中探头的鱼象征深层潜意识跃向意识层面的顿悟与惊喜。",
+  "visualTheme": {
+    "primaryColor": "#00ACC1",
+    "accentColor": "#E0F7FA",
+    "motif": "fish-in-cup-page"
+  }
+},
+{
+  "id": "cups_knight",
+  "slug": "knight-of-cups",
+  "number": 12,
+  "nameZh": "圣杯骑士",
+  "nameEn": "Knight of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "浪漫追求",
+    "白马王子",
+    "倾注真情",
+    "理想主义"
+  ],
+  "uprightKeywords": [
+    "深情款款",
+    "诚挚邀请",
+    "优雅体贴",
+    "艺术才华"
+  ],
+  "reversedKeywords": [
+    "心怀不轨",
+    "花言巧语",
+    "逃避现实",
+    "情绪化"
+  ],
+  "uprightMeaning": "白马骑士手持圣杯，迈着优雅安详的步伐涉水而来。头盔与战靴饰有飞翼，象征着诗意、浪漫与高尚的求索。他是带来爱、美与深情盟约的使者。",
+  "reversedMeaning": "警惕用甜言蜜语编织的虚假承诺，或者自身过于理想化导致被现实撞碎。",
+  "loveMeaning": "正位象征深情体贴、充满仪式感的追求者或伴侣；逆位提醒提防情感海王。",
+  "careerMeaning": "正位代表凭借人格魅力与高情商促成重要合作；逆位警惕感情用事。",
+  "advice": "让爱与美成为你行动的向导，以最真诚温柔的姿态去对待每一个灵魂。",
+  "symbolism": "赫尔墨斯飞翼代表诗意与神圣讯息，沉静的白马象征驯服的情绪能量。",
+  "visualTheme": {
+    "primaryColor": "#0288D1",
+    "accentColor": "#E1F5FE",
+    "motif": "winged-knight-river"
+  }
+},
+{
+  "id": "cups_queen",
+  "slug": "queen-of-cups",
+  "number": 13,
+  "nameZh": "圣杯王后",
+  "nameEn": "Queen of Cups",
+  "arcana": "minor",
+  "suit": "cups",
+  "element": "water",
+  "keywords": [
+    "慈悲包容",
+    "灵性觉知",
+    "心灵疗愈",
+    "深情守护"
+  ],
+  "uprightKeywords": [
+    "共情力强",
+    "母性光辉",
+    "直觉透彻",
+    "安抚人心"
+  ],
+  "reversedKeywords": [
+    "情绪内耗",
+    "过度溺爱",
+    "多愁善感",
+    "失去边界"
+  ],
+  "uprightMeaning": "王后端坐在海边由美人鱼与海贝装饰的宝座上，全神贯注凝视着手中极其华丽且带盖的圣杯。她是十二星座中水象女性特质的完美结合，拥有无与伦比的同理心与通灵直觉。",
+  "reversedMeaning": "吸收了过多外界负面情绪导致心力交瘁，或是因过度依赖他人而失去自我界限。",
+  "loveMeaning": "正位代表深情专一、能给予灵魂深度慰藉的理想伴侣；逆位提醒保持情感独立。",
+  "careerMeaning": "正位适合做咨询师、心理疗愈师或团队润滑剂；逆位警惕情绪波动影响专业决断。",
+  "advice": "你的温柔与敏锐是无可替代的天赋，守护好你的心之圣杯，在慈悲中保持清醒边界。",
+  "symbolism": "带盖的圣杯代表潜意识深处不可言说的神圣秘密，海边礁石象征情绪与理性的交融。",
+  "visualTheme": {
+    "primaryColor": "#01579B",
+    "accentColor": "#E1F5FE",
+    "motif": "mermaids-chalice-throne"
+  }
+},
+{
+  "id": "swords_2",
+  "slug": "two-of-swords",
+  "number": 2,
+  "nameZh": "宝剑二",
+  "nameEn": "Two of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "两难僵局",
+    "蒙眼静思",
+    "封闭心门",
+    "暂时休战"
+  ],
+  "uprightKeywords": [
+    "内心平衡",
+    "暂缓决断",
+    "排除干扰",
+    "防御姿态"
+  ],
+  "reversedKeywords": [
+    "真相对决",
+    "信息曝光",
+    "打破僵局",
+    "情绪失衡"
+  ],
+  "uprightMeaning": "身着灰袍的女子双目被白布蒙住，双手交叉持双剑护于胸前，背后是暗礁起伏的宁静大海。象征着面对难以抉择的两难境地时，选择屏蔽外界杂音、求得内心片刻平衡。",
+  "reversedMeaning": "逃避无法解决根本矛盾，蒙眼的白布被揭开，必须直面残酷的真相做出抉择。",
+  "loveMeaning": "正位提示感情进入冷战或闭门不谈的僵局；逆位建议打破沉默开诚布公。",
+  "careerMeaning": "正位代表在两份方案间权衡利弊暂不表态；逆位提醒不可再拖延决策。",
+  "advice": "倾听心底最沉静的声音，暂时的休战是为了积蓄看清真相的勇气。",
+  "symbolism": "蒙眼白布代表排除视觉偏见，胸前交叉的双剑象征理性的绝对平衡与防御。",
+  "visualTheme": {
+    "primaryColor": "#455A64",
+    "accentColor": "#ECEFF1",
+    "motif": "blindfold-crossed-swords"
+  }
+},
+{
+  "id": "swords_3",
+  "slug": "three-of-swords",
+  "number": 3,
+  "nameZh": "宝剑三",
+  "nameEn": "Three of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "穿心之痛",
+    "悲伤释放",
+    "失恋离别",
+    "痛苦启蒙"
+  ],
+  "uprightKeywords": [
+    "心碎释怀",
+    "看清现实",
+    "伤口愈合",
+    "精神淬炼"
+  ],
+  "reversedKeywords": [
+    "走出痛苦",
+    "宽恕释然",
+    "否认创伤",
+    "愈合新生"
+  ],
+  "uprightMeaning": "在狂风暴雨的铅灰天空下，三柄锋利的宝剑穿透了一颗鲜红的心脏。虽然痛彻心扉，但这正是看清残忍真相、割裂虚妄幻觉的必经过程。痛苦是灵魂深处的一次烈火洗礼。",
+  "reversedMeaning": "最艰难的时刻已经过去，你开始学会宽恕过往的背叛与伤害，内心创口正在逐步结痂愈合。",
+  "loveMeaning": "正位提示遭遇分手、背叛或言语中伤带来的剧烈心痛；逆位预示走出失恋阴霾。",
+  "careerMeaning": "正位警惕合作破裂或遭遇不公排挤；逆位代表风暴过去重组阵营。",
+  "advice": "不要压抑泪水，让悲伤彻底流淌。每一次心碎，都是心灵扩容成长的痕迹。",
+  "symbolism": "风暴乌云代表内心的情绪风暴，锋利宝剑代表割裂执念的理性利刃。",
+  "visualTheme": {
+    "primaryColor": "#37474F",
+    "accentColor": "#FFCDD2",
+    "motif": "pierced-heart-storm"
+  }
+},
+{
+  "id": "swords_4",
+  "slug": "four-of-swords",
+  "number": 4,
+  "nameZh": "宝剑四",
+  "nameEn": "Four of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "休养生息",
+    "静心退隐",
+    "养精蓄锐",
+    "疗愈沉淀"
+  ],
+  "uprightKeywords": [
+    "暂时休整",
+    "冥想祈祷",
+    "远离战场",
+    "重整旗鼓"
+  ],
+  "reversedKeywords": [
+    "重返战场",
+    "强行复工",
+    "焦躁不安",
+    "休整结束"
+  ],
+  "uprightMeaning": "在宁静肃穆的教堂石棺上，骑士雕像双手合十闭目长眠。墙上悬挂三把宝剑，棺身侧面横卧一把宝剑。象征着激战后的停火休整、精神静思与身心疗愈。",
+  "reversedMeaning": "休整期即将结束，你正逐步积聚好能量准备重返世俗生活，或者提示不能再消极避世。",
+  "loveMeaning": "正位建议给彼此一段冷静喘息的空间；逆位提示冷战结束、重新沟通。",
+  "careerMeaning": "正位适合休假调养、闭关深造或暂缓新业务；逆位代表满血复活重新出征。",
+  "advice": "疲惫的心灵需要静谧的庇护所。暂停不是放弃，而是为了更强劲的归来。",
+  "symbolism": "彩绘玻璃上的圣人象征心灵信仰的滋养，合十的双手代表平静与臣服。",
+  "visualTheme": {
+    "primaryColor": "#546E7A",
+    "accentColor": "#ECEFF1",
+    "motif": "tomb-knight-sanctuary"
+  }
+},
+{
+  "id": "swords_5",
+  "slug": "five-of-swords",
+  "number": 5,
+  "nameZh": "宝剑五",
+  "nameEn": "Five of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "惨胜之局",
+    "自私争端",
+    "得不偿失",
+    "破裂关系"
+  ],
+  "uprightKeywords": [
+    "赢了辩论输了感情",
+    "自私行径",
+    "认清小人",
+    "及时止损"
+  ],
+  "reversedKeywords": [
+    "寻求和解",
+    "化干戈为玉帛",
+    "反思过错",
+    "避免报复"
+  ],
+  "uprightMeaning": "青年面带讥讽的冷笑收拢战败者的三柄宝剑，另外两把落在脚下，远方失败的对手掩面离去。虽然赢了表面的争端，但却付出了尊严、人际与道义的惨重代价。",
+  "reversedMeaning": "意识到执着于胜负毫无意义，愿意放下傲慢寻求各退一步的体面和解。",
+  "loveMeaning": "正位警惕吵架中言辞刻薄极度伤人，赢了道理却推开了爱人；逆位提示放下心结。",
+  "careerMeaning": "正位警惕职场恶性甩锅与撕破脸皮；逆位提醒修补团队裂痕。",
+  "advice": "问问自己：证明自己是对的，真的比维系爱与信任更重要吗？放下无谓的好胜心。",
+  "symbolism": "参差不齐的锯齿状乌云象征思维的尖刻与争吵留下的满目疮痍。",
+  "visualTheme": {
+    "primaryColor": "#263238",
+    "accentColor": "#CFD8DC",
+    "motif": "smirking-victor-battle"
+  }
+},
+{
+  "id": "swords_7",
+  "slug": "seven-of-swords",
+  "number": 7,
+  "nameZh": "宝剑七",
+  "nameEn": "Seven of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "暗中行事",
+    "机敏策略",
+    "孤军潜行",
+    "避开锋芒"
+  ],
+  "uprightKeywords": [
+    "以智取胜",
+    "独辟蹊径",
+    "审慎保密",
+    "留有后手"
+  ],
+  "reversedKeywords": [
+    "东窗事发",
+    "弄巧成拙",
+    "坦诚面对",
+    "良心不安"
+  ],
+  "uprightMeaning": "男子踮起脚尖悄然抱走敌营帐篷外的五把宝剑，回头张望，地上还留着两把。代表在不能正面硬拼的情况下，运用谋略、保密与智慧采取非常规手段突围。",
+  "reversedMeaning": "自作聪明或隐瞒真相的行为面临暴露风险，或是从不道德的诱惑中悬崖勒马。",
+  "loveMeaning": "正位警惕隐瞒、欺瞒或缺乏坦诚；逆位提示坦白从宽、重建信任。",
+  "careerMeaning": "正位适合秘密研发新专利、采用出奇制胜的游击商业策略；逆位警惕合规风险。",
+  "advice": "兵不厌诈，但真正的智慧绝不逾越道德底线。聪明要用在解决问题上。",
+  "symbolism": "踮起的脚尖象征隐秘与谨慎，留下的两柄剑暗示不可能彻底拿走所有东西。",
+  "visualTheme": {
+    "primaryColor": "#37474F",
+    "accentColor": "#FFE082",
+    "motif": "sneaking-camp-swords"
+  }
+},
+{
+  "id": "swords_8",
+  "slug": "eight-of-swords",
+  "number": 8,
+  "nameZh": "宝剑八",
+  "nameEn": "Eight of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "自我设限",
+    "心之牢笼",
+    "蒙眼受困",
+    "破除幻觉"
+  ],
+  "uprightKeywords": [
+    "思维困境",
+    "受害者心态",
+    "束手束脚",
+    "忽视出口"
+  ],
+  "reversedKeywords": [
+    "冲破枷锁",
+    "恍然大悟",
+    "重获自由",
+    "迈出牢笼"
+  ],
+  "uprightMeaning": "红衣女子蒙着眼被松散的绳索捆绑，四周插着八柄宝剑如牢笼般将她环绕，脚下是浅浅的泥泞水洼。其实绳索并未系死，身后就是开阔的通道，困住她的并非现实，而是心中的恐惧。",
+  "reversedMeaning": "终于意识到所有的限制不过是内心的思维定势，解开蒙眼布，大步走出自我设限的泥潭。",
+  "loveMeaning": "正位提示在感情中感到被束缚却不敢离开；逆位代表看清自我价值勇敢重获新生。",
+  "careerMeaning": "正位代表觉得自己技能不足或被环境受限；逆位提示发现全新出路。",
+  "advice": "环顾四周，只要你迈开脚步，那些看似锋利的利剑根本伤不到你分毫。走出来吧！",
+  "symbolism": "松垮的绳索与留有空隙的宝剑象征束缚只是思维上的幻觉。",
+  "visualTheme": {
+    "primaryColor": "#455A64",
+    "accentColor": "#FFCDD2",
+    "motif": "bound-woman-swords"
+  }
+},
+{
+  "id": "swords_9",
+  "slug": "nine-of-swords",
+  "number": 9,
+  "nameZh": "宝剑九",
+  "nameEn": "Nine of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "深夜惊魂",
+    "焦虑自责",
+    "噩梦心结",
+    "破晓将至"
+  ],
+  "uprightKeywords": [
+    "精神内耗",
+    "过度担忧",
+    "悔不当初",
+    "释放恐慌"
+  ],
+  "reversedKeywords": [
+    "走出阴霾",
+    "直面恐惧",
+    "看清夸大",
+    "迎来安眠"
+  ],
+  "uprightMeaning": "在漆黑深邃的暗夜中，女子从床上惊起双手捂面失声痛哭，墙上整齐横悬着九柄锋利冰冷的宝剑。象征着深夜里无限放大的焦虑、内疚、自责与无法抑制的精神内耗。",
+  "reversedMeaning": "意识到那些折磨你的担忧大多是自己吓唬自己，内心的阴霾散去，曙光重临。",
+  "loveMeaning": "正位提示因患得患失而夜不能寐，过度解读伴侣举动；逆位建议学会自我安抚。",
+  "careerMeaning": "正位代表项目压力引发严重失眠或冒充者综合征；逆位提示认清现实逐步减压。",
+  "advice": "黑夜会把最微小的阴影放大十倍。把担忧写在纸上，天亮之后你会发现一切皆有出路。",
+  "symbolism": "被单上的星座与玫瑰图案代表世俗欲望与精神秩序，九柄剑象征思维的反噬。",
+  "visualTheme": {
+    "primaryColor": "#212121",
+    "accentColor": "#CFD8DC",
+    "motif": "nightmare-bed-swords"
+  }
+},
+{
+  "id": "swords_10",
+  "slug": "ten-of-swords",
+  "number": 10,
+  "nameZh": "宝剑十",
+  "nameEn": "Ten of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "绝境触底",
+    "旧环终结",
+    "黎明前夜",
+    "彻底重生"
+  ],
+  "uprightKeywords": [
+    "谷底反弹",
+    "无可再坏",
+    "彻底解脱",
+    "金光初现"
+  ],
+  "reversedKeywords": [
+    "死灰复燃",
+    "拖延告别",
+    "新生萌芽",
+    "伤口结痂"
+  ],
+  "uprightMeaning": "男子俯卧在海边黑地，背上插满了整整十柄长剑，鲜红斗篷铺展身下。看似极其惨烈，但在远方海天交界之处，金色的朝霞已经穿透阴云破晓而生。这是痛苦的终点，也是重生的起点。",
+  "reversedMeaning": "已经触及人生最糟糕的低谷，最坏的事情已经发生，接下来的每一步都将是向上的攀登。",
+  "loveMeaning": "正位代表一段有毒有害关系的彻底死透与终结；逆位提示彻底放下怨恨迎接新生。",
+  "careerMeaning": "正位代表某个彻底失败的项目终于画上句号，解脱反而是好事；逆位代表触底反弹。",
+  "advice": "既然已经身处谷底，任何方向都是向上。向死而生，太阳正在为你重新升起。",
+  "symbolism": "远方的金色黎明与平静海水是本张牌真正的核心——痛苦到此为止，新生由此开启。",
+  "visualTheme": {
+    "primaryColor": "#1A237E",
+    "accentColor": "#FFF59D",
+    "motif": "dawn-horizon-swords"
+  }
+},
+{
+  "id": "swords_page",
+  "slug": "page-of-swords",
+  "number": 11,
+  "nameZh": "宝剑侍从",
+  "nameEn": "Page of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "敏锐机警",
+    "求知探索",
+    "言辞犀利",
+    "警惕风吹"
+  ],
+  "uprightKeywords": [
+    "明察秋毫",
+    "逻辑清晰",
+    "渴求真理",
+    "机智反应"
+  ],
+  "reversedKeywords": [
+    "口无遮拦",
+    "刺探隐私",
+    "冷嘲热讽",
+    "心浮气躁"
+  ],
+  "uprightMeaning": "身姿轻盈敏捷的少年伫立在狂风呼啸的绿丘之上，双手横握利剑警惕环顾四周。头顶群鸟翻飞，疾云穿梭。他是真理与信息的机警探求者，拥有绝顶聪明的头脑。",
+  "reversedMeaning": "用尖酸刻薄的言语刺伤他人，或是喜欢探听八卦隐私却缺乏真正的建设性行动。",
+  "loveMeaning": "正位提示恋爱中机智幽默但稍显戒备；逆位警惕言辞伤人或互相猜忌。",
+  "careerMeaning": "正位适合做市场调研、数据分析、公关调查或法务合同审查；逆位注意沟通分寸。",
+  "advice": "保持对真相的好奇心与警觉性，但请记住：真正的聪明懂得适时把锋芒收敛。",
+  "symbolism": "凌乱的头发与翻飞的鸟群象征思维极速运转的风元素能量。",
+  "visualTheme": {
+    "primaryColor": "#37474F",
+    "accentColor": "#ECEFF1",
+    "motif": "windy-hilltop-page"
+  }
+},
+{
+  "id": "swords_knight",
+  "slug": "knight-of-swords",
+  "number": 12,
+  "nameZh": "宝剑骑士",
+  "nameEn": "Knight of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "风驰电掣",
+    "破风出击",
+    "直截了当",
+    "勇往直前"
+  ],
+  "uprightKeywords": [
+    "锐不可当",
+    "决断果敢",
+    "逻辑利刃",
+    "斩除阻碍"
+  ],
+  "reversedKeywords": [
+    "盲目激进",
+    "暴躁伤人",
+    "不计后果",
+    "树敌过多"
+  ],
+  "uprightMeaning": "狂风肆虐的天空下，白马嘶鸣如电狂奔，骑士高举利剑毫不退缩地冲锋在前。他的目标明确，意志坚定如钢，誓要用理性的利剑撕碎一切迷障与虚伪。",
+  "reversedMeaning": "行动过于急躁莽撞，只顾自己痛快而忽视团队感受，导致得罪他人甚至功败垂成。",
+  "loveMeaning": "正位提示直来直往、高效坦荡的相处模式；逆位警惕脾气火爆引发言语冲突。",
+  "careerMeaning": "正位是解决技术死结、力排众议推进改革的尖刀力量；逆位提醒多顾及人情世故。",
+  "advice": "乘风破浪勇往直前，但请记得在冲锋时系紧马鞍，别让急躁遮蔽了全局判断。",
+  "symbolism": "被狂风吹弯的树木与撕裂的白云象征风暴般的思维冲击力。",
+  "visualTheme": {
+    "primaryColor": "#263238",
+    "accentColor": "#ECEFF1",
+    "motif": "stormy-charge-knight"
+  }
+},
+{
+  "id": "swords_king",
+  "slug": "king-of-swords",
+  "number": 14,
+  "nameZh": "宝剑国王",
+  "nameEn": "King of Swords",
+  "arcana": "minor",
+  "suit": "swords",
+  "element": "air",
+  "keywords": [
+    "理性权威",
+    "法度严明",
+    "公正审判",
+    "清醒决断"
+  ],
+  "uprightKeywords": [
+    "智慧超然",
+    "客观公正",
+    "逻辑严密",
+    "令人信服"
+  ],
+  "reversedKeywords": [
+    "冷血无情",
+    "专断残酷",
+    "刻薄挑剔",
+    "滥用智谋"
+  ],
+  "uprightMeaning": "沉稳威严的国王正襟危坐于高耸的石座之上，直立手持宝剑指向苍穹。宝座饰以展翅飞蝶与天使，象征着超脱尘世的纯粹理性与无懈可击的公平决断力。",
+  "reversedMeaning": "过于冷酷教条，完全忽视人情温度，变成只认死理、难以沟通的暴君。",
+  "loveMeaning": "正位象征心智成熟、沟通理性透明的高质量伴侣；逆位提示过于理智缺乏温存。",
+  "careerMeaning": "正位是顶尖法官、首席架构师、资深顾问或战略决断者；逆位提醒兼顾人文关怀。",
+  "advice": "坚持你心中的正义与法则，用清醒的头脑做出最客观的判断，公道自在人心。",
+  "symbolism": "蝴蝶纹样象征灵魂与思想的蜕变，垂直的长剑代表绝对不偏不倚的正义。",
+  "visualTheme": {
+    "primaryColor": "#1A237E",
+    "accentColor": "#E8EAF6",
+    "motif": "butterfly-throne-justice"
+  }
+},
+{
+  "id": "pentacles_2",
+  "slug": "two-of-pentacles",
+  "number": 2,
+  "nameZh": "星币二",
+  "nameEn": "Two of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "多核平衡",
+    "灵活周转",
+    "游刃有余",
+    "波浪起伏"
+  ],
+  "uprightKeywords": [
+    "杂耍平衡",
+    "适应变迁",
+    "资金流动",
+    "身兼数职"
+  ],
+  "reversedKeywords": [
+    "失衡崩盘",
+    "拆东墙补西墙",
+    "心力憔悴",
+    "财务危机"
+  ],
+  "uprightMeaning": "头戴高帽的杂耍艺人双手轻盈地转动着两枚被无限莫比乌斯环相连的星币，身后汹涌波涛中的帆船随着浪花起伏起伏。象征着在多变的环境中游刃有余地协调时间、精力与财务。",
+  "reversedMeaning": "兼顾的事情太多超出承载上限，稍有不慎便可能失衡崩盘；财务周转出现严重短缺。",
+  "loveMeaning": "正位代表在工作与恋爱间找到平衡点；逆位警惕因琐事过多而冷落爱人。",
+  "careerMeaning": "正位是跨界运营、多项目并进且处理得当；逆位提示必须做减法，断舍离。",
+  "advice": "保持身段的柔韧与幽默感，生活就像冲浪，随波起伏方能立于不败之地。",
+  "symbolism": "绿色无限符号代表宇宙能量与物质的永续循环，起伏海浪象征经济与时运的周期。",
+  "visualTheme": {
+    "primaryColor": "#2E7D32",
+    "accentColor": "#E8F5E9",
+    "motif": "infinity-juggler"
+  }
+},
+{
+  "id": "pentacles_4",
+  "slug": "four-of-pentacles",
+  "number": 4,
+  "nameZh": "星币四",
+  "nameEn": "Four of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "保守守财",
+    "紧握不放",
+    "安全防线",
+    "缺乏流动"
+  ],
+  "uprightKeywords": [
+    "巩固资产",
+    "财务防御",
+    "界限分明",
+    "防范风险"
+  ],
+  "reversedKeywords": [
+    "挥霍松绑",
+    "过度吝啬",
+    "失去控制",
+    "学会布施"
+  ],
+  "uprightMeaning": "男子头顶星币、双手紧紧环抱星币、双脚死死踩着两枚星币，端坐在城市郊外。他建立起了坚不可摧的物质安全壁垒，却也因为过度惧怕失去而把自己变成了金钱的囚徒。",
+  "reversedMeaning": "开始意识到钱财生不带来死不带去，愿意适度放手消费或投资；逆位也可能提示防线失守导致财务破损。",
+  "loveMeaning": "正位提示情感占有欲过强、控制欲泛滥；逆位建议给予对方自由呼吸的空间。",
+  "careerMeaning": "正位代表保守稳健守住现有战果；逆位提示过度保守将错失时代新红利。",
+  "advice": "适度的积蓄是底气，但流水不腐，适时地分享与流通才能带来更大的丰盛。",
+  "symbolism": "四枚星币全方位包裹身体，阻断了手脚与头脑的活动，象征被资产反向束缚。",
+  "visualTheme": {
+    "primaryColor": "#1B5E20",
+    "accentColor": "#E8F5E9",
+    "motif": "clutching-hoarder"
+  }
+},
+{
+  "id": "pentacles_5",
+  "slug": "five-of-pentacles",
+  "number": 5,
+  "nameZh": "星币五",
+  "nameEn": "Five of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "风雪落难",
+    "物资匮乏",
+    "相濡以沫",
+    "避难庇护"
+  ],
+  "uprightKeywords": [
+    "逆境相守",
+    "精神迷茫",
+    "忽视救助",
+    "熬过寒冬"
+  ],
+  "reversedKeywords": [
+    "走出寒冬",
+    "迎来援助",
+    "重见光明",
+    "健康复苏"
+  ],
+  "uprightMeaning": "漫天暴雪中，两位衣衫褴褛的旅人相互扶持蹒跚而行。然而，就在他们身旁高处，教堂华丽的彩绘玻璃窗正散发着温暖明亮的金光。象征物质或精神上的艰难时刻，以及不要忽视身边的救助通道。",
+  "reversedMeaning": "最严酷的寒冬正在过去，你终于注意到了那扇温暖的求助之门，外界的资助与温暖正在涌入。",
+  "loveMeaning": "正位提示患难见真情，相濡以沫共度难关；逆位代表经济好转，生活重归安稳。",
+  "careerMeaning": "正位预示面临资金链吃紧或被裁员失业；逆位代表找到新出路或获得贵人相助。",
+  "advice": "抬头看一看，避风港就在咫尺之遥。放下面子主动求助，宇宙总在暗中照应着你。",
+  "symbolism": "教堂彩绘玻璃上的五枚星币象征神圣温暖的庇护，雪地双脚代表现实沉重的考验。",
+  "visualTheme": {
+    "primaryColor": "#263238",
+    "accentColor": "#FFFDE7",
+    "motif": "snowstorm-stained-glass"
+  }
+},
+{
+  "id": "pentacles_6",
+  "slug": "six-of-pentacles",
+  "number": 6,
+  "nameZh": "星币六",
+  "nameEn": "Six of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "慷慨布施",
+    "公平分配",
+    "善意流转",
+    "知恩图报"
+  ],
+  "uprightKeywords": [
+    "资助扶持",
+    "按劳分配",
+    "慈善回馈",
+    "受人恩惠"
+  ],
+  "reversedKeywords": [
+    "附带条件",
+    "不公施舍",
+    "债台高筑",
+    "自视甚高"
+  ],
+  "uprightMeaning": "身着华服的富商一手托着精准的天平，另一手将金币慷慨地分发给跪在脚下的求助者。象征着资源的公平调配、慷慨的慈善回馈以及在财富与感恩中的良性互动循环。",
+  "reversedMeaning": "施舍带有高高在上的道德优越感，或是陷入不平等债务关系。警惕表面善意背后的控制欲。",
+  "loveMeaning": "正位代表感情中双方付出与回报平衡健康；逆位提示一方在经济或情感上过度依附。",
+  "careerMeaning": "正位预示获得奖金加薪、风险投资或遇到慷慨的前辈扶持；逆位注意报酬不公。",
+  "advice": "施与受本是一体两面。富足时慷慨给予，匮乏时谦逊受助，财富方能生生不息。",
+  "symbolism": "天平代表理性的度量与公正，金币的滑落象征物质财富在社会中的自然流动。",
+  "visualTheme": {
+    "primaryColor": "#388E3C",
+    "accentColor": "#E8F5E9",
+    "motif": "merchant-scales-charity"
+  }
+},
+{
+  "id": "pentacles_7",
+  "slug": "seven-of-pentacles",
+  "number": 7,
+  "nameZh": "星币七",
+  "nameEn": "Seven of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "耐心守候",
+    "评估成果",
+    "长远投资",
+    "静待成熟"
+  ],
+  "uprightKeywords": [
+    "耕耘积淀",
+    "审视回报",
+    "战略停顿",
+    "静待花开"
+  ],
+  "reversedKeywords": [
+    "急于求成",
+    "半途而废",
+    "投资失误",
+    "缺乏耐心"
+  ],
+  "uprightMeaning": "农夫倚着锄头驻足凝望藤蔓上结出的七枚硕大星币。经过漫长的辛勤劳作，果实初具规模。他在反思评估这一阶段的投入产出比，耐心等待最终成熟的最佳收割时机。",
+  "reversedMeaning": "因过于急躁在果实尚未成熟时便强行采摘，或是发现长期投入的方向产出甚微。",
+  "loveMeaning": "正位提示感情进入深耕期，需要耐心陪伴与经营；逆位警惕因看不到即时结果而抱怨。",
+  "careerMeaning": "正位代表中长期战略投资成效初显，进行阶段性复盘；逆位警惕沉没成本过高。",
+  "advice": "任何有价值的事物都需要时间的酿造。少一分焦躁，多一分笃定，丰收不会缺席。",
+  "symbolism": "茂盛的葡萄藤蔓象征持续成长的财富，脚踏实地的姿态代表耕耘者的从容。",
+  "visualTheme": {
+    "primaryColor": "#2E7D32",
+    "accentColor": "#E8F5E9",
+    "motif": "gardener-vine-pentacles"
+  }
+},
+{
+  "id": "pentacles_8",
+  "slug": "eight-of-pentacles",
+  "number": 8,
+  "nameZh": "星币八",
+  "nameEn": "Eight of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "匠人精神",
+    "精益求精",
+    "沉潜钻研",
+    "打磨技艺"
+  ],
+  "uprightKeywords": [
+    "专心致志",
+    "熟能生巧",
+    "深耕细作",
+    "专业进阶"
+  ],
+  "reversedKeywords": [
+    "粗制滥造",
+    "急功近利",
+    "缺乏工匠心",
+    "枯燥重复"
+  ],
+  "uprightMeaning": "石匠坐在木凳上，心无旁骛地用锤凿精心雕刻每一枚星币。六枚已完成的星币整齐挂在立柱上，一枚在脚边，手头正精雕细琢第八枚。象征纯粹的专注、技能打磨与工匠精神。",
+  "reversedMeaning": "工作流于机械重复敷衍了事，缺乏提升的热情，或是盲目求快牺牲了质量。",
+  "loveMeaning": "正位代表脚踏实地共同经营生活的点点滴滴；逆位提示将感情视为理所当然缺乏用心。",
+  "careerMeaning": "正位是进修专业技能、打造核心竞争力的巅峰阶段；逆位提醒警惕无效努力。",
+  "advice": "沉下心来，把一件事做到极致。时间会奖赏那些在无人注视处依然全力以赴的匠人。",
+  "symbolism": "远方的城镇被置于身后，象征暂时屏蔽外界纷扰，全神贯注于眼前手艺。",
+  "visualTheme": {
+    "primaryColor": "#1B5E20",
+    "accentColor": "#E8F5E9",
+    "motif": "craftsman-carving-bench"
+  }
+},
+{
+  "id": "pentacles_9",
+  "slug": "nine-of-pentacles",
+  "number": 9,
+  "nameZh": "星币九",
+  "nameEn": "Nine of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "优雅富足",
+    "独立自强",
+    "庄园静谧",
+    "自给自足"
+  ],
+  "uprightKeywords": [
+    "财务自由",
+    "品位高雅",
+    "独享安宁",
+    "硕果累累"
+  ],
+  "reversedKeywords": [
+    "表面光鲜",
+    "金丝雀牢笼",
+    "孤芳自赏",
+    "财务依赖"
+  ],
+  "uprightMeaning": "身穿华丽黄袍的高贵女士漫步在葡萄累累的私人庄园中，左手戴着皮手套架着一只温顺的猎鹰。她凭借自己的智慧与自律实现了财务自由与心灵从容，享受着独立优雅的品质生活。",
+  "reversedMeaning": "虽然外表光鲜亮丽但内心深感孤独，或是依赖他人的物质供给而失去了自我主权。",
+  "loveMeaning": "正位代表享受自立自强的单身时光或以平等独立之姿相爱；逆位警惕为了物质妥协感情。",
+  "careerMeaning": "正位象征成功的女企业家、独立投资者或自由职业大获成功；逆位提醒防范财务漏洞。",
+  "advice": "你有足够的能力照顾好自己并过上体面的生活。珍惜这份由内而外的从容与底气。",
+  "symbolism": "蒙眼的猎鹰象征被完全驯化与节制的野性欲望，蜗牛代表踏实持久的成长轨迹。",
+  "visualTheme": {
+    "primaryColor": "#F9A825",
+    "accentColor": "#FFFDE7",
+    "motif": "falcon-vineyard-lady"
+  }
+},
+{
+  "id": "pentacles_page",
+  "slug": "page-of-pentacles",
+  "number": 11,
+  "nameZh": "星币侍从",
+  "nameEn": "Page of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "笃学求真",
+    "踏实起步",
+    "专注务实",
+    "商业萌芽"
+  ],
+  "uprightKeywords": [
+    "好学深思",
+    "立足现实",
+    "学业有成",
+    "播下种子"
+  ],
+  "reversedKeywords": [
+    "缺乏规划",
+    "怠惰散漫",
+    "眼高手低",
+    "错失商机"
+  ],
+  "uprightMeaning": "青年伫立在肥沃开阔的草地上，双手托举着一枚金光四射的星币，目光专注而充满敬畏。象征着潜心求学、稳扎稳打的起步阶段，以及即将破土而出的丰盛种子。",
+  "reversedMeaning": "沉迷于幻想缺乏行动力，学习或工作态度散漫，无法将想法付诸实际。",
+  "loveMeaning": "正位预示一段稳定踏实、奔着长久未来而去的认真感情；逆位提示缺乏实际物质基础。",
+  "careerMeaning": "正位代表考取重要职业资格、开启全新学徒/实习阶段；逆位提醒脚踏实地。",
+  "advice": "珍惜每一个从零开始的契机。像呵护幼苗一样呵护你的技能，它将长成参天大树。",
+  "symbolism": "身后盛开的树林与耕耘好的田埂象征等待知识浇灌的沃土。",
+  "visualTheme": {
+    "primaryColor": "#2E7D32",
+    "accentColor": "#E8F5E9",
+    "motif": "gazing-coin-scholar"
+  }
+},
+{
+  "id": "pentacles_knight",
+  "slug": "knight-of-pentacles",
+  "number": 12,
+  "nameZh": "星币骑士",
+  "nameEn": "Knight of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "坚韧执着",
+    "责任如山",
+    "按部就班",
+    "使命必达"
+  ],
+  "uprightKeywords": [
+    "稳健可靠",
+    "一丝不苟",
+    "持之以恒",
+    "值得信赖"
+  ],
+  "reversedKeywords": [
+    "墨守成规",
+    "固执死板",
+    "枯燥乏味",
+    "效率低下"
+  ],
+  "uprightMeaning": "身披厚重战甲的骑士端坐在一匹沉静矫健的黑马上，手捧金币凝视着眼前辽阔平整的沃野。不同于其他三位飞驰的骑士，他稳如磐石，是最值得信赖、最踏实的守护者与耕耘者。",
+  "reversedMeaning": "过于死板教条不知变通，或是工作生活过于单调乏味，缺乏应有的生机与活力。",
+  "loveMeaning": "正位代表忠诚如一、务实可靠能托付终身的优质伴侣；逆位提示稍显无趣缺乏情调。",
+  "careerMeaning": "正位预示项目稳步推进，是团队中最让人安心的定海神针；逆位提醒提高创新意识。",
+  "advice": "天下难事必作于易，天下大事必作于细。以滴水穿石的耐心，稳扎稳打走好每一步。",
+  "symbolism": "黑色的重型挽马与翻耕整齐的土地象征深厚的大地力量与无尽的耐力。",
+  "visualTheme": {
+    "primaryColor": "#1B5E20",
+    "accentColor": "#E8F5E9",
+    "motif": "steady-knight-plowed-field"
+  }
+},
+{
+  "id": "pentacles_queen",
+  "slug": "queen-of-pentacles",
+  "number": 13,
+  "nameZh": "星币王后",
+  "nameEn": "Queen of Pentacles",
+  "arcana": "minor",
+  "suit": "pentacles",
+  "element": "earth",
+  "keywords": [
+    "大地之母",
+    "丰盛繁荣",
+    "温暖滋养",
+    "持家有道"
+  ],
+  "uprightKeywords": [
+    "母爱如海",
+    "富足慷慨",
+    "热爱生活",
+    "现实智者"
+  ],
+  "reversedKeywords": [
+    "焦虑占有",
+    "挥霍无度",
+    "过度操劳",
+    "精神匮乏"
+  ],
+  "uprightMeaning": "慈爱的王后身穿红白华服，端坐在刻满天使、山羊与果实的繁花宝座上，双膝温柔环抱着一枚巨大的金币。她是世俗生活智慧与母性滋养的巅峰化身，让身边所有生命都如沐春风。",
+  "reversedMeaning": "过度操心家人导致心力交瘁，或是因过度追求物质排场而陷入财务失衡。",
+  "loveMeaning": "正位代表温暖体贴、能将生活打理得井井有条的理想伴侣；逆位提醒学会先关爱自己。",
+  "careerMeaning": "正位适合担任人力资源高管、财务总监或社区领袖；逆位警惕事无巨细的微观管理。",
+  "advice": "用你温暖的双手去滋养身边的人与事物。生活的美好不在别处，就在这一茶一饭的温存里。",
+  "symbolism": "身旁奔跑的野兔象征充沛的生育力与生机，繁花拱门代表大自然的无私馈赠。",
+  "visualTheme": {
+    "primaryColor": "#2E7D32",
+    "accentColor": "#FFF8E1",
+    "motif": "rabbit-cherub-throne"
+  }
+}
 ];
+
+// 22 张大阿卡纳 Slug 集合（用于路径计算）
+export const MAJOR_ARCANA_SLUGS = new Set([
+  'the-fool', 'the-magician', 'the-high-priestess', 'the-empress', 'the-emperor',
+  'the-hierophant', 'the-lovers', 'the-chariot', 'strength', 'the-hermit',
+  'wheel-of-fortune', 'justice', 'the-hanged-man', 'death', 'temperance',
+  'the-devil', 'the-tower', 'the-star', 'the-moon', 'the-sun', 'judgement', 'the-world'
+]);
+
+// 获取卡牌的高清真实图片路径 (支持 webp 优化格式与 png 原图格式)
+export function getCardImageUrl(cardOrSlug: TarotCardData | string, format: 'webp' | 'png' = 'webp'): string {
+  const slug = typeof cardOrSlug === 'string' ? cardOrSlug : cardOrSlug.slug;
+  const dir = MAJOR_ARCANA_SLUGS.has(slug) ? 'major-arcana' : 'minor-arcana';
+  return '/cards/' + dir + '/' + slug + '.' + format;
+}
 
 // 辅助检索方法
 export function getCardById(id: string): TarotCardData | undefined {
