@@ -26,6 +26,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
   const cardsGroupRef = useRef<HTMLDivElement>(null);
   const heroCoinRef = useRef<HTMLDivElement>(null);
   const heroTarotRef = useRef<HTMLDivElement>(null);
+  const finaleBaguaRef = useRef<HTMLDivElement>(null); // 最后一幕：从小变大向外扩张淡化的八卦阵
   const portalsFinalRef = useRef<HTMLDivElement>(null);
 
   // 5 步步进状态
@@ -114,12 +115,13 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
       )
       .to(title2Ref.current, { yPercent: -100, opacity: 0, duration: 1.2 }, '-=1');
 
-    // 4. 阶段四 & 五：万象汇通，背景回归温润治愈手作纸感，双门大开端然落定
+    // 4. 阶段四 & 五（最后一幕核心）：
+    // 铜钱与塔罗牌散作星光退场，八卦阵自中心从小变大向外扩张并逐渐淡化，双门开幕
     tl.to(cardsGroupRef.current, {
       yPercent: -120,
       opacity: 0,
       scale: 0.8,
-      duration: 2,
+      duration: 1.8,
       ease: 'power2.in'
     })
       .to(
@@ -127,11 +129,31 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
         { backgroundColor: '#FAF7F2', color: '#111111', duration: 2, ease: 'power1.inOut' },
         '<'
       )
+      // 【用户核心要求】最后一幕：八卦阵从小变大向外扩张逐渐淡化
+      // 步骤 a: 八卦阵自中心从小凝聚显现 (scale: 0.25 -> 1, opacity: 0 -> 1)
+      .fromTo(
+        finaleBaguaRef.current,
+        { scale: 0.25, opacity: 0, rotation: -60 },
+        { scale: 1, opacity: 1, rotation: 0, duration: 1.6, ease: 'power2.out' },
+        '-=1.3'
+      )
+      // 步骤 b: 随着滚轮滑动，八卦阵向外巨幅扩散 (scale: 1 -> 4.5)，并逐渐淡化消散 (opacity: 1 -> 0)
+      .to(
+        finaleBaguaRef.current,
+        {
+          scale: isMobile ? 3.0 : 4.6,
+          opacity: 0,
+          rotation: 60,
+          duration: 2.4,
+          ease: 'power1.inOut'
+        }
+      )
+      // 步骤 c: 伴随八卦阵光环向外荡漾消散，双门入口端然落定
       .fromTo(
         portalsFinalRef.current,
-        { yPercent: 120, opacity: 0, scale: 0.88 },
-        { yPercent: 0, opacity: 1, scale: 1, duration: 2.5, ease: 'back.out(1.4)' },
-        '-=1.2'
+        { yPercent: 60, opacity: 0, scale: 0.85 },
+        { yPercent: 0, opacity: 1, scale: 1, duration: 2.2, ease: 'back.out(1.4)' },
+        '-=2.0'
       );
   }, { scope: containerRef });
 
@@ -139,7 +161,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
     { step: 1, nameZh: '混沌初开', nameEn: 'The Void' },
     { step: 2, nameZh: '两仪显化', nameEn: 'Dual Archetypes' },
     { step: 3, nameZh: '数象相生', nameEn: 'Oracle Resonance' },
-    { step: 4, nameZh: '神谕定轴', nameEn: 'Cosmic Alignment' },
+    { step: 4, nameZh: '八卦化境', nameEn: 'Bagua Expansion' },
     { step: 5, nameZh: '双门齐开', nameEn: 'Dual Portals' }
   ];
 
@@ -195,12 +217,14 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
 
         {/* 中央舞台核心视差层 */}
         <div className="relative z-20 flex-1 flex items-center justify-center w-full max-w-6xl mx-auto px-4">
-          {/* 阶段 1：中心巨幅缩放八卦星轨罗盘 (南孚同心圆点阵灵感) */}
+          {/* 阶段 1：中心巨幅缩放太极印 */}
           <div
             ref={centralSymbolRef}
-            className="absolute flex items-center justify-center select-none filter drop-shadow-2xl scale-75 sm:scale-100"
+            className="absolute flex items-center justify-center select-none filter drop-shadow-2xl"
           >
-            <BaguaOrbitalCompass size={380} interactive={false} accentColor="#DC2626" />
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-2 border-[#E8CF86]/70 bg-[#FFFDF9] shadow-2xl flex items-center justify-center text-5xl sm:text-6xl animate-[spin_30s_linear_infinite]">
+              ☯️
+            </div>
           </div>
 
           {/* 阶段 1 文案：混沌无极 */}
@@ -285,10 +309,18 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             </div>
           </div>
 
+          {/* 最后一幕：八卦阵从小变大向外扩张逐渐淡化 (位于双门背后作为盛大背景光波) */}
+          <div
+            ref={finaleBaguaRef}
+            className="absolute flex items-center justify-center pointer-events-none z-10 filter drop-shadow-2xl opacity-0"
+          >
+            <BaguaOrbitalCompass size={560} interactive={false} accentColor="#DC2626" />
+          </div>
+
           {/* 阶段 4 & 5：双门现世定格入口 (Final Portals Settle) */}
           <div
             ref={portalsFinalRef}
-            className="absolute w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 p-4"
+            className="relative z-20 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 p-4"
           >
             {/* 东方周易门 */}
             <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/12 shadow-xl flex flex-col justify-between text-left hover:scale-102 transition-transform">

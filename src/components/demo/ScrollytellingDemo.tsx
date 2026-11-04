@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { Sparkles, ArrowRight, Compass, ShieldCheck, Layers } from 'lucide-react';
 import Link from 'next/link';
+import { BaguaOrbitalCompass } from '@/components/fatemaster/BaguaOrbitalCompass';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -21,6 +22,7 @@ export function ScrollytellingDemo() {
   const cardsGroupRef = useRef<HTMLDivElement>(null);
   const heroCoinRef = useRef<HTMLDivElement>(null);
   const heroTarotRef = useRef<HTMLDivElement>(null);
+  const finaleBaguaRef = useRef<HTMLDivElement>(null); // 最后一幕：八卦阵从小变大向外扩张逐渐淡化
   const portalsFinalRef = useRef<HTMLDivElement>(null);
 
   // 当前激活的进度步数 (1 ~ 5)
@@ -105,12 +107,13 @@ export function ScrollytellingDemo() {
       )
       .to(title2Ref.current, { yPercent: -100, opacity: 0, duration: 1.2 }, '-=1');
 
-    // 4. 阶段四：万物汇聚，背景复归明亮典雅纸感，双门入口端然落定
+    // 4. 阶段四 & 五（最后一幕核心）：
+    // 万物化境，背景回归温润明亮手作纸感，八卦阵自中心从小到大向外极速扩张并逐渐淡化，双门开幕
     tl.to(cardsGroupRef.current, {
       yPercent: -120,
       opacity: 0,
       scale: 0.8,
-      duration: 2,
+      duration: 1.8,
       ease: 'power2.in'
     })
       .to(
@@ -118,11 +121,31 @@ export function ScrollytellingDemo() {
         { backgroundColor: '#FAF7F2', color: '#111111', duration: 2, ease: 'power1.inOut' },
         '<'
       )
+      // 【核心动效】八卦阵从小变大向外扩张逐渐淡化
+      // 步骤 a: 八卦阵自中心从小凝聚显现 (scale: 0.25 -> 1, opacity: 0 -> 1)
+      .fromTo(
+        finaleBaguaRef.current,
+        { scale: 0.25, opacity: 0, rotation: -60 },
+        { scale: 1, opacity: 1, rotation: 0, duration: 1.6, ease: 'power2.out' },
+        '-=1.3'
+      )
+      // 步骤 b: 随着滚轮滑动，八卦阵向外巨幅扩散 (scale: 1 -> 4.5)，并逐渐淡化消散 (opacity: 1 -> 0)
+      .to(
+        finaleBaguaRef.current,
+        {
+          scale: 4.6,
+          opacity: 0,
+          rotation: 60,
+          duration: 2.4,
+          ease: 'power1.inOut'
+        }
+      )
+      // 步骤 c: 伴随八卦阵光波向外荡漾消散，双门入口端然落定
       .fromTo(
         portalsFinalRef.current,
-        { yPercent: 120, opacity: 0, scale: 0.88 },
-        { yPercent: 0, opacity: 1, scale: 1, duration: 2.5, ease: 'back.out(1.4)' },
-        '-=1.2'
+        { yPercent: 60, opacity: 0, scale: 0.85 },
+        { yPercent: 0, opacity: 1, scale: 1, duration: 2.2, ease: 'back.out(1.4)' },
+        '-=2.0'
       );
   }, { scope: containerRef });
 
@@ -159,7 +182,7 @@ export function ScrollytellingDemo() {
             { step: 1, name: '混沌初开' },
             { step: 2, name: '两仪显化' },
             { step: 3, name: '数象相生' },
-            { step: 4, name: '神谕定轴' },
+            { step: 4, name: '八卦化境' },
             { step: 5, name: '双门齐开' }
           ].map((item) => (
             <div key={item.step} className="flex items-center gap-2.5 group cursor-pointer justify-end">
@@ -186,9 +209,11 @@ export function ScrollytellingDemo() {
           {/* 阶段 1：中心巨幅缩放太极印 */}
           <div
             ref={centralSymbolRef}
-            className="absolute flex items-center justify-center text-7xl sm:text-8xl select-none filter drop-shadow-2xl"
+            className="absolute flex items-center justify-center select-none filter drop-shadow-2xl"
           >
-            ☯️
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-2 border-[#E8CF86]/70 bg-[#FFFDF9] shadow-2xl flex items-center justify-center text-5xl sm:text-6xl animate-[spin_30s_linear_infinite]">
+              ☯️
+            </div>
           </div>
 
           {/* 阶段 1 文案：混沌无极 */}
@@ -216,7 +241,7 @@ export function ScrollytellingDemo() {
             <span className="text-xs font-serif tracking-widest text-[#E8CF86] uppercase block mb-1">
               DUAL ARCHETYPES
             </span>
-            <h3 className="font-serif font-black text-2xl sm:text-4xl">
+            <h3 className="font-serif font-black text-2xl sm:text-4xl text-[#FFFDF9]">
               东方以数起爻 · 西方以象明心
             </h3>
           </div>
@@ -260,10 +285,18 @@ export function ScrollytellingDemo() {
             </div>
           </div>
 
-          {/* 阶段 4：双门现世定格入口 (Final Portals Settle) */}
+          {/* 最后一幕：八卦阵从小变大向外扩张逐渐淡化 (位于双门背后作为盛大背景光波) */}
+          <div
+            ref={finaleBaguaRef}
+            className="absolute flex items-center justify-center pointer-events-none z-10 filter drop-shadow-2xl opacity-0"
+          >
+            <BaguaOrbitalCompass size={560} interactive={false} accentColor="#DC2626" />
+          </div>
+
+          {/* 阶段 4 & 5：双门现世定格入口 (Final Portals Settle) */}
           <div
             ref={portalsFinalRef}
-            className="absolute w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 gap-6 p-4"
+            className="relative z-20 w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 gap-6 p-4"
           >
             {/* 东方周易门 */}
             <div className="p-8 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/12 shadow-xl flex flex-col justify-between text-left hover:scale-102 transition-transform">
