@@ -26,7 +26,7 @@ export default async function MasterPortalPage({
       <MasterScrollytellingHero lang={lang} />
 
       {/* 2. 东方周易特质专区展示 */}
-      <section className="w-full max-w-6xl mx-auto px-5 py-16 border-t border-[#111111]/8">
+      <section id="portal-content" className="w-full max-w-6xl mx-auto px-5 py-16 border-t border-[#111111]/8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-10">
           <div>
             <span className="text-xs font-semibold text-[#8C6D23] uppercase tracking-widest">

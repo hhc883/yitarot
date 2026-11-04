@@ -32,18 +32,28 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
   // 4 步步进状态
   const [activeStep, setActiveStep] = useState<number>(1);
 
-  // 跳过交互直接前往双门定格
+  // 跳过交互：不展示任何中间交互动画，瞬间直达下方内容专区
   const handleSkip = () => {
-    if (scrollTriggerInstanceRef.current) {
-      window.scrollTo({
-        top: scrollTriggerInstanceRef.current.end,
-        behavior: 'smooth'
-      });
+    const target = document.getElementById('portal-content');
+    if (target) {
+      const top = target.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, top);
+      try {
+        window.scrollTo({ top, behavior: 'instant' });
+      } catch {
+        window.scrollTo(0, top);
+      }
+    } else if (scrollTriggerInstanceRef.current) {
+      const top = scrollTriggerInstanceRef.current.end + 20;
+      window.scrollTo(0, top);
+      try {
+        window.scrollTo({ top, behavior: 'instant' });
+      } catch {
+        window.scrollTo(0, top);
+      }
     } else if (containerRef.current) {
-      window.scrollTo({
-        top: containerRef.current.offsetTop + containerRef.current.offsetHeight,
-        behavior: 'smooth'
-      });
+      const top = containerRef.current.offsetTop + containerRef.current.offsetHeight;
+      window.scrollTo(0, top);
     }
   };
 
@@ -376,31 +386,28 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
           </div>
         </div>
 
-        {/* 底部微信息与步骤计数 & 右下角跳过交互按钮 */}
-        <div className="relative z-30 max-w-7xl mx-auto w-full px-5 pb-5 flex justify-between items-center text-[11px]">
-          <span className="hidden sm:inline opacity-60">
+        {/* 底部微信息与步骤计数 */}
+        <div className="relative z-30 max-w-7xl mx-auto w-full px-5 pb-5 flex justify-between items-center text-[11px] opacity-60">
+          <span className="hidden sm:inline">
             {lang === 'zh' ? '双门合一 · 荣格共时性驱动' : 'Dual Portals · Powered by Synchronicity'}
           </span>
-
-          <div className="flex items-center gap-3 ml-auto">
-            <span className="opacity-60 font-serif mr-1">
-              {lang === 'zh' ? `步骤 ${activeStep} / 4` : `Step ${activeStep} / 4`}
-            </span>
-
-            {/* 右下角跳过交互按钮 */}
-            {activeStep < 4 && (
-              <button
-                type="button"
-                onClick={handleSkip}
-                className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#111111]/85 hover:bg-[#111111] backdrop-blur-md text-[#FFFDF9] text-xs font-serif font-medium shadow-md hover:shadow-lg transition-all hover:scale-105 active:scale-95 group border border-white/15 cursor-pointer"
-                title={lang === 'zh' ? '跳过开幕交互，直接启幕双门' : 'Skip intro and reveal portals'}
-              >
-                <span>{lang === 'zh' ? '跳过交互' : 'Skip Intro'}</span>
-                <SkipForward className="w-3.5 h-3.5 text-[#E8CF86] group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            )}
-          </div>
+          <span className="font-serif">
+            {lang === 'zh' ? `步骤 ${activeStep} / 4` : `Step ${activeStep} / 4`}
+          </span>
         </div>
+
+        {/* 右下角跳过交互按钮：浮动定位于视口右下角，完全不展示中间交互动画，瞬间直达下方 */}
+        {activeStep < 4 && (
+          <button
+            type="button"
+            onClick={handleSkip}
+            className="pointer-events-auto absolute bottom-5 right-5 sm:bottom-7 sm:right-7 z-40 flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#111111]/90 hover:bg-[#111111] backdrop-blur-md text-[#FFFDF9] text-xs font-serif font-medium shadow-xl hover:shadow-2xl transition-all hover:scale-105 active:scale-95 group border border-white/20 cursor-pointer"
+            title={lang === 'zh' ? '跳过开幕交互，直接到达下方内容' : 'Skip intro and jump directly below'}
+          >
+            <span>{lang === 'zh' ? '跳过交互' : 'Skip Intro'}</span>
+            <SkipForward className="w-3.5 h-3.5 text-[#E8CF86] group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        )}
       </div>
     </section>
   );
