@@ -8,6 +8,7 @@ import { useGSAP } from '@gsap/react';
 import { Sparkles, ArrowRight, Compass, ShieldCheck, ChevronDown, SkipForward } from 'lucide-react';
 import Link from 'next/link';
 import { YinYangFish } from '@/components/common/YinYangFish';
+import { IconCrystalBall } from '@/components/icons/QiIcons';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -364,7 +365,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/12 shadow-xl flex flex-col justify-between text-left hover:scale-102 transition-transform">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-3xl">🔮</span>
+                  <IconCrystalBall size={28} className="text-[#8C6D23]" />
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#8C6D23] text-[#FFFDF9]">
                     {lang === 'zh' ? '西方系统' : 'Western'}
                   </span>

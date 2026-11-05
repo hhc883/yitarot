@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { getAllCards, TarotSuit } from '@/lib/tarot/deck';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
-import { Search, BookOpen } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { IconBook78 } from '@/components/icons/QiIcons';
 
 type TabType = 'all' | 'major' | TarotSuit;
 
@@ -41,7 +42,7 @@ export default function CardsEncyclopediaPage() {
       {/* 头部标题与引言 */}
       <div className="text-center max-w-3xl mx-auto mb-10">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C29026]/10 text-[#8C6D23] border border-[#C29026]/20 text-xs font-medium mb-3">
-          <BookOpen className="w-3.5 h-3.5" /> 78 张经典韦特塔罗全解
+          <IconBook78 size={14} className="text-[#8C6D23]" /> 78 张经典韦特塔罗全解
         </span>
         <h1 className="font-serif font-black text-3xl sm:text-4xl text-[#1E1B18] tracking-tight">
           塔罗牌义百科大全

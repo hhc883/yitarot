@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Flame } from 'lucide-react';
 import { YinYangFish } from '@/components/common/YinYangFish';
+import { IconCrystalBall } from '@/components/icons/QiIcons';
 
 gsap.registerPlugin(useGSAP);
 
@@ -165,7 +166,7 @@ export function MasterPortalHero({ lang = 'zh' }: { lang?: string }) {
 
           <div>
             <div className="flex items-center justify-between mb-6">
-              <span className="text-3xl">🔮</span>
+              <IconCrystalBall size={32} className="text-[#8C6D23]" />
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#8C6D23] text-[#FFFDF9]">
                 西方神秘原型
               </span>

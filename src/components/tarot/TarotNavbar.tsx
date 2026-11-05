@@ -3,8 +3,15 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Sparkles, Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { YinYangFish } from '@/components/common/YinYangFish';
+import {
+  IconTarotCards,
+  IconBook78,
+  IconCrownVip,
+  IconSparklesDraw,
+  IconHomeGate
+} from '@/components/icons/QiIcons';
 
 export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   const pathname = usePathname();
@@ -75,25 +82,28 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
           {/* 西方塔罗 */}
           <Link
             href={`/${lang}/reading`}
-            className={`${navItemClass(isTarot)} flex items-center gap-1`}
+            className={`${navItemClass(isTarot)} flex items-center gap-1.5`}
           >
-            <span>🔮 {lang === 'en' ? 'Tarot' : '西方塔罗'}</span>
+            <IconTarotCards size={15} className={isTarot ? 'text-[#FFE59A]' : 'text-[#8C6D23]'} />
+            <span>{lang === 'en' ? 'Tarot' : '西方塔罗'}</span>
           </Link>
 
           {/* 78 牌义库 */}
           <Link
             href={`/${lang}/cards`}
-            className={navItemClass(isCards)}
+            className={`${navItemClass(isCards)} flex items-center gap-1.5`}
           >
-            {lang === 'en' ? '78 Deck' : '78 牌义库'}
+            <IconBook78 size={15} className={isCards ? 'text-[#FFE59A]' : 'text-[#736B5E]'} />
+            <span>{lang === 'en' ? '78 Deck' : '78 牌义库'}</span>
           </Link>
 
           {/* 会员订阅 */}
           <Link
             href={`/${lang}/pricing`}
-            className={navItemClass(isPricing)}
+            className={`${navItemClass(isPricing)} flex items-center gap-1.5`}
           >
-            {lang === 'en' ? 'Pricing' : '会员订阅'}
+            <IconCrownVip size={14} className={isPricing ? 'text-[#FFE59A]' : 'text-[#736B5E]'} />
+            <span>{lang === 'en' ? 'Pricing' : '会员订阅'}</span>
           </Link>
         </nav>
 
@@ -110,7 +120,7 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             href={`/${lang}/reading`}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] shadow-xs transition-all hover:scale-102"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#FFE59A]" />
+            <IconSparklesDraw size={14} className="text-[#FFE59A]" />
             <span>{lang === 'en' ? 'Draw Cards' : '问问牌'}</span>
           </Link>
         </div>
@@ -119,9 +129,10 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
         <div className="md:hidden flex items-center gap-2">
           <Link
             href={`/${lang}/reading`}
-            className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#111111] text-[#FFFDF9]"
+            className="px-3 py-1.5 rounded-full text-xs font-medium bg-[#111111] text-[#FFFDF9] flex items-center gap-1"
           >
-            {lang === 'en' ? 'Tarot' : '占卜'}
+            <IconSparklesDraw size={12} className="text-[#FFE59A]" />
+            <span>{lang === 'en' ? 'Tarot' : '占卜'}</span>
           </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -141,14 +152,15 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             onClick={() => setMobileMenuOpen(false)}
             className={mobileItemClass(isHome)}
           >
-            {lang === 'en' ? 'Home' : '双门首页'}
+            <IconHomeGate size={18} />
+            <span>{lang === 'en' ? 'Home' : '双门首页'}</span>
           </Link>
           <Link
             href={`/${lang}/fatemaster`}
             onClick={() => setMobileMenuOpen(false)}
             className={mobileItemClass(isEastern)}
           >
-            <YinYangFish size={16} spin={false} />
+            <YinYangFish size={18} spin={false} />
             <span>{lang === 'en' ? 'Eastern I Ching · FateMaster' : '东方周易 · FateMaster'}</span>
           </Link>
           <Link
@@ -156,21 +168,24 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             onClick={() => setMobileMenuOpen(false)}
             className={mobileItemClass(isTarot)}
           >
-            🔮 {lang === 'en' ? 'Western Tarot · Tarotip' : '西方塔罗 · Tarotip'}
+            <IconTarotCards size={18} className="text-[#C29026]" />
+            <span>{lang === 'en' ? 'Western Tarot · Tarotip' : '西方塔罗 · Tarotip'}</span>
           </Link>
           <Link
             href={`/${lang}/cards`}
             onClick={() => setMobileMenuOpen(false)}
             className={mobileItemClass(isCards)}
           >
-            {lang === 'en' ? '78 Card Deck' : '78 牌义库'}
+            <IconBook78 size={18} />
+            <span>{lang === 'en' ? '78 Card Deck' : '78 牌义库'}</span>
           </Link>
           <Link
             href={`/${lang}/pricing`}
             onClick={() => setMobileMenuOpen(false)}
             className={mobileItemClass(isPricing)}
           >
-            {lang === 'en' ? 'Pricing & Plans' : '会员订阅'}
+            <IconCrownVip size={18} />
+            <span>{lang === 'en' ? 'Pricing & Plans' : '会员订阅'}</span>
           </Link>
           <div className="pt-3 border-t border-[#111111]/10 flex justify-between items-center px-3">
             <span className="text-xs text-[#736B5E]">当前语言</span>

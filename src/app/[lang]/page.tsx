@@ -5,6 +5,12 @@ import { HeroFloatingCards } from '@/components/tarot/HeroFloatingCards';
 import { DailyDrawWidget } from '@/components/tarot/DailyDrawWidget';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Heart } from 'lucide-react';
 import { YinYangFish } from '@/components/common/YinYangFish';
+import {
+  IconScrollBaZi,
+  IconCoinLiuYao,
+  IconZodiacDragon,
+  IconCrystalBall
+} from '@/components/icons/QiIcons';
 
 export const instant = false;
 
@@ -54,7 +60,9 @@ export default async function MasterPortalPage({
             href={`/${lang}/fatemaster/bazi`}
             className="p-6 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs hover:shadow-md transition-all group"
           >
-            <span className="text-3xl mb-3 block group-hover:scale-110 transition-transform">📜</span>
+            <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs">
+              <IconScrollBaZi size={22} />
+            </div>
             <h3 className="font-serif font-bold text-base text-[#111111] mb-1">
               四柱八字排盘
             </h3>
@@ -67,7 +75,9 @@ export default async function MasterPortalPage({
             href={`/${lang}/fatemaster/liuyao`}
             className="p-6 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs hover:shadow-md transition-all group"
           >
-            <span className="text-3xl mb-3 block group-hover:scale-110 transition-transform">🪙</span>
+            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs">
+              <IconCoinLiuYao size={22} />
+            </div>
             <h3 className="font-serif font-bold text-base text-[#111111] mb-1">
               周易六爻铜钱神谕
             </h3>
@@ -80,7 +90,9 @@ export default async function MasterPortalPage({
             href={`/${lang}/fatemaster/compatibility`}
             className="p-6 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs hover:shadow-md transition-all group"
           >
-            <span className="text-3xl mb-3 block group-hover:scale-110 transition-transform">🐉</span>
+            <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs">
+              <IconZodiacDragon size={22} />
+            </div>
             <h3 className="font-serif font-bold text-base text-[#111111] mb-1">
               生肖五行合盘
             </h3>
@@ -125,10 +137,10 @@ export default async function MasterPortalPage({
       {/* 4. 东西合璧哲学背景 (荣格心理学共时性) */}
       <section className="w-full max-w-4xl mx-auto px-5 py-16">
         <div className="rounded-3xl bg-[#FAF6ED] ring-1 ring-[#111111]/10 p-8 sm:p-12 text-center">
-          <div className="flex items-center justify-center gap-2 mb-3 text-xl text-[#8C6D23]">
+          <div className="flex items-center justify-center gap-3 mb-3 text-[#8C6D23]">
             <YinYangFish size={24} spin={false} />
-            <span>✦</span>
-            <span>🔮</span>
+            <span className="text-sm opacity-60">✦</span>
+            <IconCrystalBall size={24} />
           </div>
           <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#111111] mb-3">
             东方生克，西方原型 · 终归天人之镜

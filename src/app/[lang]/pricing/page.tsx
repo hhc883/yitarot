@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Sparkles, Check, ArrowRight, ShieldCheck, Zap, Heart } from 'lucide-react';
+import { IconCrownVip } from '@/components/icons/QiIcons';
 
 export default function PricingPage() {
   const params = useParams();
@@ -86,8 +87,8 @@ export default function PricingPage() {
 
           <div>
             <div className="flex justify-between items-center mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#8C6D23]">
-                Tarotip Plus 会员
+              <span className="text-xs font-bold uppercase tracking-wider text-[#8C6D23] flex items-center gap-1.5">
+                <IconCrownVip size={16} /> Tarotip Plus 会员
               </span>
             </div>
 

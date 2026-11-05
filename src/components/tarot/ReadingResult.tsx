@@ -5,6 +5,7 @@ import { DrawnCard } from '@/lib/tarot/deck';
 import { TarotReader } from '@/lib/tarot/readers';
 import { TarotCardView } from './TarotCardView';
 import { Sparkles, Share2, MessageCircle, Send, RotateCcw, Copy, Check } from 'lucide-react';
+import { ReaderAvatarIcon } from '@/components/icons/QiIcons';
 
 interface ReadingResultProps {
   question: string;
@@ -70,8 +71,8 @@ export function ReadingResult({
       {/* 顶部占卜师与提问回顾 */}
       <div className="w-full rounded-3xl bg-[#FFFDF9] border border-[#1E1B18]/10 p-5 sm:p-6 shadow-sm mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border ${reader.avatarBg}`}>
-            {reader.avatarIcon}
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-xs ${reader.avatarBg}`}>
+            <ReaderAvatarIcon id={reader.id} size={28} />
           </div>
           <div>
             <div className="flex items-center gap-2">

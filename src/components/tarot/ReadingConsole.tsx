@@ -8,14 +8,15 @@ import { DeckShuffler } from './DeckShuffler';
 import { ReadingResult } from './ReadingResult';
 import { ShareCardModal } from './ShareCardModal';
 import { Sparkles, HelpCircle, ArrowRight, Wand2, Compass } from 'lucide-react';
+import { CategoryIcon, ReaderAvatarIcon } from '@/components/icons/QiIcons';
 
 const CATEGORIES = [
-  { id: 'love', name: '爱情感情', icon: '❤️', hint: '暗恋、复合、关系转折、桃花走向' },
-  { id: 'career', name: '事业发展', icon: '💼', hint: '跳槽机遇、职场人际、创业项目' },
-  { id: 'decision', name: '重大抉择', icon: '⚖️', hint: '两难选择、该不该行动、利弊分析' },
-  { id: 'fortune', name: '运势启示', icon: '✨', hint: '近期待遇、核心课题、转机节点' },
-  { id: 'emotion', name: '情绪心境', icon: '🌿', hint: '抚平焦虑、向内觉察、灵性疗愈' },
-  { id: 'growth', name: '个人成长', icon: '🌱', hint: '潜能发掘、突破瓶颈、寻找天命' }
+  { id: 'love', name: '爱情感情', hint: '暗恋、复合、关系转折、桃花走向' },
+  { id: 'career', name: '事业发展', hint: '跳槽机遇、职场人际、创业项目' },
+  { id: 'decision', name: '重大抉择', hint: '两难选择、该不该行动、利弊分析' },
+  { id: 'fortune', name: '运势启示', hint: '近期待遇、核心课题、转机节点' },
+  { id: 'emotion', name: '情绪心境', hint: '抚平焦虑、向内觉察、灵性疗愈' },
+  { id: 'growth', name: '个人成长', hint: '潜能发掘、突破瓶颈、寻找天命' }
 ];
 
 const PRESET_QUESTIONS: Record<string, string[]> = {
@@ -177,7 +178,11 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                     : 'bg-[#FFFDF9] text-[#736B5E] hover:bg-[#F5EFE6] border border-[#1E1B18]/10'
                 }`}
               >
-                <span>{cat.icon}</span>
+                <CategoryIcon
+                  id={cat.id}
+                  size={15}
+                  className={category === cat.id ? 'text-[#FFE59A]' : 'text-[#8C6D23]'}
+                />
                 <span>{cat.name}</span>
               </button>
             ))}
@@ -262,7 +267,13 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                             : 'bg-white border-[#1E1B18]/10 text-[#736B5E] hover:bg-[#FAF6ED]/50'
                         }`}
                       >
-                        <span className="text-xl mb-0.5">{r.avatarIcon}</span>
+                        <ReaderAvatarIcon
+                          id={r.id}
+                          size={24}
+                          className={`mb-1 transition-colors ${
+                            selectedReader.id === r.id ? 'text-[#8C6D23]' : 'text-[#736B5E]'
+                          }`}
+                        />
                         <span className="text-xs font-serif font-bold">{r.name.split('·')[0]}</span>
                         <span className="text-[10px] text-[#8C6D23]">{r.titleZh}</span>
                       </button>

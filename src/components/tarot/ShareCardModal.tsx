@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import { DrawnCard } from '@/lib/tarot/deck';
 import { TarotReader } from '@/lib/tarot/readers';
 import { X, Download, Sparkles } from 'lucide-react';
+import { IconCrystalBall } from '@/components/icons/QiIcons';
 
 interface ShareCardModalProps {
   isOpen: boolean;
@@ -69,7 +70,9 @@ export function ShareCardModal({
                 className="flex-1 max-w-[100px] flex flex-col items-center p-2 rounded-xl bg-white/80 border border-[#D4AF37]/30 shadow-xs text-center"
               >
                 <span className="text-[9px] text-[#8C6D23] font-medium line-clamp-1">{c.positionName}</span>
-                <span className="text-xl my-1">{c.card.arcana === 'major' ? '🔮' : '✦'}</span>
+                <div className="my-1.5 flex items-center justify-center text-[#8C6D23]">
+                  {c.card.arcana === 'major' ? <IconCrystalBall size={18} /> : <span className="text-base font-serif">✦</span>}
+                </div>
                 <span className="font-serif font-bold text-xs text-[#1E1B18]">{c.card.nameZh}</span>
                 <span
                   className={`text-[9px] px-1 rounded-sm mt-0.5 ${

@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { getAllCards, getCardBySlug } from '@/lib/tarot/deck';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
-import { Sparkles, ArrowLeft, Heart, Briefcase } from 'lucide-react';
+import { Sparkles, ArrowLeft } from 'lucide-react';
+import { IconLove, IconCareer } from '@/components/icons/QiIcons';
 
 export async function generateStaticParams() {
   const cards = getAllCards();
@@ -145,7 +146,7 @@ export default async function CardDetailPage({
           <div className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#1E1B18]/10 shadow-xs space-y-4">
             <div>
               <h3 className="text-xs font-bold text-[#1E1B18] flex items-center gap-1.5 mb-1">
-                <Heart className="w-3.5 h-3.5 text-rose-500" /> 情感与人际启示
+                <IconLove size={15} className="text-rose-500" /> 情感与人际启示
               </h3>
               <p className="text-xs text-[#5C5549] leading-relaxed">
                 {card.loveMeaning}
@@ -154,7 +155,7 @@ export default async function CardDetailPage({
 
             <div className="pt-3 border-t border-[#1E1B18]/8">
               <h3 className="text-xs font-bold text-[#1E1B18] flex items-center gap-1.5 mb-1">
-                <Briefcase className="w-3.5 h-3.5 text-indigo-500" /> 职场与财富启示
+                <IconCareer size={15} className="text-[#8C6D23]" /> 职场与财富启示
               </h3>
               <p className="text-xs text-[#5C5549] leading-relaxed">
                 {card.careerMeaning}

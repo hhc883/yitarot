@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Flame, BookOpen } from 'lucide-react';
 import { YinYangFish } from '@/components/common/YinYangFish';
+import { IconScrollBaZi, IconCoinLiuYao, IconZodiacDragon } from '@/components/icons/QiIcons';
 
 export const instant = false;
 
@@ -74,8 +75,8 @@ export default async function FateMasterHomePage({
           {/* 八字排盘 */}
           <div className="rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-7 shadow-xs flex flex-col justify-between">
             <div>
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl mb-4">
-                📜
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4 shadow-xs">
+                <IconScrollBaZi size={26} />
               </div>
               <h3 className="font-serif font-bold text-lg text-[#111111] mb-2">
                 八字四柱排盘
@@ -103,8 +104,8 @@ export default async function FateMasterHomePage({
           {/* 周易六爻 */}
           <div className="rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-7 shadow-xs flex flex-col justify-between">
             <div>
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-2xl mb-4">
-                🪙
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-4 shadow-xs">
+                <IconCoinLiuYao size={26} />
               </div>
               <h3 className="font-serif font-bold text-lg text-[#111111] mb-2">
                 周易六爻铜钱神谕
@@ -132,8 +133,8 @@ export default async function FateMasterHomePage({
           {/* 生肖合盘 */}
           <div className="rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-7 shadow-xs flex flex-col justify-between">
             <div>
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center text-2xl mb-4">
-                🐉
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center mb-4 shadow-xs">
+                <IconZodiacDragon size={26} />
               </div>
               <h3 className="font-serif font-bold text-lg text-[#111111] mb-2">
                 生肖与五行合盘
