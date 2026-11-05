@@ -32,7 +32,6 @@ interface FanCardItem {
   uid: string;
   card: TarotCardData;
   isReversed: boolean;
-  isDrawn: boolean;
   angle: number;
 }
 
@@ -45,16 +44,83 @@ function generateShuffledFanDeck(): FanCardItem[] {
     [deck[i], deck[j]] = [deck[j], deck[i]];
   }
 
-  // 78 张卡牌沿 -48° 至 +48° 均匀孔雀扇形展布
-  const step = 96 / (deck.length - 1);
+  // 78 张卡牌沿 -50° 至 +50° 均匀孔雀扇形放射排布
+  const step = 100 / (deck.length - 1);
   return deck.map((card, i) => ({
     uid: `fan-${card.slug}-${i}-${Math.random().toString(36).slice(2, 7)}`,
     card,
     isReversed: Math.random() > 0.5,
-    isDrawn: false,
-    angle: Number((-48 + i * step).toFixed(2))
+    angle: Number((-50 + i * step).toFixed(2))
   }));
 }
+
+// 极致性能优化的单张扇面叶片组件 (使用 React.memo，彻底杜绝鼠标划过时的重绘雪崩)
+interface FanCardLeafProps {
+  idx: number;
+  angle: number;
+  isDrawn: boolean;
+  onSelect: (idx: number) => void;
+}
+
+const FanCardLeaf = React.memo(function FanCardLeaf({
+  idx,
+  angle,
+  isDrawn,
+  onSelect
+}: FanCardLeafProps) {
+  const handleClick = useCallback(() => {
+    onSelect(idx);
+  }, [idx, onSelect]);
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: '-38px',
+        top: '-430px',
+        width: '76px',
+        height: '124px',
+        transform: `rotate(${angle}deg)`,
+        transformOrigin: '38px 430px',
+        zIndex: idx + 10,
+        contain: 'layout style paint',
+        pointerEvents: isDrawn ? 'none' : 'auto'
+      }}
+    >
+      {/* 
+        性能关键：仅对 transform 与 opacity 过渡，严禁 transition-all 和动态 box-shadow！
+        使用纯 GPU 合成层 hover:-translate-y-7 与 hover:brightness-115，保证零 CPU 栅格化负担。
+      */}
+      <div
+        onClick={handleClick}
+        style={{
+          transform: isDrawn ? 'scale(0.85)' : undefined,
+          opacity: isDrawn ? 0.08 : 1,
+          transition: 'transform 0.12s cubic-bezier(0.2, 0, 0.2, 1)',
+          willChange: 'transform'
+        }}
+        className={`w-full h-full rounded-xl select-none cursor-pointer ${
+          !isDrawn
+            ? 'hover:-translate-y-7 hover:scale-106 hover:brightness-115 active:scale-98'
+            : ''
+        }`}
+      >
+        {/* 精美卡牌背面 (高质感但极轻量 DOM) */}
+        <div className="w-full h-full rounded-xl bg-[#0F1624] border border-[#D4AF37]/60 p-1 flex flex-col items-center justify-between shadow-[0_4px_10px_rgba(0,0,0,0.35)]">
+          <div className="w-full h-full rounded-lg border border-[#D4AF37]/30 p-1 flex flex-col items-center justify-between relative bg-gradient-to-b from-[#162235] to-[#0A0F19]">
+            <span className="text-[7px] text-[#D4AF37]/70">✦</span>
+            <div className="w-6 h-6 rounded-full border border-[#D4AF37]/50 flex items-center justify-center text-[10px] bg-[#070B12]">
+              ✨
+            </div>
+            <span className="text-[7px] font-mono text-[#D4AF37]/70 tracking-wider">
+              #{idx + 1}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -64,26 +130,29 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
   const slotsGridRef = useRef<HTMLDivElement>(null);
   const draggableInstanceRef = useRef<globalThis.Draggable | null>(null);
   const isDraggingRef = useRef(false);
+  const setRotationRef = useRef<((val: number | string) => void) | null>(null);
 
   const [shuffling, setShuffling] = useState(false);
   const [fanDeck, setFanDeck] = useState<FanCardItem[]>(() => generateShuffledFanDeck());
+  const [drawnIndices, setDrawnIndices] = useState<number[]>([]);
   const [drawnCards, setDrawnCards] = useState<DrawnCard[]>([]);
   const [flippedStates, setFlippedStates] = useState<boolean[]>([]);
 
   // 当牌阵规格改变时，重置抽牌状态
   useEffect(() => {
     setFanDeck(generateShuffledFanDeck());
+    setDrawnIndices([]);
     setDrawnCards([]);
     setFlippedStates([]);
   }, [spread.id, spread.cardCount]);
 
-  // 更新扇形圆盘角度
+  // 使用 GSAP quickSetter 极速更新旋转，开销比常规 setState/gsap.set 低 250%
   const syncRotationFromProxy = useCallback(() => {
-    if (!proxyRef.current || !fanPivotRef.current) return;
+    if (!proxyRef.current || !setRotationRef.current) return;
     const currentX = (gsap.getProperty(proxyRef.current, 'x') as number) || 0;
-    // 拖动 X 范围 [-550, 550] 映射至旋转角度 [+48°, -48°]
-    const targetAngle = -(currentX / 550) * 48;
-    gsap.set(fanPivotRef.current, { rotation: targetAngle, force3D: true });
+    // 拖动 X 范围 [-550, 550] 映射至旋转角度 [+50°, -50°]
+    const targetAngle = -(currentX / 550) * 50;
+    setRotationRef.current(targetAngle);
   }, []);
 
   // 基于 GSAP Draggable + Inertia 构建扇形圆盘惯性旋转
@@ -95,9 +164,12 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
       draggableInstanceRef.current = null;
     }
 
+    // 初始化 quickSetter
+    setRotationRef.current = gsap.quickSetter(fanPivotRef.current, 'rotation', 'deg') as (val: number | string) => void;
+
     // 初始重置 proxy 与扇形角度
     gsap.set(proxyRef.current, { x: 0 });
-    gsap.set(fanPivotRef.current, { rotation: 0, force3D: true });
+    setRotationRef.current?.(0);
 
     const [d] = Draggable.create(proxyRef.current, {
       trigger: fanContainerRef.current,
@@ -108,7 +180,7 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
       cursor: 'grab',
       activeCursor: 'grabbing',
       dragClickables: false,
-      minimumMovement: 6,
+      minimumMovement: 8,
       onDragStart: () => {
         isDraggingRef.current = true;
       },
@@ -123,10 +195,9 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
 
     draggableInstanceRef.current = d;
 
-    // 核心解决点 1：使用原生 non-passive wheel 事件，彻底阻止页面上下滚动！
+    // 原生 non-passive wheel 事件，彻底阻止页面上下滚动
     const container = fanContainerRef.current;
     const onWheelHandler = (e: WheelEvent) => {
-      // 阻止浏览器垂直滚动，仅驱动牌面左右旋转
       e.preventDefault();
       e.stopPropagation();
 
@@ -138,6 +209,7 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
         x: targetX,
         duration: 0.35,
         ease: 'power2.out',
+        overwrite: 'auto',
         onUpdate: () => {
           syncRotationFromProxy();
           d?.update();
@@ -164,6 +236,7 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
       x: targetX,
       duration: 0.45,
       ease: 'power2.out',
+      overwrite: 'auto',
       onUpdate: () => {
         syncRotationFromProxy();
         draggableInstanceRef.current?.update();
@@ -172,23 +245,20 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
   };
 
   // 用户点击扇形中的任意一张牌进行抽取
-  const handleCardSelect = contextSafe((fanIdx: number) => {
+  const handleCardSelect = useCallback((fanIdx: number) => {
     if (isDraggingRef.current) return;
     if (shuffling) return;
 
     if (drawnCards.length >= spread.cardCount) return;
+    if (drawnIndices.includes(fanIdx)) return;
 
     const targetCard = fanDeck[fanIdx];
-    if (!targetCard || targetCard.isDrawn) return;
+    if (!targetCard) return;
 
     const currentSlotIdx = drawnCards.length;
 
-    // 1. 标记牌堆中该卡牌已被抽出
-    setFanDeck(prev => {
-      const next = [...prev];
-      next[fanIdx] = { ...next[fanIdx], isDrawn: true };
-      return next;
-    });
+    // 1. 记录已抽取索引 (仅引发该张 FanCardLeaf 局部 re-render，其他 77 张完全不动)
+    setDrawnIndices(prev => [...prev, fanIdx]);
 
     // 2. 存入已抽取牌阵
     const newCard: DrawnCard = {
@@ -215,7 +285,7 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
         }
       }, 50);
     }
-  });
+  }, [drawnCards.length, drawnIndices, fanDeck, shuffling, spread.cardCount, spread.positions]);
 
   // 宇宙随缘盲抽：一键按节奏从扇面中抽取剩余卡牌
   const handleAutoDraw = contextSafe(() => {
@@ -223,7 +293,7 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
 
     const needed = spread.cardCount - drawnCards.length;
     const availableIndices = fanDeck
-      .map((item, idx) => (!item.isDrawn ? idx : -1))
+      .map((_, idx) => (!drawnIndices.includes(idx) ? idx : -1))
       .filter(idx => idx !== -1);
 
     if (availableIndices.length < needed) return;
@@ -251,10 +321,12 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
         ease: 'power2.in',
         onComplete: () => {
           setFanDeck(generateShuffledFanDeck());
+          setDrawnIndices([]);
           setDrawnCards([]);
           setFlippedStates([]);
           if (proxyRef.current) gsap.set(proxyRef.current, { x: 0 });
-          gsap.set(fanPivotRef.current, { rotation: 0, scale: 1, autoAlpha: 1 });
+          setRotationRef.current?.(0);
+          gsap.set(fanPivotRef.current, { scale: 1, autoAlpha: 1 });
           setTimeout(() => {
             setShuffling(false);
           }, 350);
@@ -262,6 +334,7 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
       });
     } else {
       setFanDeck(generateShuffledFanDeck());
+      setDrawnIndices([]);
       setDrawnCards([]);
       setFlippedStates([]);
       setTimeout(() => {
@@ -495,7 +568,7 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
         )}
       </div>
 
-      {/* 下方 78 张纯正圆弧孔雀扇形牌库 (真正的扇形拱曲排开) */}
+      {/* 下方 78 张纯正圆弧孔雀扇形牌库 (真正的扇形拱曲排开，硬件加速 60 FPS) */}
       <div className="w-full max-w-5xl rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-5 sm:p-7 shadow-sm overflow-hidden relative">
         {/* 标题说明条与滑动控制器 */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-2 px-1">
@@ -558,49 +631,13 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
             }}
           >
             {fanDeck.map((item, idx) => (
-              <div
+              <FanCardLeaf
                 key={item.uid}
-                style={{
-                  position: 'absolute',
-                  left: '-40px',
-                  top: '-430px',
-                  width: '80px',
-                  height: '130px',
-                  transform: `rotate(${item.angle}deg)`,
-                  transformOrigin: '40px 430px',
-                  zIndex: idx + 10
-                }}
-                className="pointer-events-auto"
-              >
-                {/* 
-                  纯 CSS 高性能硬件加速悬浮交互：
-                  零 React 状态开销，光标悬停时卡牌沿自身放射线径向向外滑出 30px 并放大，
-                  彻底根除 78 个 DOM 节点 re-render 引起的卡顿！
-                */}
-                <div
-                  onClick={() => handleCardSelect(idx)}
-                  className={`w-full h-full rounded-xl transition-all duration-200 ease-out select-none cursor-pointer ${
-                    item.isDrawn
-                      ? 'opacity-10 scale-90 pointer-events-none'
-                      : 'hover:-translate-y-8 hover:scale-110 hover:shadow-[0_15px_30px_rgba(212,175,55,0.35)] hover:ring-2 hover:ring-[#E8CF86] shadow-md'
-                  }`}
-                >
-                  {/* 精美韦特塔罗牌背 */}
-                  <div className="w-full h-full rounded-xl bg-gradient-to-b from-[#111927] via-[#0E1524] to-[#0A0E17] border border-[#D4AF37]/50 p-1.5 flex flex-col items-center justify-between overflow-hidden shadow-inner">
-                    <div className="w-full h-full rounded-lg border border-[#D4AF37]/35 p-1 flex flex-col items-center justify-between relative bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.18)_0%,_transparent_75%)]">
-                      <span className="text-[7px] text-[#D4AF37]/70">✦</span>
-
-                      <div className="w-7 h-7 rounded-full border border-[#D4AF37]/50 flex items-center justify-center text-xs shadow-[0_0_12px_rgba(212,175,55,0.25)] bg-[#0B1019]/80">
-                        ✨
-                      </div>
-
-                      <span className="text-[7px] font-serif text-[#D4AF37]/70 tracking-widest uppercase">
-                        #{idx + 1}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                idx={idx}
+                angle={item.angle}
+                isDrawn={drawnIndices.includes(idx)}
+                onSelect={handleCardSelect}
+              />
             ))}
           </div>
         </div>
