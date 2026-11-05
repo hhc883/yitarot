@@ -39,80 +39,64 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
   const cardsGridRef = useRef<HTMLDivElement>(null);
 
   const [shuffling, setShuffling] = useState(false);
-  const [drawnCards, setDrawnCards] = useState<DrawnCard[]>(() => createDeterministicCards(spread));
+  // 直接初始化随机抽牌结果，避免挂载后二次更新导致第 1 张牌动画被中断
+  const [drawnCards, setDrawnCards] = useState<DrawnCard[]>(() => createRandomDrawnCards(spread));
   const [flippedStates, setFlippedStates] = useState<boolean[]>(() => new Array(spread.cardCount).fill(false));
 
-  // 客户端初次挂载后切牌
+  // 牌阵切换时重新抽牌
   useEffect(() => {
     setDrawnCards(createRandomDrawnCards(spread));
-  }, [spread.id]);
+    setFlippedStates(new Array(spread.cardCount).fill(false));
+  }, [spread.id, spread.cardCount]);
 
-  // GSAP 洗牌发牌主仪式
-  const resetDraw = useCallback(() => {
-    if (shuffling) return;
-    setShuffling(true);
-    setFlippedStates([]);
-
-    // 先做收拢聚牌动画
-    if (cardsGridRef.current) {
-      const cardNodes = cardsGridRef.current.querySelectorAll('.card-slot');
-      gsap.to(cardNodes, {
-        scale: 0.8,
-        y: -30,
-        autoAlpha: 0,
-        stagger: 0.05,
-        duration: 0.35,
-        ease: 'power2.in',
-        onComplete: () => {
-          // 生成新卡牌
-          const newCards = createRandomDrawnCards(spread);
-          setDrawnCards(newCards);
-          setFlippedStates(new Array(spread.cardCount).fill(false));
-
-          setTimeout(() => {
-            setShuffling(false);
-          }, 300);
-        }
-      });
-    } else {
-      setTimeout(() => {
-        setDrawnCards(createRandomDrawnCards(spread));
-        setFlippedStates(new Array(spread.cardCount).fill(false));
-        setShuffling(false);
-      }, 500);
-    }
-  }, [shuffling, spread]);
-
-  // 当洗牌完成并呈现新卡牌时，执行 GSAP 优雅飞入发牌动效
-  useGSAP(() => {
+  // 当洗牌完成或初次呈现时，基于 GSAP Timeline 执行优雅发牌归位动效
+  const { contextSafe } = useGSAP(() => {
     if (!shuffling && cardsGridRef.current) {
       const cardNodes = cardsGridRef.current.querySelectorAll('.card-slot');
-      gsap.fromTo(
-        cardNodes,
-        {
-          y: 40,
-          scale: 0.85,
-          autoAlpha: 0,
-          rotationY: 15
-        },
-        {
-          y: 0,
-          scale: 1,
-          autoAlpha: 1,
-          rotationY: 0,
-          stagger: {
-            each: 0.1,
-            ease: 'power2.out'
-          },
-          duration: 0.6,
-          ease: 'back.out(1.4)'
-        }
-      );
-    }
-  }, { dependencies: [shuffling, drawnCards], scope: containerRef });
+      if (cardNodes.length === 0) return;
 
-  // 翻开单张 (带 GSAP 微弹力反馈)
-  const handleToggleFlip = (index: number) => {
+      const count = cardNodes.length;
+      const centerIdx = (count - 1) / 2;
+
+      // 使用 GSAP 时间线构建有秩序、有节奏的真实发牌仪式感
+      const tl = gsap.timeline({
+        delay: 0.15, // 给 DOM 渲染与页面切换留出 150ms 充分时间，确保第 1 张牌绝不漏帧
+        defaults: { ease: 'power3.out' }
+      });
+
+      // 先快速设置所有卡槽的起始发牌状态（聚拢浮空、带微透光与扇形微倾斜）
+      cardNodes.forEach((node, i) => {
+        const offset = i - centerIdx;
+        gsap.set(node, {
+          y: -45,
+          x: offset * -18, // 向中心聚拢
+          scale: 0.86,
+          rotationZ: offset * 3.5, // 微弧度扇形发牌感
+          autoAlpha: 0,
+          transformPerspective: 1000
+        });
+      });
+
+      // 逐张发牌至各自牌位（圣三角：第1张 -> 第2张 -> 第3张 依次有序飞入）
+      tl.to(cardNodes, {
+        y: 0,
+        x: 0,
+        scale: 1,
+        rotationZ: 0,
+        autoAlpha: 1,
+        duration: 0.65,
+        stagger: {
+          each: 0.16, // 每张牌清晰间隔 160ms，第 1 张、第 2 张、第 3 张依次清晰滑入归位
+          ease: 'power2.out'
+        },
+        ease: 'back.out(1.15)',
+        clearProps: 'transform' // 动画完成后清除 inline transform，确保 hover 与 3D 翻牌不被干扰
+      });
+    }
+  }, { dependencies: [shuffling, spread.id], scope: containerRef, revertOnUpdate: true });
+
+  // 翻开单张 (GSAP 触碰微浮反馈)
+  const handleToggleFlip = contextSafe((index: number) => {
     setFlippedStates(prev => {
       const next = [...prev];
       next[index] = !next[index];
@@ -120,30 +104,90 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
     });
 
     if (cardsGridRef.current) {
-      const slot = cardsGridRef.current.querySelectorAll('.card-slot')[index];
-      if (slot) {
-        gsap.fromTo(
-          slot,
-          { scale: 0.96 },
-          { scale: 1, duration: 0.4, ease: 'back.out(2)' }
-        );
+      const slots = cardsGridRef.current.querySelectorAll('.card-slot');
+      const targetSlot = slots[index];
+      if (targetSlot) {
+        // 轻弹浮起下落仪式感
+        gsap.timeline()
+          .to(targetSlot, {
+            y: -10,
+            scale: 1.03,
+            duration: 0.2,
+            ease: 'power2.out'
+          })
+          .to(targetSlot, {
+            y: 0,
+            scale: 1,
+            duration: 0.35,
+            ease: 'back.out(1.8)',
+            clearProps: 'transform'
+          });
       }
     }
-  };
+  });
 
-  // 一键全部翻开 (GSAP 波浪翻转)
-  const handleRevealAll = () => {
+  // 一键全部翻开 (GSAP 波浪式接力翻开)
+  const handleRevealAll = contextSafe(() => {
     setFlippedStates(new Array(spread.cardCount).fill(true));
 
     if (cardsGridRef.current) {
       const slots = cardsGridRef.current.querySelectorAll('.card-slot');
-      gsap.fromTo(
-        slots,
-        { scale: 0.94 },
-        { scale: 1, stagger: 0.08, duration: 0.45, ease: 'back.out(1.8)' }
-      );
+      gsap.timeline()
+        .to(slots, {
+          y: -10,
+          scale: 1.025,
+          duration: 0.2,
+          stagger: 0.12,
+          ease: 'power2.out'
+        })
+        .to(slots, {
+          y: 0,
+          scale: 1,
+          duration: 0.4,
+          stagger: 0.12,
+          ease: 'back.out(1.6)',
+          clearProps: 'transform'
+        }, '<0.08');
     }
-  };
+  });
+
+  // GSAP 重新洗牌仪式：牌面收拢归堆，再重新发牌
+  const resetDraw = contextSafe(() => {
+    if (shuffling) return;
+
+    if (cardsGridRef.current) {
+      const slots = cardsGridRef.current.querySelectorAll('.card-slot');
+      const centerIdx = (slots.length - 1) / 2;
+
+      // 先做收拢聚牌动画
+      gsap.to(slots, {
+        scale: 0.75,
+        y: -30,
+        x: (i) => (centerIdx - i) * 20,
+        rotationZ: (i) => (i - centerIdx) * 6,
+        autoAlpha: 0,
+        stagger: 0.05,
+        duration: 0.35,
+        ease: 'power3.in',
+        onComplete: () => {
+          setShuffling(true);
+          setFlippedStates(new Array(spread.cardCount).fill(false));
+          setDrawnCards(createRandomDrawnCards(spread));
+
+          setTimeout(() => {
+            setShuffling(false);
+          }, 350);
+        }
+      });
+    } else {
+      setShuffling(true);
+      setDrawnCards(createRandomDrawnCards(spread));
+      setFlippedStates(new Array(spread.cardCount).fill(false));
+      setTimeout(() => {
+        setShuffling(false);
+      }, 350);
+    }
+  });
 
   const allFlipped = drawnCards.length > 0 && flippedStates.length === spread.cardCount && flippedStates.every(Boolean);
 
@@ -221,8 +265,8 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
               const isFlipped = flippedStates[idx] ?? false;
               return (
                 <div
-                  key={idx}
-                  className="card-slot flex flex-col items-center p-3.5 rounded-3xl bg-[#FFFDF9]/90 ring-1 ring-[#111111]/10 hover:ring-[#E8CF86] transition-all shadow-xs hover:shadow-md"
+                  key={`${spread.id}-${idx}`}
+                  className="card-slot flex flex-col items-center p-3.5 rounded-3xl bg-[#FFFDF9]/95 ring-1 ring-[#111111]/10 hover:ring-[#E8CF86] transition-[border-color,box-shadow] shadow-xs hover:shadow-md"
                 >
                   {/* 站位标题与说明 */}
                   <div className="text-center mb-3">
