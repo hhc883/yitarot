@@ -161,7 +161,7 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             className={mobileItemClass(isEastern)}
           >
             <YinYangFish size={18} spin={false} />
-            <span>{lang === 'en' ? 'Eastern I Ching · FateMaster' : '东方周易 · FateMaster'}</span>
+            <span>{lang === 'en' ? 'Eastern I Ching · QiCosmos' : '东方周易 · 命理天仪'}</span>
           </Link>
           <Link
             href={`/${lang}/reading`}
@@ -169,7 +169,7 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             className={mobileItemClass(isTarot)}
           >
             <IconTarotCards size={18} className="text-[#C29026]" />
-            <span>{lang === 'en' ? 'Western Tarot · Tarotip' : '西方塔罗 · Tarotip'}</span>
+            <span>{lang === 'en' ? 'Western Tarot · QiCosmos' : '西方塔罗 · 秘境神谕'}</span>
           </Link>
           <Link
             href={`/${lang}/cards`}

@@ -29,7 +29,7 @@ export default async function FateMasterHomePage({
 
         <div className="inline-flex items-center gap-2 rounded-full bg-[#FFE59A]/30 border border-[#E8CF86]/50 px-4 py-1.5 text-xs font-medium text-[#8C6D23] mb-6">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>FateMaster · AI 驱动的东方智慧解析系统</span>
+          <span>QiCosmos · 东方周易与现代算法全息系统</span>
         </div>
 
         <h1 className="font-serif font-black text-4xl sm:text-6xl text-[#111111] tracking-tight leading-tight max-w-3xl mb-6">
@@ -38,7 +38,7 @@ export default async function FateMasterHomePage({
         </h1>
 
         <p className="text-base sm:text-lg text-[#5C5549] max-w-2xl leading-relaxed mb-10">
-          摒弃模棱两可的模糊占卜。FateMaster 严格依据中国古代天文历法、真太阳时与二十四节气换柱，将四柱八字与周易六爻转化为现代人直观可用的决策罗盘。
+          摒弃模棱两可的模糊占卜。QiCosmos 严格依据中国古代天文历法、真太阳时与二十四节气换柱，将四柱八字与周易六爻转化为现代人直观可用的决策罗盘。
         </p>
 
         {/* 核心双入口 */}
@@ -173,7 +173,7 @@ export default async function FateMasterHomePage({
                 Q: 什么是八字中的“真太阳时”？为什么排盘前需要校准？
               </h4>
               <p className="text-xs text-[#5C5549] leading-relaxed">
-                A: 现代标准时间（北京时间）是基于东经 120 度的行政区时，而传统八字命理计算依据的是太阳真正照射到当地地平线正南方的时刻。如果出生在新疆或黑龙江，实际真太阳时与钟表时间可能相差 1 至 2 小时，直接影响时柱天干地支。FateMaster 原生支持经度真太阳时校准。
+                A: 现代标准时间（北京时间）是基于东经 120 度的行政区时，而传统八字命理计算依据的是太阳真正照射到当地地平线正南方的时刻。如果出生在新疆或黑龙江，实际真太阳时与钟表时间可能相差 1 至 2 小时，直接影响时柱天干地支。QiCosmos 原生支持经度真太阳时校准。
               </p>
             </div>
 

@@ -2,14 +2,18 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://tarotip.com'),
+  metadataBase: new URL('https://qicosmos.com'),
   title: {
-    default: 'Tarotip｜免费 AI 塔罗占卜 - 在线塔罗牌占卜、爱情塔罗、每日运势',
-    template: '%s | Tarotip'
+    default: 'QiCosmos｜周易·八字·塔罗 AI 命理 - 在线占卜与自我认知镜像',
+    template: '%s | QiCosmos'
   },
   description:
-    'Tarotip 提供温暖治愈的在线 AI 塔罗占卜：爱情关系、是否决断、每日运势与 78 张经典韦特塔罗牌义全解。凭直觉抽牌，多位专属 AI 塔罗师为你即时流式解读。',
+    'QiCosmos（天仪灵图）汇聚东方周易（八字排盘、六爻铜钱神谕、生肖纳音）与西方经典韦特塔罗，结合现代深度心理学，为你提供清澈、深邃的即时命理解读。',
   keywords: [
+    'QiCosmos',
+    '周易起卦',
+    '八字排盘',
+    '六爻占卜',
     'AI塔罗',
     'AI塔罗占卜',
     '在线塔罗牌',
@@ -23,22 +27,22 @@ export const metadata: Metadata = {
     'Tarot reading',
     'Free tarot'
   ],
-  authors: [{ name: 'Tarotip 团队' }],
-  creator: 'Tarotip',
+  authors: [{ name: 'QiCosmos 团队' }],
+  creator: 'QiCosmos',
   openGraph: {
     type: 'website',
     locale: 'zh_CN',
     alternateLocale: ['en_US', 'zh_TW'],
-    url: 'https://tarotip.com/zh',
-    siteName: 'Tarotip',
-    title: 'Tarotip｜免费 AI 塔罗占卜 - 在线塔罗牌占卜、每日运势',
+    url: 'https://qicosmos.com/zh',
+    siteName: 'QiCosmos',
+    title: 'QiCosmos｜周易·八字·塔罗 AI 命理 - 在线占卜与自我认知镜像',
     description:
-      'Tarotip 提供温暖治愈的在线 AI 塔罗占卜：爱情关系、是否决断、每日运势与 78 张经典韦特塔罗牌义全解。'
+      'QiCosmos（天仪灵图）汇聚东方周易与西方经典韦特塔罗，为你提供温润治愈的心灵指引与决策参考。'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tarotip｜免费 AI 塔罗占卜',
-    description: '心里有件事，问问牌吧。你的口袋 AI 塔罗师。'
+    title: 'QiCosmos｜东方周易与西方塔罗 AI 命理',
+    description: '心里有件事，问问卦或牌吧。你的全天候 AI 命理与潜意识导师。'
   }
 };
 

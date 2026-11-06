@@ -7,12 +7,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const coreRoutes = [
     '',
-    // 东方周易命理 (FateMaster)
+    // 东方周易命理
     '/fatemaster',
     '/fatemaster/bazi',
     '/fatemaster/liuyao',
     '/fatemaster/compatibility',
-    // 西方塔罗 (Tarotip)
+    // 西方塔罗神谕
     '/reading',
     '/yes-no',
     '/love',

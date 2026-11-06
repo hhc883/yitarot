@@ -18,7 +18,7 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
               <span className="font-serif font-black text-xl text-[#1E1B18]">QiCosmos</span>
             </div>
             <p className="text-xs leading-relaxed text-[#736B5E]">
-              心里有件事，问问牌吧。Tarotip 是你的口袋 AI 塔罗师，结合荣格共时性心理学与经典韦特塔罗，为你带来温润治愈的即时解答。
+              心里有件事，问问牌吧。QiCosmos 是你的专属 AI 命理与塔罗导师，结合荣格共时性心理学与东西方玄学精髓，为你带来温润治愈的即时解答。
             </p>
             <div className="text-[11px] text-[#8C6D23] font-serif">
               ✦ 凭直觉抽牌 · 探寻潜意识指引 ✦
@@ -103,7 +103,7 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
 
         {/* 底部版权与免责 */}
         <div className="mt-12 pt-6 border-t border-[#1E1B18]/10 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#A59E92] gap-3">
-          <p>© 2026 Tarotip. 保留所有权利。</p>
+          <p>© 2026 QiCosmos. 保留所有权利。</p>
           <p className="text-center sm:text-right max-w-md">
             免责声明：塔罗牌占卜旨在提供心灵陪伴、直觉启发与自我反思，不可替代专业心理咨询、医疗或法律财务决策。
           </p>

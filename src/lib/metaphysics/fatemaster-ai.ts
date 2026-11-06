@@ -21,7 +21,7 @@ export interface LiuYaoAiRequest {
  * 构造八字深度推演的 System & User Prompt
  */
 export function buildBaziPrompt(data: BaZiCalculationResult, req: BaziAiRequest): string {
-  return `你是一位兼具正统子平八字命理精髓与现代荣格心理学视角的资深命理宗师（类似 FateMaster.ai 权威架构）。
+  return `你是一位兼具正统子平八字命理精髓与现代荣格心理学视角的资深命理宗师（QiCosmos 天仪灵图全息推演架构）。
 求问者：${req.name || '求问者'}，性别：${req.gender === 'male' ? '男（乾造）' : '女（坤造）'}
 公历出生：${data.birthSolar.year}年${data.birthSolar.month}月${data.birthSolar.day}日${data.birthSolar.hour}时，农历：${data.lunarString}
 【四柱八字】：

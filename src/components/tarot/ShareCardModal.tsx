@@ -54,7 +54,7 @@ export function ShareCardModal({
 
           <div className="text-center mb-4">
             <span className="font-serif tracking-widest text-[11px] text-[#8C6D23] uppercase">
-              TAROTIP · 心灵神谕
+              QICOSMOS · 心灵神谕
             </span>
             <div className="w-12 h-0.5 bg-[#C29026]/40 mx-auto mt-1 mb-3" />
             <h4 className="font-serif font-bold text-base text-[#1E1B18] line-clamp-2 px-2">

@@ -100,7 +100,7 @@ export function MasterPortalHero({ lang = 'zh' }: { lang?: string }) {
           <YinYangFish size={58} spin={false} glow={true} />
         </div>
 
-        {/* 东方门：FateMaster (周易 / 八字 / 六爻) */}
+        {/* 东方门：QiCosmos 东方周易 (八字 / 六爻 / 生肖) */}
         <div
           ref={portalEastRef}
           onMouseEnter={handleHoverEast}
@@ -118,7 +118,7 @@ export function MasterPortalHero({ lang = 'zh' }: { lang?: string }) {
             </div>
 
             <span className="text-xs font-serif font-semibold text-[#8C6D23] uppercase tracking-wider block mb-1">
-              FATEMASTER.AI
+              QICOSMOS · 东方周易
             </span>
             <h2 className="font-serif font-black text-2xl sm:text-3xl text-[#111111] mb-3">
               周易 · 四柱八字 · 六爻神谕
@@ -155,7 +155,7 @@ export function MasterPortalHero({ lang = 'zh' }: { lang?: string }) {
           </div>
         </div>
 
-        {/* 西方门：Tarotip (AI 塔罗占卜) */}
+        {/* 西方门：QiCosmos 西方塔罗 (78 张韦特原型) */}
         <div
           ref={portalWestRef}
           onMouseEnter={handleHoverWest}
@@ -173,7 +173,7 @@ export function MasterPortalHero({ lang = 'zh' }: { lang?: string }) {
             </div>
 
             <span className="text-xs font-serif font-semibold text-[#8C6D23] uppercase tracking-wider block mb-1">
-              TAROTIP AI
+              QICOSMOS · 塔罗神谕
             </span>
             <h2 className="font-serif font-black text-2xl sm:text-3xl text-[#111111] mb-3">
               经典韦特塔罗 · 3D 洗牌抽牌

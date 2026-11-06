@@ -340,7 +340,7 @@ ${dm.cosmicAdviceZh}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FFE59A]/40 text-[#8C6D23] border border-[#E8CF86]/50">
-              FateMaster AI 命理引擎
+              QiCosmos AI 命理引擎
             </span>
             <h4 className="font-serif font-black text-xl text-[#111111] mt-1">
               AI 命理全息洞察报告

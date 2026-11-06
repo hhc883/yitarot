@@ -88,7 +88,7 @@ export default function PricingPage() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-[#8C6D23] flex items-center gap-1.5">
-                <IconCrownVip size={16} /> Tarotip Plus 会员
+                <IconCrownVip size={16} /> QiCosmos Plus 会员
               </span>
             </div>
 
@@ -128,7 +128,7 @@ export default function PricingPage() {
           <div className="mt-8">
             <button
               onClick={() => {
-                alert('演示模式：已为您开启 Tarotip Plus 尊享体验！您可以随时无限次占卜与追问。');
+                alert('演示模式：已为您开启 QiCosmos Plus 尊享体验！您可以随时无限次占卜与追问。');
               }}
               className="w-full py-3.5 rounded-2xl bg-[#1E1B18] hover:bg-[#38332D] text-[#FFFDF9] font-medium text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
             >

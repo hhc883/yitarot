@@ -201,7 +201,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
           </div>
         </div>
 
-        {/* 侧边 5 步进度胶囊指示器 (类似 Marvis progress-bullet--1 到 5) */}
+        {/* 侧边步骤进度胶囊指示器 (progress-bullet 1 到 5) */}
         <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col gap-3 pointer-events-none">
           {stepsData.map((item) => (
             <div key={item.step} className="flex items-center gap-2.5 justify-end">
@@ -338,7 +338,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
                   </span>
                 </div>
                 <span className="text-[11px] font-serif font-semibold text-[#8C6D23] uppercase">
-                  FATEMASTER.AI
+                  QICOSMOS · 东方易境
                 </span>
                 <h3 className="font-serif font-black text-xl sm:text-2xl text-[#111111] mb-2">
                   {lang === 'zh' ? '周易 · 四柱八字 · 六爻神谕' : 'I Ching & BaZi Oracle'}
@@ -371,7 +371,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
                   </span>
                 </div>
                 <span className="text-[11px] font-serif font-semibold text-[#8C6D23] uppercase">
-                  TAROTIP.COM
+                  QICOSMOS · 西方原型
                 </span>
                 <h3 className="font-serif font-black text-xl sm:text-2xl text-[#111111] mb-2">
                   {lang === 'zh' ? '经典韦特塔罗 · 3D 洗牌' : 'Classic Waite Tarot 3D'}

@@ -29,7 +29,7 @@ export async function generateMetadata({
   if (!card) return { title: '未找到卡牌' };
 
   return {
-    title: `${card.nameZh}（${card.nameEn}）牌义详解 - 正逆位、爱情、事业与象征 | Tarotip`,
+    title: `${card.nameZh}（${card.nameEn}）牌义详解 - 正逆位、爱情、事业与象征 | QiCosmos`,
     description: `深入解析塔罗牌【${card.nameZh}】的正位与逆位含义：${card.uprightKeywords.join('、')}。在爱情、工作与心理学层面的深刻启示。`
   };
 }

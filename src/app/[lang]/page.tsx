@@ -28,7 +28,7 @@ export default async function MasterPortalPage({
 
   return (
     <div className="w-full flex flex-col items-center overflow-hidden">
-      {/* 1. 核心双门开幕：Marvis 同款 900% GSAP 钉图深度长卷 */}
+      {/* 1. 核心双门开幕：900% GSAP 钉图深度长卷交互 */}
       <MasterScrollytellingHero lang={lang} />
 
       {/* 2. 东方周易特质专区展示 */}
@@ -39,7 +39,7 @@ export default async function MasterPortalPage({
               EASTERN METAPHYSICS
             </span>
             <h2 className="font-serif font-black text-2xl sm:text-3xl text-[#111111] mt-1">
-              东方易境 · FateMaster.AI
+              东方易境 · QiCosmos 周易
             </h2>
             <p className="text-xs sm:text-sm text-[#736B5E] mt-1">
               四柱八字严格按节气换柱 · 乾隆通宝 3D 金钱卦 · 五行能量全息调候
@@ -111,7 +111,7 @@ export default async function MasterPortalPage({
               WESTERN TAROT
             </span>
             <h2 className="font-serif font-black text-2xl sm:text-3xl text-[#111111] mt-1">
-              西方秘境 · Tarotip AI
+              西方秘境 · QiCosmos 塔罗
             </h2>
             <p className="text-xs sm:text-sm text-[#736B5E] mt-1">
               78 张经典韦特塔罗全解 · 3D 洗牌抽牌 · 多位专属 AI 导师陪伴解牌

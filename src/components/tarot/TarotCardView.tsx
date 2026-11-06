@@ -106,7 +106,7 @@ export function TarotCardView({
 
             {/* 顶部经典铭文 */}
             <span className="text-[8px] font-serif uppercase tracking-[0.2em] text-[#D4AF37]/60">
-              TAROTIP ORACLE
+              QICOSMOS ORACLE
             </span>
 
             {/* 中心日月星辉神圣图腾 */}
