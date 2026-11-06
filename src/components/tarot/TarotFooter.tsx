@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { YinYangFish } from '@/components/common/YinYangFish';
 
 export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
   return (
@@ -11,10 +12,10 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
           {/* 品牌简介 */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#1E1B18] flex items-center justify-center text-[#D4AF37]">
-                <span>☀️</span>
+              <div className="w-8 h-8 rounded-xl bg-[#FFFDF9] border border-[#E8CF86]/60 flex items-center justify-center shadow-xs">
+                <YinYangFish size={20} spin={false} glow={false} />
               </div>
-              <span className="font-serif font-black text-xl text-[#1E1B18]">Tarotip</span>
+              <span className="font-serif font-black text-xl text-[#1E1B18]">QiCosmos</span>
             </div>
             <p className="text-xs leading-relaxed text-[#736B5E]">
               心里有件事，问问牌吧。Tarotip 是你的口袋 AI 塔罗师，结合荣格共时性心理学与经典韦特塔罗，为你带来温润治愈的即时解答。

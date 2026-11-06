@@ -18,7 +18,7 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isHome = pathname === `/${lang}` || pathname === `/${lang}/` || pathname === '/';
-  const isEastern = pathname.includes('/fatemaster') || pathname.includes('/calculator');
+  const isEastern = pathname.includes('/fatemaster');
   const isCards = pathname.includes('/cards');
   const isTarot = !isCards && (
     pathname.includes('/reading') ||

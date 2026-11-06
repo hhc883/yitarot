@@ -31,9 +31,10 @@ export async function POST(req: NextRequest) {
           }
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const errMsg = err instanceof Error ? err.message : '推演过程异常';
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ error: err.message || '推演过程异常' })}\n\n`)
+            encoder.encode(`data: ${JSON.stringify({ error: errMsg })}\n\n`)
           );
           controller.close();
         }
@@ -47,8 +48,9 @@ export async function POST(req: NextRequest) {
         'Connection': 'keep-alive'
       }
     });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || '服务器内部错误' }), {
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : '服务器内部错误';
+    return new Response(JSON.stringify({ error: errMsg }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });
