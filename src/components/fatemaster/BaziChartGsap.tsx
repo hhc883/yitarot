@@ -14,7 +14,8 @@ import { Sparkles, Calendar, Compass } from 'lucide-react';
 
 gsap.registerPlugin(useGSAP);
 
-export function BaziChartGsap() {
+export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
+  const isEn = lang === 'en';
   const containerRef = useRef<HTMLDivElement>(null);
   const chartBarsRef = useRef<HTMLDivElement>(null);
   const pillarsRef = useRef<HTMLDivElement>(null);
@@ -76,7 +77,8 @@ export function BaziChartGsap() {
           month,
           day,
           hour,
-          gender
+          gender,
+          lang
         })
       });
 
@@ -120,7 +122,30 @@ export function BaziChartGsap() {
         curr.percentage < prev.percentage ? curr : prev
       );
 
-      const report = `### 🌟 原局元神与性格底色
+      const report = isEn
+        ? `### 🌟 Day Master Essence & Archetype
+Your Day Pillar Heavenly Stem is **【${dm.nameEn}】**, classically revered as the archetype of “${dm.archetypeEn}”.
+${dm.essenceEn}
+Possesses balanced composure and disciplined resolve. When supported by lunar timing and resource stems, this chart indicates acute strategic foresight and durable leadership capacity.
+
+---
+
+### ✦ Five Elements Balance & Constitutional Dynamics
+In your natal chart, **【${dominant.element}】** energy holds dominant strength (~${dominant.percentage}%), while **【${lacking.element}】** remains relatively latent.
+- **Dynamic Interaction**: Robust Wood shaped by Metal becomes a Pillar; vigorous Fire tempered by Water creates lasting equilibrium.
+- **Harmony Guidance**: ${baziResult.elementRecommendationsEn}
+
+---
+
+### ✦ Career Trajectory & Natural Genius
+${dm.cosmicAdviceEn}
+Thrives in environments requiring high intellectual barrier to entry, long-term architectural planning, and durable craftsmanship over high-frequency speculation.
+
+---
+
+### 🧭 Cosmic Guidance & Action Maxims
+> *“The wise understand cosmic timing and navigate life with composed serenity. Cultivate your innate gifts and act in alignment with natural momentum to build enduring success.”*`
+        : `### 🌟 原局元神与性格底色
 你的日柱天干为**【${dm.nameZh}】**，古典命理中被称为“${dm.archetypeZh}”。
 ${dm.essenceZh}
 此格人性格端正，行事有度。若得月令印绶扶持，更主聪颖博学，具有深远的战略眼光。
@@ -162,16 +187,20 @@ ${dm.cosmicAdviceZh}
       <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 sm:p-6 shadow-2xs mb-8">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h3 className="font-serif font-bold text-sm text-[#111111]">
-            生辰八字
+            {isEn ? 'Four Pillars (BaZi)' : '生辰八字'}
           </h3>
           <span className="text-[11px] font-serif text-[#736B5E]">
-            农历：{baziResult.lunarString} · 生肖【{baziResult.zodiacSignZh}】
+            {isEn
+              ? `Lunar: ${baziResult.lunarString} · Zodiac [${baziResult.zodiacSignEn}]`
+              : `农历：${baziResult.lunarString} · 生肖【${baziResult.zodiacSignZh}】`}
           </span>
         </div>
 
         <form onSubmit={handleCalculate} className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">出生年份</label>
+            <label className="block text-[11px] text-[#736B5E] mb-1">
+              {isEn ? 'Year' : '出生年份'}
+            </label>
             <input
               type="number"
               value={year}
@@ -183,7 +212,9 @@ ${dm.cosmicAdviceZh}
           </div>
 
           <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">月份</label>
+            <label className="block text-[11px] text-[#736B5E] mb-1">
+              {isEn ? 'Month' : '月份'}
+            </label>
             <input
               type="number"
               value={month}
@@ -195,7 +226,9 @@ ${dm.cosmicAdviceZh}
           </div>
 
           <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">日期</label>
+            <label className="block text-[11px] text-[#736B5E] mb-1">
+              {isEn ? 'Day' : '日期'}
+            </label>
             <input
               type="number"
               value={day}
@@ -207,7 +240,9 @@ ${dm.cosmicAdviceZh}
           </div>
 
           <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">出生时辰（0-23点）</label>
+            <label className="block text-[11px] text-[#736B5E] mb-1">
+              {isEn ? 'Hour (0-23)' : '出生时辰（0-23点）'}
+            </label>
             <input
               type="number"
               value={hour}
@@ -219,7 +254,9 @@ ${dm.cosmicAdviceZh}
           </div>
 
           <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">性别</label>
+            <label className="block text-[11px] text-[#736B5E] mb-1">
+              {isEn ? 'Gender' : '性别'}
+            </label>
             <div className="flex gap-1.5 h-8">
               <button
                 type="button"
@@ -228,7 +265,7 @@ ${dm.cosmicAdviceZh}
                   gender === 'male' ? 'bg-[#111111] text-[#FFFDF9]' : 'bg-[#FAF6ED] text-[#736B5E]'
                 }`}
               >
-                乾造 (男)
+                {isEn ? 'Male' : '乾造 (男)'}
               </button>
               <button
                 type="button"
@@ -237,7 +274,7 @@ ${dm.cosmicAdviceZh}
                   gender === 'female' ? 'bg-[#111111] text-[#FFFDF9]' : 'bg-[#FAF6ED] text-[#736B5E]'
                 }`}
               >
-                坤造 (女)
+                {isEn ? 'Female' : '坤造 (女)'}
               </button>
             </div>
           </div>
@@ -247,7 +284,7 @@ ${dm.cosmicAdviceZh}
               type="submit"
               className="w-full py-2.5 rounded-xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider transition-colors cursor-pointer"
             >
-              <span>开始排盘</span>
+              <span>{isEn ? 'Calculate BaZi Chart' : '开始排盘'}</span>
             </button>
           </div>
         </form>
@@ -256,10 +293,23 @@ ${dm.cosmicAdviceZh}
       {/* 四柱八字盘面展示 (GSAP 飞入动效) */}
       <div ref={pillarsRef} className="w-full grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {[
-          { label: '年柱 · 祖荫', p: baziResult.pillars.year },
-          { label: '月柱 · 提纲', p: baziResult.pillars.month },
-          { label: '日柱 · 元神', p: baziResult.pillars.day, isSelf: true },
-          { label: '时柱 · 归宿', p: baziResult.pillars.hour }
+          {
+            label: isEn ? 'Year Pillar · Ancestry' : '年柱 · 祖荫',
+            p: baziResult.pillars.year
+          },
+          {
+            label: isEn ? 'Month Pillar · Season' : '月柱 · 提纲',
+            p: baziResult.pillars.month
+          },
+          {
+            label: isEn ? 'Day Pillar · Day Master' : '日柱 · 元神',
+            p: baziResult.pillars.day,
+            isSelf: true
+          },
+          {
+            label: isEn ? 'Hour Pillar · Legacy' : '时柱 · 归宿',
+            p: baziResult.pillars.hour
+          }
         ].map((item, idx) => (
           <div
             key={idx}
@@ -277,7 +327,9 @@ ${dm.cosmicAdviceZh}
                 {item.p.gan}
               </div>
               <span className="text-[10px] text-[#8C6D23] font-serif block mb-2">
-                {ELEMENT_ZH_MAP[item.p.ganInfo.element]} · {item.p.ganInfo.archetypeZh}
+                {isEn
+                  ? `${item.p.ganInfo.element} · ${item.p.ganInfo.archetypeEn}`
+                  : `${ELEMENT_ZH_MAP[item.p.ganInfo.element]} · ${item.p.ganInfo.archetypeZh}`}
               </span>
 
               {/* 地支 */}
@@ -285,12 +337,12 @@ ${dm.cosmicAdviceZh}
                 {item.p.zhi}
               </div>
               <span className="text-[10px] text-[#736B5E] block">
-                生肖：{item.p.zhiInfo.animalZh}
+                {isEn ? `Zodiac: ${item.p.zhiInfo.animalEn}` : `生肖：${item.p.zhiInfo.animalZh}`}
               </span>
             </div>
 
             <div className="mt-3 pt-2 border-t border-[#111111]/6 text-[10px] text-[#5C5549] font-serif">
-              纳音：{item.p.naYin}
+              {isEn ? `Sound: ${item.p.naYin}` : `纳音：${item.p.naYin}`}
             </div>
           </div>
         ))}
@@ -302,17 +354,19 @@ ${dm.cosmicAdviceZh}
           <div className="flex items-center gap-2">
             <Compass className="w-4 h-4 text-[#8C6D23]" />
             <h4 className="font-serif font-bold text-base text-[#111111]">
-              原局五行气场能量分布
+              {isEn ? 'Five Elements Energy Balance' : '原局五行气场能量分布'}
             </h4>
           </div>
-          <span className="text-xs text-[#736B5E]">总计 100% 相对生克比例</span>
+          <span className="text-xs text-[#736B5E]">
+            {isEn ? 'Relative 100% distribution' : '总计 100% 相对生克比例'}
+          </span>
         </div>
 
         <div ref={chartBarsRef} className="space-y-3">
           {baziResult.fiveElements.map((el, i) => (
             <div key={i} className="flex items-center gap-3 text-xs">
-              <span className="w-12 font-serif font-bold text-[#111111]">
-                {el.elementZh} ({el.count}个)
+              <span className="w-16 font-serif font-bold text-[#111111]">
+                {isEn ? el.element : el.elementZh} ({el.count})
               </span>
               <div className="flex-1 h-3.5 bg-[#FAF6ED] rounded-full overflow-hidden p-0.5">
                 <div
@@ -336,10 +390,10 @@ ${dm.cosmicAdviceZh}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FFE59A]/40 text-[#8C6D23] border border-[#E8CF86]/50">
-              QiCosmos AI 命理引擎
+              QiCosmos AI
             </span>
             <h4 className="font-serif font-black text-xl text-[#111111] mt-1">
-              AI 命理全息洞察报告
+              {isEn ? 'AI BaZi Holographic Insight' : 'AI 命理全息洞察报告'}
             </h4>
           </div>
 
@@ -349,7 +403,11 @@ ${dm.cosmicAdviceZh}
             className="px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#FFE59A]" />
-            <span>{isGeneratingAi ? 'AI 正在推演干支生克...' : '生成专属 AI 全息解读'}</span>
+            <span>
+              {isEn
+                ? (isGeneratingAi ? 'Analyzing BaZi Stems & Branches...' : 'Generate Full AI Reading')
+                : (isGeneratingAi ? 'AI 正在推演干支生克...' : '生成专属 AI 全息解读')}
+            </span>
           </button>
         </div>
 
@@ -359,7 +417,9 @@ ${dm.cosmicAdviceZh}
           </div>
         ) : (
           <div className="p-8 text-center text-xs text-[#736B5E] border-t border-[#111111]/8">
-            点击上方按钮，让 AI 依据你八字的十神与五行原局，生成事业、财富、姻缘与开运指导。
+            {isEn
+              ? 'Click the button above to generate AI insights covering career trajectory, wealth affinity, romance harmony, and constitutional balance.'
+              : '点击上方按钮，让 AI 依据你八字的十神与五行原局，生成事业、财富、姻缘与开运指导。'}
           </div>
         )}
       </div>

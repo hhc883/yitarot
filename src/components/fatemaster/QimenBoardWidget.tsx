@@ -5,6 +5,7 @@ import { calculateQimen, QimenChartResult, QimenPalace } from '@/lib/metaphysics
 import { Compass, Sparkles } from 'lucide-react';
 
 export function QimenBoardWidget({ lang = 'zh' }: { lang?: string }) {
+  const isEn = lang === 'en';
   const [chart, setChart] = useState<QimenChartResult>(() => calculateQimen());
   const [selectedPalaceId, setSelectedPalaceId] = useState<number>(8); // 默认艮八宫 (常逢生门)
 
@@ -25,10 +26,12 @@ export function QimenBoardWidget({ lang = 'zh' }: { lang?: string }) {
       {/* 标题 */}
       <div className="w-full text-center mb-6">
         <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          {lang === 'en' ? 'AI Qimen Dunjia' : 'AI 奇门遁甲'}
+          {isEn ? 'AI Qimen Dunjia' : 'AI 奇门遁甲'}
         </h1>
         <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-1.5 max-w-lg mx-auto">
-          帝王绝学 · 九宫八门九星八神 · 时家奇门局象排演 · 运筹帷幄决断先机
+          {isEn
+            ? 'Imperial Strategy Oracle · 9 Palaces · 8 Gates · 9 Stars · 8 Deities · Tactical Timing'
+            : '帝王绝学 · 九宫八门九星八神 · 时家奇门局象排演 · 运筹帷幄决断先机'}
         </p>
       </div>
 
@@ -38,14 +41,16 @@ export function QimenBoardWidget({ lang = 'zh' }: { lang?: string }) {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-serif font-bold text-[#111111]">
-                当前盘面：{chart.dunType} · 第 {chart.juNumber} 局
+                {isEn ? `Current Board: ${chart.dunTypeEn} · Ju ${chart.juNumber}` : `当前盘面：${chart.dunType} · 第 ${chart.juNumber} 局`}
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FAF6ED] text-[#8C6D23] font-serif border border-[#8C6D23]/20">
-                {chart.solarTermZh}
+                {isEn ? chart.solarTermEn : chart.solarTermZh}
               </span>
             </div>
             <p className="text-xs font-serif text-[#736B5E]">
-              时辰四柱：{chart.ganzhi.year}年 · {chart.ganzhi.month}月 · {chart.ganzhi.day}日 · {chart.ganzhi.hour}时
+              {isEn
+                ? `Four Pillars: Year ${chart.ganzhi.year} · Month ${chart.ganzhi.month} · Day ${chart.ganzhi.day} · Hour ${chart.ganzhi.hour}`
+                : `时辰四柱：${chart.ganzhi.year}年 · ${chart.ganzhi.month}月 · ${chart.ganzhi.day}日 · ${chart.ganzhi.hour}时`}
             </p>
           </div>
 
@@ -54,7 +59,7 @@ export function QimenBoardWidget({ lang = 'zh' }: { lang?: string }) {
             onClick={handleRefreshTime}
             className="px-4 py-2 rounded-xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider transition-colors cursor-pointer"
           >
-            校准即时盘面
+            {isEn ? 'Calibrate Timing' : '校准即时盘面'}
           </button>
         </div>
       </div>
@@ -83,21 +88,23 @@ export function QimenBoardWidget({ lang = 'zh' }: { lang?: string }) {
                 >
                   <div className="flex items-center justify-between text-[11px] font-serif">
                     <span className="font-bold text-[#111111]">
-                      {palace.directionZh} · {palace.bagua}
+                      {isEn ? `${palace.directionEn} · ${palace.bagua}` : `${palace.directionZh} · ${palace.bagua}`}
                     </span>
-                    <span className="text-[10px] text-[#736B5E]">{palace.currentDeity}</span>
+                    <span className="text-[10px] text-[#736B5E]">
+                      {isEn ? (palace.currentDeityEn || palace.currentDeity) : palace.currentDeity}
+                    </span>
                   </div>
 
                   {/* 核心九星与八门 */}
                   <div className="my-1.5 flex items-center justify-between">
                     <div>
                       <span className="text-xs font-serif text-[#524B40] block">
-                        {palace.currentStar}
+                        {isEn ? (palace.currentStarEn || palace.currentStar) : palace.currentStar}
                       </span>
                       <span className={`font-serif font-black text-sm sm:text-base block ${
                         isSanJi ? 'text-[#8C6D23]' : 'text-[#111111]'
                       }`}>
-                        {palace.currentGate}
+                        {isEn ? (palace.currentGateEn || palace.currentGate) : palace.currentGate}
                       </span>
                     </div>
 
@@ -108,9 +115,9 @@ export function QimenBoardWidget({ lang = 'zh' }: { lang?: string }) {
                   </div>
 
                   <div className="pt-1 border-t border-[#111111]/6 flex justify-between items-center text-[9px] font-serif text-[#736B5E]">
-                    <span>{palace.elementZh}行</span>
+                    <span>{isEn ? palace.elementEn : `${palace.elementZh}行`}</span>
                     <span className={isSanJi ? 'font-bold text-[#8C6D23]' : ''}>
-                      {palace.qualityLevel}
+                      {isEn ? (palace.qualityLevelEn || palace.qualityLevel) : palace.qualityLevel}
                     </span>
                   </div>
                 </div>
@@ -124,39 +131,49 @@ export function QimenBoardWidget({ lang = 'zh' }: { lang?: string }) {
           <div>
             <div className="flex items-center justify-between mb-3 border-b border-[#111111]/6 pb-2">
               <div>
-                <span className="text-[11px] font-serif text-[#736B5E]">当前宫位</span>
+                <span className="text-[11px] font-serif text-[#736B5E]">
+                  {isEn ? 'Selected Palace' : '当前宫位'}
+                </span>
                 <h3 className="font-serif font-black text-xl text-[#111111] mt-0.5">
-                  {selectedPalace.directionZh} · {selectedPalace.bagua}宫
+                  {isEn ? `${selectedPalace.directionEn} · ${selectedPalace.bagua} Palace` : `${selectedPalace.directionZh} · ${selectedPalace.bagua}宫`}
                 </h3>
               </div>
               <span className={`text-xs font-serif font-bold ${
                 selectedPalace.isAuspiciousGate ? 'text-[#8C6D23]' : 'text-[#736B5E]'
               }`}>
-                {selectedPalace.qualityLevel}
+                {isEn ? (selectedPalace.qualityLevelEn || selectedPalace.qualityLevel) : selectedPalace.qualityLevel}
               </span>
             </div>
 
             <div className="space-y-3 text-xs font-serif text-[#524B40] mb-4">
               <div className="p-3 rounded-xl bg-[#FAF6ED] border border-[#111111]/5">
                 <span className="font-bold text-[#111111] block mb-1">
-                  门星配置：{selectedPalace.currentGate} × {selectedPalace.currentStar}
+                  {isEn ? `Configuration: ${selectedPalace.currentGateEn} × ${selectedPalace.currentStarEn}` : `门星配置：${selectedPalace.currentGate} × ${selectedPalace.currentStar}`}
                 </span>
                 <p className="leading-relaxed">
-                  神助：逢【{selectedPalace.currentDeity}】护佑；天盘【{selectedPalace.heavenStem}】加临地盘【{selectedPalace.earthStem}】。
+                  {isEn
+                    ? `Deity: [${selectedPalace.currentDeityEn}]; Heaven Stem [${selectedPalace.heavenStem}] over Earth Stem [${selectedPalace.earthStem}].`
+                    : `神助：逢【${selectedPalace.currentDeity}】护佑；天盘【${selectedPalace.heavenStem}】加临地盘【${selectedPalace.earthStem}】。`}
                 </p>
               </div>
 
               <div>
-                <span className="font-bold text-[#111111] block mb-1">运筹实战策略</span>
+                <span className="font-bold text-[#111111] block mb-1">
+                  {isEn ? 'Tactical Action Guidance' : '运筹实战策略'}
+                </span>
                 <p className="leading-relaxed">
-                  {selectedPalace.domainAdviceZh}。若在此方位开展事务或面朝此方洽谈，事半功倍。
+                  {isEn ? selectedPalace.domainAdviceEn : `${selectedPalace.domainAdviceZh}。若在此方位开展事务或面朝此方洽谈，事半功倍。`}
                 </p>
               </div>
             </div>
           </div>
 
           <div className="p-3 rounded-xl bg-[#FAF6ED] border border-[#8C6D23]/20 text-[11px] font-serif text-[#8C6D23]">
-            <span>奇门心法：急则从神缓从门，动静之间全在机变。</span>
+            <span>
+              {isEn
+                ? 'Qimen Axiom: When urgent rely on Deities; when steady rely on Gates.'
+                : '奇门心法：急则从神缓从门，动静之间全在机变。'}
+            </span>
           </div>
         </div>
       </div>
@@ -164,32 +181,44 @@ export function QimenBoardWidget({ lang = 'zh' }: { lang?: string }) {
       {/* 三吉门黄金方位指引 */}
       <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
         <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs">
-          <span className="text-[11px] font-serif font-bold text-amber-800 block mb-1">【生门 · 求财吉方】</span>
+          <span className="text-[11px] font-serif font-bold text-amber-800 block mb-1">
+            {isEn ? '【Life Gate · Wealth & Enterprise】' : '【生门 · 求财吉方】'}
+          </span>
           <p className="text-xs font-serif text-[#111111] font-bold">
-            {chart.bestDirections.wealthZh}
+            {isEn ? (chart.bestDirections.wealthEn || chart.bestDirections.wealthZh) : chart.bestDirections.wealthZh}
           </p>
           <p className="text-[11px] font-serif text-[#736B5E] mt-1">
-            适合商务拜访、产品发布、投资洽谈与资本运作。
+            {isEn
+              ? 'Ideal for commercial pitches, deal closings, product debuts, and capital allocation.'
+              : '适合商务拜访、产品发布、投资洽谈与资本运作。'}
           </p>
         </div>
 
         <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs">
-          <span className="text-[11px] font-serif font-bold text-emerald-800 block mb-1">【开门 · 谋事吉方】</span>
+          <span className="text-[11px] font-serif font-bold text-emerald-800 block mb-1">
+            {isEn ? '【Open Gate · Career & Initiative】' : '【开门 · 谋事吉方】'}
+          </span>
           <p className="text-xs font-serif text-[#111111] font-bold">
-            {chart.bestDirections.careerZh}
+            {isEn ? (chart.bestDirections.careerEn || chart.bestDirections.careerZh) : chart.bestDirections.careerZh}
           </p>
           <p className="text-[11px] font-serif text-[#736B5E] mt-1">
-            适合开业立项、公开演讲、官务汇报与签署契约。
+            {isEn
+              ? 'Ideal for launching new projects, public keynotes, executive approvals, and signing covenants.'
+              : '适合开业立项、公开演讲、官务汇报与签署契约。'}
           </p>
         </div>
 
         <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs">
-          <span className="text-[11px] font-serif font-bold text-cyan-800 block mb-1">【休门 · 和谈吉方】</span>
+          <span className="text-[11px] font-serif font-bold text-cyan-800 block mb-1">
+            {isEn ? '【Rest Gate · Harmony & Dialogue】' : '【休门 · 和谈吉方】'}
+          </span>
           <p className="text-xs font-serif text-[#111111] font-bold">
-            {chart.bestDirections.negotiationZh}
+            {isEn ? (chart.bestDirections.negotiationEn || chart.bestDirections.negotiationZh) : chart.bestDirections.negotiationZh}
           </p>
           <p className="text-[11px] font-serif text-[#736B5E] mt-1">
-            适合调解纷争、私密会晤、休养调理与向师长请益。
+            {isEn
+              ? 'Ideal for conflict resolution, confidential diplomacy, mental restoration, and mentor counsel.'
+              : '适合调解纷争、私密会晤、休养调理与向师长请益。'}
           </p>
         </div>
       </div>

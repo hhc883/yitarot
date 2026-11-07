@@ -21,13 +21,18 @@ interface CoinTossGsapProps {
 }
 
 export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps) {
+  const isEn = lang === 'en';
   const containerRef = useRef<HTMLDivElement>(null);
   const coin1Ref = useRef<HTMLDivElement>(null);
   const coin2Ref = useRef<HTMLDivElement>(null);
   const coin3Ref = useRef<HTMLDivElement>(null);
   const linesBoardRef = useRef<HTMLDivElement>(null);
 
-  const [question, setQuestion] = useState('我近期的事业合作与重大决策，走向与转机如何？');
+  const [question, setQuestion] = useState(
+    isEn
+      ? 'What is the outlook and turning point for my strategic career initiative?'
+      : '我近期的事业合作与重大决策，走向与转机如何？'
+  );
   const [currentLine, setCurrentLine] = useState<number>(0); // 0 to 6
   const [lines, setLines] = useState<CoinTossLine[]>([]);
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
@@ -165,7 +170,8 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question,
-          reading
+          reading,
+          lang
         })
       });
 
@@ -203,7 +209,38 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
       // 本地离线备用
       const p = reading.primaryHexagram;
       const t = reading.transformedHexagram;
-      const fallbackText = `针对你所叩问之事：**“${question}”**，铜钱六掷，神谕已成。
+      const fallbackText = isEn
+        ? `Regarding your inquiry: **“${question}”**, the six copper coins have cast their oracle.
+
+---
+
+### ䷀ Primary Hexagram: 【${p.nameEn}】
+Hexagram **【${p.nameEn}】** (Upper Trigram ${p.upperTrigram} / Lower Trigram ${p.lowerTrigram}).
+> *“${p.judgmentEn}”*
+Image Commentary: *“${p.imageEn}”*
+Your situation reflects the energetic frequency of 【${p.nameEn}】. Internal momentum is consolidating and demanding rigorous strategic alignment.
+
+---
+
+### 🔍 Line Cast Progression
+${reading.lines.map(l => `- Line ${l.lineIndex} (${l.isYang ? 'Yang ⚊' : 'Yin ⚋'}${l.isChanging ? ' · Moving Line ⚡' : ''}): Sum ${l.sum}, ${l.isChanging ? 'marks a decisive pivot in this stage' : 'stable energetic baseline'}.`).join('\n')}
+
+${t ? `### ⚡ Transformed Hexagram: 【${t.nameEn}】
+Moving lines catalyze evolution into Hexagram **【${t.nameEn}】**.
+> *“${t.judgmentEn}”*
+This indicates that following the transitional turbulence, matters will resolve in the direction governed by ${t.nameEn}.` : 'All six lines are tranquil; adhere strictly to the foundational counsel of the Primary Hexagram.'}
+
+---
+
+### 🧭 Strategic Action Principles
+- 💡 **DO**: ${p.careerAdviceEn} Maintain transparent integrity and plan initiatives methodically.
+- ⚠️ **DON'T**: Avoid hasty shortcuts or forcing outcomes during emotional volatility.
+
+---
+
+### ✨ I Ching Axiom
+> *“Heaven moves with ceaseless power; the noble navigator cultivates unflagging self-reliance. Harmonize with cosmic momentum, and auspicious progress will follow.”*`
+        : `针对你所叩问之事：**“${question}”**，铜钱六掷，神谕已成。
 
 ---
 
@@ -252,13 +289,13 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
       {/* 提问框 */}
       <div className="w-full max-w-2xl mb-8 p-4 sm:p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-2xs">
         <label className="block text-xs font-serif font-semibold text-[#736B5E] mb-2">
-          {lang === 'en' ? 'Inquiry' : '所求之事'}
+          {isEn ? 'Inquiry Focus' : '所求之事'}
         </label>
         <input
           type="text"
           value={question}
           onChange={e => setQuestion(e.target.value)}
-          placeholder={lang === 'en' ? 'State your question or decision...' : '输入心中所问之事或决策困惑...'}
+          placeholder={isEn ? 'State your question, pending decision, or venture...' : '输入心中所问之事或决策困惑...'}
           className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-sm text-[#111111] placeholder-[#736B5E]/50 focus:outline-hidden focus:border-[#111111]"
         />
       </div>
@@ -268,10 +305,10 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
         <div className="md:col-span-7 flex flex-col items-center p-6 sm:p-8 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-2xs text-center">
           <div className="flex items-center justify-between w-full mb-6">
             <span className="text-xs font-serif font-bold text-[#111111]">
-              {lang === 'en' ? 'I Ching Coin Toss' : '金钱起卦'}
+              {isEn ? 'I Ching Coin Toss' : '金钱起卦'}
             </span>
             <span className="text-xs font-serif text-[#736B5E]">
-              {currentLine === 6 ? (lang === 'en' ? 'Complete' : '六爻已成') : (lang === 'en' ? `Line ${currentLine + 1} / 6` : `第 ${currentLine + 1} 爻 / 共 6 爻`)}
+              {currentLine === 6 ? (isEn ? 'Complete' : '六爻已成') : (isEn ? `Line ${currentLine + 1} / 6` : `第 ${currentLine + 1} 爻 / 共 6 爻`)}
             </span>
           </div>
 
@@ -286,7 +323,6 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
               { ref: coin2Ref, val: displayCoins[1] },
               { ref: coin3Ref, val: displayCoins[2] }
             ].map((coin, idx) => {
-              const isYang = coin.val === 3;
               return (
                 <div
                   key={idx}
@@ -298,6 +334,7 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
                   <div className="w-full h-full rounded-full border border-[#8B6508]/60 flex items-center justify-center relative bg-[#C59B27]/90 shadow-inner">
                     {/* 方孔 */}
                     <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[#FFFDF9] border border-[#8B6508] shadow-inner" />
+
                     {/* 乾隆通宝四字 */}
                     <span className="absolute top-1 text-[9px] sm:text-[10px] font-serif font-black text-[#4A3B18]">
                       乾
@@ -325,18 +362,22 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
                 disabled={isFlipping}
                 className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] font-serif text-xs tracking-wider transition-all cursor-pointer"
               >
-                <span>{isFlipping ? (lang === 'en' ? 'Casting...' : '流转中...') : (lang === 'en' ? `Cast Line ${currentLine + 1}` : `掷第 ${currentLine + 1} 爻`)}</span>
+                <span>
+                  {isFlipping
+                    ? (isEn ? 'Casting...' : '流转中...')
+                    : (isEn ? `Cast Line ${currentLine + 1}` : `掷第 ${currentLine + 1} 爻`)}
+                </span>
               </button>
             ) : (
               <div className="flex items-center gap-3">
                 <span className="text-xs font-serif text-[#111111] flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#8C6D23]" /> {lang === 'en' ? 'Hexagram Complete' : '六爻已成'}
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#8C6D23]" /> {isEn ? 'Hexagram Complete' : '六爻已成'}
                 </span>
                 <button
                   onClick={handleReset}
                   className="px-3 py-1.5 rounded-lg text-xs font-serif bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#111111] transition-colors border border-[#111111]/10 flex items-center gap-1 cursor-pointer"
                 >
-                  <RotateCcw className="w-3 h-3" /> {lang === 'en' ? 'Reset' : '重起'}
+                  <RotateCcw className="w-3 h-3" /> {isEn ? 'Reset' : '重起'}
                 </button>
               </div>
             )}
@@ -350,7 +391,7 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
         >
           <div className="flex items-center justify-between mb-4 border-b border-[#111111]/8 pb-2">
             <h4 className="font-serif font-bold text-xs text-[#111111]">
-              {lang === 'en' ? 'Hexagram' : '卦爻'}
+              {isEn ? 'Hexagram Lines' : '卦爻'}
             </h4>
           </div>
 
@@ -363,8 +404,12 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
                   key={idx}
                   className="flex items-center justify-between p-2 rounded-xl bg-[#FAF6ED] ring-1 ring-[#111111]/5 text-xs"
                 >
-                  <span className="font-serif text-[11px] text-[#736B5E] w-12">
-                    {idx === 1 ? '初爻' : idx === 6 ? '上爻' : `第 ${idx} 爻`}
+                  <span className="font-serif text-[11px] text-[#736B5E] w-14">
+                    {idx === 1
+                      ? (isEn ? 'Line 1' : '初爻')
+                      : idx === 6
+                      ? (isEn ? 'Line 6' : '上爻')
+                      : (isEn ? `Line ${idx}` : `第 ${idx} 爻`)}
                   </span>
 
                   {/* 爻线图形 (阳爻、阴爻、动爻统一严格等长 112px，左右对齐) */}
@@ -398,16 +443,16 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
                     </div>
                   </div>
 
-                  <span className="text-[10px] text-[#8C6D23] font-medium w-14 text-right">
+                  <span className="text-[10px] text-[#8C6D23] font-medium w-16 text-right">
                     {lineData
                       ? lineData.sum === 9
-                        ? '老阳 ⚡'
+                        ? (isEn ? 'Old Yang ⚡' : '老阳 ⚡')
                         : lineData.sum === 6
-                        ? '老阴 ⚡'
+                        ? (isEn ? 'Old Yin ⚡' : '老阴 ⚡')
                         : lineData.sum === 7
-                        ? '少阳'
-                        : '少阴'
-                      : '等待掷币'}
+                        ? (isEn ? 'Young Yang' : '少阳')
+                        : (isEn ? 'Young Yin' : '少阴')
+                      : (isEn ? 'Waiting' : '等待掷币')}
                   </span>
                 </div>
               );
@@ -419,15 +464,19 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
             <div className="mt-4 pt-3 border-t border-[#111111]/8 text-center animate-in fade-in">
               <div className="text-3xl my-1">{reading.primaryHexagram.symbol}</div>
               <span className="font-serif font-black text-base text-[#111111]">
-                {reading.primaryHexagram.nameZh}
+                {isEn ? reading.primaryHexagram.nameEn : reading.primaryHexagram.nameZh}
               </span>
               <p className="text-[11px] text-[#5C5549] mt-1 line-clamp-2">
-                {reading.primaryHexagram.judgmentZh}
+                {isEn ? reading.primaryHexagram.judgmentEn : reading.primaryHexagram.judgmentZh}
               </p>
 
               {reading.transformedHexagram && (
                 <div className="mt-2 text-xs text-rose-700 bg-rose-50 p-2 rounded-xl">
-                  动爻化卦：<strong>{reading.transformedHexagram.nameZh}</strong>
+                  {isEn ? (
+                    <>Transformed Hexagram: <strong>{reading.transformedHexagram.nameEn}</strong></>
+                  ) : (
+                    <>动爻化卦：<strong>{reading.transformedHexagram.nameZh}</strong></>
+                  )}
                 </div>
               )}
             </div>
@@ -441,10 +490,12 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                周易六爻 · AI 神谕解卦
+                {isEn ? 'I Ching · AI Oracle' : '周易六爻 · AI 神谕解卦'}
               </span>
               <h4 className="font-serif font-black text-xl text-[#111111] mt-1">
-                【{reading.primaryHexagram.nameZh}】神谕全息洞察
+                {isEn
+                  ? `【${reading.primaryHexagram.nameEn}】Oracle Insight`
+                  : `【${reading.primaryHexagram.nameZh}】神谕全息洞察`}
               </h4>
             </div>
 
@@ -454,7 +505,11 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
               className="px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#FFE59A]" />
-              <span>{isGeneratingAi ? 'AI 正在依卦辞断爻...' : '让 AI 深度解卦'}</span>
+              <span>
+                {isEn
+                  ? (isGeneratingAi ? 'Consulting Hexagram Line Text...' : 'Generate AI Interpretation')
+                  : (isGeneratingAi ? 'AI 正在依卦辞断爻...' : '让 AI 深度解卦')}
+              </span>
             </button>
           </div>
 
@@ -464,7 +519,9 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
             </div>
           ) : (
             <div className="p-8 text-center text-xs text-[#736B5E] border-t border-[#111111]/8">
-              铜钱六爻已排定。点击上方按钮，让 AI 依据你叩问之事，结合本卦、动爻与变卦提供深层决策建议。
+              {isEn
+                ? 'Hexagram lines cast. Click the button above to generate a deep strategic reading with AI.'
+                : '铜钱六爻已排定。点击上方按钮，让 AI 依据你叩问之事，结合本卦、动爻与变卦提供深层决策建议。'}
             </div>
           )}
         </div>

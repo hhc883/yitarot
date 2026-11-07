@@ -7,89 +7,118 @@ import { ArrowRight, UserCheck } from 'lucide-react';
 interface NetworkNode {
   id: string;
   name: string;
+  nameEn: string;
   roleZh: string;
+  roleEn: string;
   type: string;
   element: string;
+  elementEn: string;
   elementColor: string;
   score: number;
   relationNatureZh: string;
+  relationNatureEn: string;
   x: number;
   y: number;
 }
 
 export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
+  const isEn = lang === 'en';
   const [selectedNodeId, setSelectedNodeId] = useState<string>('spouse');
 
   const nodes: NetworkNode[] = [
     {
       id: 'spouse',
       name: '伴侣',
+      nameEn: 'Spouse',
       roleZh: '夫妻配偶 / 正财正官',
+      roleEn: 'Spouse / Direct Wealth & Officer',
       type: 'marriage',
       element: '水',
+      elementEn: 'Water',
       elementColor: '#06B6D4',
       score: 91,
       relationNatureZh: '夫妻内宫六合，天作之合，长久依恋',
+      relationNatureEn: 'Inner palace Six Harmonies; celestial alignment yielding lasting devotion.',
       x: 180,
       y: 90
     },
     {
       id: 'mother',
       name: '母亲',
+      nameEn: 'Mother',
       roleZh: '正印庇佑 / 慈爱源泉',
+      roleEn: 'Direct Resource / Maternal Blessing',
       type: 'mother-child',
       element: '金',
+      elementEn: 'Metal',
       elementColor: '#94A3B8',
       score: 88,
       relationNatureZh: '金水相生，印星生身，深厚包容',
+      relationNatureEn: 'Metal generating Water; deep maternal sheltering and enduring empathy.',
       x: 320,
       y: 90
     },
     {
       id: 'father',
       name: '父亲',
+      nameEn: 'Father',
       roleZh: '偏财父权 / 人生指引',
+      roleEn: 'Indirect Wealth / Paternal Mentor',
       type: 'parent-child',
       element: '木',
+      elementEn: 'Wood',
       elementColor: '#10B981',
       score: 82,
       relationNatureZh: '偏财制衡，刚柔并济，精神传承',
+      relationNatureEn: 'Balanced indirect wealth guidance; philosophical heritage and resilience.',
       x: 390,
       y: 220
     },
     {
       id: 'child',
       name: '子女',
+      nameEn: 'Child',
       roleZh: '食伤显秀 / 未来归宿',
+      roleEn: 'Output / Generational Continuation',
       type: 'mother-child',
       element: '木',
+      elementEn: 'Wood',
       elementColor: '#10B981',
       score: 94,
       relationNatureZh: '我生食伤，秀气流行，温情反哺',
+      relationNatureEn: 'Self generating Output; talent flowing outward with warm filial reciprocity.',
       x: 340,
       y: 350
     },
     {
       id: 'partner',
       name: '合伙人',
+      nameEn: 'Business Partner',
       roleZh: '财官协同 / 事业盟友',
+      roleEn: 'Commercial Synergy / Strategic Ally',
       type: 'business',
       element: '火',
+      elementEn: 'Fire',
       elementColor: '#EF4444',
       score: 85,
       relationNatureZh: '优势互补，契约分明，求财拓荒',
+      relationNatureEn: 'Complementary execution; crystal-clear agreements driving collective expansion.',
       x: 160,
       y: 350
     },
     {
       id: 'friend',
       name: '密友',
+      nameEn: 'Best Friend',
       roleZh: '比肩同气 / 灵魂树洞',
+      roleEn: 'Peer Friend / Soul Confidant',
       type: 'best-friends',
       element: '水',
+      elementEn: 'Water',
       elementColor: '#06B6D4',
       score: 89,
       relationNatureZh: '同舟共济，情绪托底，君子之交',
+      relationNatureEn: 'Mutual resonance; emotional grounding and unpretentious noble loyalty.',
       x: 100,
       y: 220
     }
@@ -101,10 +130,12 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
     <div className="w-full max-w-5xl mx-auto flex flex-col items-center">
       <div className="w-full text-center mb-6">
         <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          {lang === 'en' ? 'BaZi Relationship Network' : '八字关系图谱'}
+          {isEn ? 'BaZi Relationship Network' : '八字关系图谱'}
         </h1>
         <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-1.5 max-w-lg mx-auto">
-          以你为天心原点，全景映射夫妻、父母、子女、合伙人与密友的多维命盘气场网络。
+          {isEn
+            ? 'Centered on your Day Master natal core, mapping multi-dimensional synastry networks across spouse, parents, children, partners, and peers.'
+            : '以你为天心原点，全景映射夫妻、父母、子女、合伙人与密友的多维命盘气场网络。'}
         </p>
       </div>
 
@@ -157,7 +188,7 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
               textAnchor="middle"
               className="text-xs font-serif font-black fill-[#FFFDF9] select-none"
             >
-              本命元神
+              {isEn ? 'Natal Core' : '本命元神'}
             </text>
             <text
               x="250"
@@ -165,7 +196,7 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
               textAnchor="middle"
               className="text-[9px] font-serif fill-[#E8CF86] select-none"
             >
-              我 (日主)
+              {isEn ? 'Self (Day Master)' : '我 (日主)'}
             </text>
 
             {/* 周围各关系节点 */}
@@ -195,7 +226,7 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
                       isSelected ? 'fill-[#111111]' : 'fill-[#524B40]'
                     }`}
                   >
-                    {n.name}
+                    {isEn ? n.nameEn : n.name}
                   </text>
                   <text
                     x={n.x}
@@ -203,7 +234,7 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
                     textAnchor="middle"
                     className="text-[9px] font-serif font-semibold fill-[#8C6D23] select-none"
                   >
-                    {n.score}分
+                    {n.score} {isEn ? 'pts' : '分'}
                   </text>
                 </g>
               );
@@ -211,7 +242,9 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
           </svg>
 
           <span className="text-[11px] font-serif text-[#736B5E] mt-2">
-            点击任意节点，查看该关系的能量流动与详细契合指标
+            {isEn
+              ? 'Click any node to explore relational energy exchange and detailed compatibility indicators.'
+              : '点击任意节点，查看该关系的能量流动与详细契合指标'}
           </span>
         </div>
 
@@ -220,32 +253,44 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
           <div>
             <div className="flex items-center justify-between mb-4 border-b border-[#111111]/6 pb-3">
               <div>
-                <span className="text-[11px] font-serif text-[#736B5E]">当前选中关系</span>
+                <span className="text-[11px] font-serif text-[#736B5E]">
+                  {isEn ? 'Selected Relationship' : '当前选中关系'}
+                </span>
                 <h3 className="font-serif font-black text-xl text-[#111111] mt-0.5">
-                  {selectedNode.name} · {selectedNode.roleZh}
+                  {isEn ? `${selectedNode.nameEn} · ${selectedNode.roleEn}` : `${selectedNode.name} · ${selectedNode.roleZh}`}
                 </h3>
               </div>
               <div className="text-right">
-                <span className="text-[11px] font-serif text-[#736B5E]">契合指数</span>
+                <span className="text-[11px] font-serif text-[#736B5E]">
+                  {isEn ? 'Harmony Index' : '契合指数'}
+                </span>
                 <div className="font-serif font-black text-3xl text-[#8C6D23]">
-                  {selectedNode.score} <span className="text-xs text-[#736B5E] font-normal">分</span>
+                  {selectedNode.score} <span className="text-xs text-[#736B5E] font-normal">{isEn ? 'pts' : '分'}</span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-3.5 text-xs font-serif text-[#524B40] mb-6">
               <div className="p-3.5 rounded-xl bg-[#FAF6ED] border border-[#111111]/6">
-                <span className="font-bold text-[#111111] block mb-1">能量流动机制</span>
-                <p className="leading-relaxed">{selectedNode.relationNatureZh}</p>
+                <span className="font-bold text-[#111111] block mb-1">
+                  {isEn ? 'Relational Dynamic Mechanism' : '能量流动机制'}
+                </span>
+                <p className="leading-relaxed">
+                  {isEn ? selectedNode.relationNatureEn : selectedNode.relationNatureZh}
+                </p>
               </div>
 
               <div>
-                <span className="text-[11px] text-[#736B5E] block mb-1">五行交互属性</span>
+                <span className="text-[11px] text-[#736B5E] block mb-1">
+                  {isEn ? 'Five Elements Resonance' : '五行交互属性'}
+                </span>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-1 rounded-md bg-[#FAF6ED] border border-[#111111]/10 text-xs font-bold text-[#111111]">
-                    对方主气：{selectedNode.element}
+                    {isEn ? `Ruling Element: ${selectedNode.elementEn}` : `对方主气：${selectedNode.element}`}
                   </span>
-                  <span className="text-[11px] text-[#736B5E]">与我方气场循环呼应</span>
+                  <span className="text-[11px] text-[#736B5E]">
+                    {isEn ? 'Harmonizes cyclically with our energetic core' : '与我方气场循环呼应'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -256,7 +301,11 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
               href={`/${lang}/fatemaster/relationship/${selectedNode.type}`}
               className="w-full py-3 rounded-xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
             >
-              <span>进入【{selectedNode.name}合盘】专属排盘推演</span>
+              <span>
+                {isEn
+                  ? `Open [${selectedNode.nameEn}] Deep Synastry Analysis`
+                  : `进入【${selectedNode.name}合盘】专属排盘推演`}
+              </span>
               <ArrowRight className="w-3.5 h-3.5 text-[#E8CF86]" />
             </Link>
           </div>

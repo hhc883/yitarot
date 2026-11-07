@@ -4,17 +4,24 @@ export interface QimenPalace {
   palaceId: number; // 1 to 9 (九宫数)
   bagua: string; // 坎、坤、震、巽、中、乾、兑、艮、离
   directionZh: string; // 正北、西南、正东、东南、中央、西北、正西、东北、正南
+  directionEn?: string;
   elementZh: string; // 水、土、木、木、土、金、金、土、火
+  elementEn?: string;
   originalStar: string; // 天蓬、天芮、天冲、天辅、天禽、天心、天柱、天任、天英
   originalGate: string; // 休、死、伤、杜、中、开、惊、生、景
   currentStar: string;
+  currentStarEn?: string;
   currentGate: string;
+  currentGateEn?: string;
   currentDeity: string; // 值符、腾蛇、太阴、六合、白虎、玄武、九地、九天
+  currentDeityEn?: string;
   heavenStem: string; // 天盘干
   earthStem: string; // 地盘干
   isAuspiciousGate: boolean; // 是否逢开门、休门、生门三大吉门
   qualityLevel: "大吉" | "次吉" | "平" | "凶";
+  qualityLevelEn?: string;
   domainAdviceZh: string; // 适用场景
+  domainAdviceEn?: string;
 }
 
 export interface QimenChartResult {
@@ -31,17 +38,23 @@ export interface QimenChartResult {
     hour: string;
   };
   solarTermZh: string;
+  solarTermEn?: string;
   dunType: "阳遁" | "阴遁";
+  dunTypeEn?: string;
   juNumber: number; // 1 to 9
   zhifuStar: string; // 值符九星 (旬首值班)
   zhishiGate: string; // 值使八门
   palaces: QimenPalace[]; // 9 palaces arranged in standard Lo Shu order
   bestDirections: {
     wealthZh: string; // 生门求财吉方
+    wealthEn?: string;
     careerZh: string; // 开门谋事吉方
+    careerEn?: string;
     negotiationZh: string; // 休门和谈吉方
+    negotiationEn?: string;
   };
   strategicAdviceZh: string;
+  strategicAdviceEn?: string;
 }
 
 // 洛书九宫原始配置
@@ -63,6 +76,40 @@ const DEITIES = ["值符", "腾蛇", "太阴", "六合", "白虎", "玄武", "�
 const GATES = ["休门", "生门", "伤门", "杜门", "景门", "死门", "惊门", "开门"];
 const STARS = ["天蓬", "天任", "天冲", "天辅", "天英", "天芮", "天柱", "天心"];
 const SAN_QI_LIU_YI = ["戊", "己", "庚", "辛", "壬", "癸", "丁", "丙", "乙"];
+
+const DIRECTION_EN_MAP: Record<string, string> = {
+  正北: "North", 西南: "Southwest", 正东: "East", 东南: "Southeast",
+  中央: "Center", 西北: "Northwest", 正西: "West", 东北: "Northeast", 正南: "South"
+};
+
+const ELEMENT_EN_MAP: Record<string, string> = {
+  水: "Water", 土: "Earth", 木: "Wood", 金: "Metal", 火: "Fire"
+};
+
+const GATE_EN_MAP: Record<string, string> = {
+  休门: "Rest Gate", 生门: "Life Gate", 伤门: "Harm Gate", 杜门: "Hidden Gate",
+  景门: "Scenery Gate", 死门: "Death Gate", 惊门: "Shock Gate", 开门: "Open Gate"
+};
+
+const DEITY_EN_MAP: Record<string, string> = {
+  值符: "Chief (Zhifu)", 腾蛇: "Snake (Tengshe)", 太阴: "Moon (Taiyin)", 六合: "Harmony (Liuhe)",
+  白虎: "White Tiger", 玄武: "Black Tortoise", 九地: "Nine Earth", 九天: "Nine Heaven"
+};
+
+const QUALITY_EN_MAP: Record<string, string> = {
+  大吉: "Great Auspiciousness", 次吉: "Auspicious", 平: "Neutral", 凶: "Inauspicious"
+};
+
+const ADVICE_EN_MAP: Record<string, string> = {
+  生门: "Acquiring wealth, property transactions, investment pitches & commercial partnerships.",
+  开门: "Launching new ventures, interviews, public keynotes & inaugurations.",
+  休门: "Restoration & therapy, consulting sponsors, resolving disputes & signing treaties.",
+  景门: "Content drafting, marketing campaigns & social banquets.",
+  杜门: "Confidential R&D, sealing security protocols & strategic retreat.",
+  伤门: "Debt recovery, litigation enforcement & aggressive competition.",
+  死门: "Meditative release, disposing of obsolete structures; avoid initiating ventures.",
+  惊门: "Formal auditing, cross-examination; common ventures should tread carefully."
+};
 
 export function calculateQimen(targetDate: Date = new Date()): QimenChartResult {
   const solar = Solar.fromDate(targetDate);
@@ -133,17 +180,24 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
       palaceId: id,
       bagua: orig.bagua,
       directionZh: orig.direction,
+      directionEn: DIRECTION_EN_MAP[orig.direction] || orig.direction,
       elementZh: orig.element,
+      elementEn: ELEMENT_EN_MAP[orig.element] || orig.element,
       originalStar: orig.star,
       originalGate: orig.gate,
       currentStar: curStar,
+      currentStarEn: curStar,
       currentGate: curGate,
+      currentGateEn: GATE_EN_MAP[curGate] || curGate,
       currentDeity: curDeity,
+      currentDeityEn: DEITY_EN_MAP[curDeity] || curDeity,
       heavenStem,
       earthStem,
       isAuspiciousGate: isAuspicious,
       qualityLevel,
-      domainAdviceZh
+      qualityLevelEn: QUALITY_EN_MAP[qualityLevel] || qualityLevel,
+      domainAdviceZh,
+      domainAdviceEn: ADVICE_EN_MAP[curGate] || "Maintain steady progress on routine workflows."
     });
   }
 
@@ -166,16 +220,22 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
       hour: eightChar.getTime()
     },
     solarTermZh: jieqi,
+    solarTermEn: jieqi,
     dunType,
+    dunTypeEn: isYangDun ? "Yang Dun" : "Yin Dun",
     juNumber,
     zhifuStar: "天心星",
     zhishiGate: "开门",
     palaces,
     bestDirections: {
       wealthZh: `${shengPalace.directionZh}（${shengPalace.bagua}宫逢生门，大吉大利）`,
+      wealthEn: `${shengPalace.directionEn} (${shengPalace.bagua} Palace with Life Gate · Peak Wealth)`,
       careerZh: `${kaiPalace.directionZh}（${kaiPalace.bagua}宫逢开门，谋事大顺）`,
-      negotiationZh: `${xiuPalace.directionZh}（${xiuPalace.bagua}宫逢休门，和气生财）`
+      careerEn: `${kaiPalace.directionEn} (${kaiPalace.bagua} Palace with Open Gate · Career Breakthrough)`,
+      negotiationZh: `${xiuPalace.directionZh}（${xiuPalace.bagua}宫逢休门，和气生财）`,
+      negotiationEn: `${xiuPalace.directionEn} (${xiuPalace.bagua} Palace with Rest Gate · Strategic Harmony)`
     },
-    strategicAdviceZh: `当前局象逢【${dunType}${juNumber}局】。三吉门气场流转，西北至东北一线逢生开休拱照。出行办事宜面向【${shengPalace.directionZh}】或【${kaiPalace.directionZh}】展布，避开凶门对冲，运筹帷幄自得天时。`
+    strategicAdviceZh: `当前局象逢【${dunType}${juNumber}局】。三吉门气场流转，西北至东北一线逢生开休拱照。出行办事宜面向【${shengPalace.directionZh}】或【${kaiPalace.directionZh}】展布，避开凶门对冲，运筹帷幄自得天时。`,
+    strategicAdviceEn: `Current chart configuration: [${isYangDun ? 'Yang Dun' : 'Yin Dun'} Ju ${juNumber}]. Auspicious Gates align harmoniously. Face ${shengPalace.directionEn} or ${kaiPalace.directionEn} for negotiations and execution to capture cosmic momentum.`
   };
 }

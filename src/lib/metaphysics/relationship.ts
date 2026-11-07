@@ -16,9 +16,13 @@ export interface RelationshipConfig {
   titleZh: string;
   titleEn: string;
   roleAZh: string;
+  roleAEn: string;
   roleBZh: string;
+  roleBEn: string;
   summaryZh: string;
+  summaryEn: string;
   focusZh: string;
+  focusEn: string;
 }
 
 export const RELATIONSHIP_CONFIGS: Record<RelationshipType, RelationshipConfig> = {
@@ -27,81 +31,117 @@ export const RELATIONSHIP_CONFIGS: Record<RelationshipType, RelationshipConfig> 
     titleZh: "八字合婚",
     titleEn: "BaZi Marriage Synastry",
     roleAZh: "男方 (乾造)",
+    roleAEn: "Partner A (Male)",
     roleBZh: "女方 (坤造)",
+    roleBEn: "Partner B (Female)",
     summaryZh: "推演纳音相生、天干五合、地支刑冲破害与喜用神互补，全景评估夫妻缘分深浅与婚后家风长久度。",
-    focusZh: "夫妻宫生克 · 喜用调候互补 · 子女福德缘"
+    summaryEn: "Evaluates elemental harmony, heavenly combinations, earthly interactions, and favorable elements to assess lifelong marital affinity and domestic prosperity.",
+    focusZh: "夫妻宫生克 · 喜用调候互补 · 子女福德缘",
+    focusEn: "Spouse palace harmony · Elemental complementarity · Household fortune"
   },
   lover: {
     type: "lover",
     titleZh: "恋爱合盘",
     titleEn: "Romantic Compatibility",
     roleAZh: "一方",
+    roleAEn: "Partner A",
     roleBZh: "另一方",
+    roleBEn: "Partner B",
     summaryZh: "深入剖析两性相吸的原型磁场、情感依恋模式、情绪共鸣点与恋爱磨合期的冲突化解之道。",
-    focusZh: "浪漫吸引力 · 情感沟通波长 · 依赖与独立"
+    summaryEn: "Examines romantic chemistry, attachment styles, emotional resonance, and conflict-resolution strategies for dating couples.",
+    focusZh: "浪漫吸引力 · 情感沟通波长 · 依赖与独立",
+    focusEn: "Romantic chemistry · Emotional wavelength · Autonomy & bonding"
   },
   business: {
     type: "business",
     titleZh: "事业合盘",
     titleEn: "Business Partnership",
     roleAZh: "合伙人 A",
+    roleAEn: "Partner A",
     roleBZh: "合伙人 B",
+    roleBEn: "Partner B",
     summaryZh: "解析十神财官互动，剖析谁利开拓财源、谁掌运营规范、谁擅长风险兜底，明晰权责边界与防范背离风险。",
-    focusZh: "财源共振 · 权责分工清晰度 · 信任与契约"
+    summaryEn: "Analyzes commercial ten gods dynamics: who drives revenue, who manages operations, and how to establish clear governance boundaries.",
+    focusZh: "财源共振 · 权责分工清晰度 · 信任与契约",
+    focusEn: "Revenue synergy · Governance clarity · Trust & contract"
   },
   "mother-in-law": {
     type: "mother-in-law",
     titleZh: "婆媳合盘",
     titleEn: "Mother-in-law & Daughter-in-law",
     roleAZh: "婆婆 (长辈)",
+    roleAEn: "Mother-in-law (Senior)",
     roleBZh: "媳妇 (晚辈)",
+    roleBEn: "Daughter-in-law (Junior)",
     summaryZh: "传统命理中“印财相争”之破局指南。洞悉两代女性核心价值取向，提供不内耗的相处边界与情商调候策略。",
-    focusZh: "印星与财星调候 · 边界感维护 · 柔性沟通"
+    summaryEn: "Navigates traditional resource & authority dynamics between generations, offering healthy emotional boundaries and diplomatic strategies.",
+    focusZh: "印星与财星调候 · 边界感维护 · 柔性沟通",
+    focusEn: "Generational boundaries · Respectful diplomacy · Emotional space"
   },
   "best-friends": {
     type: "best-friends",
     titleZh: "闺蜜合盘",
     titleEn: "Best Friends Resonance",
     roleAZh: "密友 A",
+    roleAEn: "Friend A",
     roleBZh: "密友 B",
+    roleBEn: "Friend B",
     summaryZh: "解读闺蜜比劫星相生互助、情绪树洞默契与趣味共鸣，寻找彼此灵魂深处的无条件共情与支持纽带。",
-    focusZh: "情绪托底 · 兴趣三观契合 · 忠诚度与舒适感"
+    summaryEn: "Decodes peer resonance, emotional companionship, and mutual empowerment for intimate friendships without social masks.",
+    focusZh: "情绪托底 · 兴趣三观契合 · 忠诚度与舒适感",
+    focusEn: "Emotional safety · Shared worldview · Genuine loyalty"
   },
   "parent-child": {
     type: "parent-child",
     titleZh: "父子关系",
     titleEn: "Father & Son Dynamics",
     roleAZh: "父亲",
+    roleAEn: "Father",
     roleBZh: "儿子",
+    roleBEn: "Son",
     summaryZh: "探索偏财与七杀的父权互动，解析威严与叛逆背后的心理投射，助力建立亦师亦友、互相尊重的成年人相处范式。",
-    focusZh: "父爱表达 · 权威与自主平衡 · 事业传承指引"
+    summaryEn: "Explores authority, rebellion, and mentoring dynamics between father and son, fostering adult mutual respect and legacy.",
+    focusZh: "父爱表达 · 权威与自主平衡 · 事业传承指引",
+    focusEn: "Fatherly guidance · Authority vs autonomy · Mentorship"
   },
   "mother-child": {
     type: "mother-child",
     titleZh: "母子关系",
     titleEn: "Mother & Child Harmony",
     roleAZh: "母亲",
+    roleAEn: "Mother",
     roleBZh: "孩子",
+    roleBEn: "Child",
     summaryZh: "剖析正印庇护与孩子日主之承接度，规避过度关爱带来的束缚感，找寻科学放手、温润滋养的亲情平衡点。",
-    focusZh: "滋养与边界 · 依恋关系 · 情绪支持与自我成长"
+    summaryEn: "Examines nurturing energy and boundary respect, helping balance maternal affection with healthy independence.",
+    focusZh: "滋养与边界 · 依恋关系 · 情绪支持与自我成长",
+    focusEn: "Nurturing vs boundaries · Healthy attachment · Growth"
   },
   friends: {
     type: "friends",
     titleZh: "朋友关系",
     titleEn: "Friendship Synastry",
     roleAZh: "朋友 A",
+    roleAEn: "Friend A",
     roleBZh: "朋友 B",
+    roleBEn: "Friend B",
     summaryZh: "分析志同道合度、社交圈层互动与君子之交的舒适距离，评估长久维系的纯粹度与彼此助力格局。",
-    focusZh: "志趣相投 · 社交共振 · 互不消耗的真诚度"
+    summaryEn: "Evaluates shared aspirations, social rapport, and long-term mutual loyalty for enduring friendships.",
+    focusZh: "志趣相投 · 社交共振 · 互不消耗的真诚度",
+    focusEn: "Shared ideals · Social rapport · Sincerity without drain"
   },
   leader: {
     type: "leader",
     titleZh: "领导下属",
     titleEn: "Leader & Subordinate",
     roleAZh: "管理者 / 领导",
+    roleAEn: "Leader / Manager",
     roleBZh: "执行者 / 下属",
+    roleBEn: "Subordinate / Team Member",
     summaryZh: "结合正官七杀与食伤执行力，推演授权信任度、汇报契合节奏与向上管理之道，促进职场双赢升维。",
-    focusZh: "领导风格匹配 · 执行契合度 · 向上管理与赋能"
+    summaryEn: "Analyzes managerial empowerment, reporting rhythm, and execution alignment to achieve synergistic career success.",
+    focusZh: "领导风格匹配 · 执行契合度 · 向上管理与赋能",
+    focusEn: "Leadership style match · Execution harmony · Upward management"
   }
 };
 

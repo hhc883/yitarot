@@ -9,6 +9,7 @@ interface BaziDailyWidgetProps {
 }
 
 export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
+  const isEn = lang === 'en';
   const [year, setYear] = useState(1996);
   const [month, setMonth] = useState(8);
   const [day, setDay] = useState(18);
@@ -29,10 +30,12 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
       {/* 头部日期信息 */}
       <div className="w-full mb-8 text-center">
         <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          {lang === 'en' ? 'Daily BaZi Fortune' : '八字每日运势'}
+          {isEn ? 'Daily BaZi Fortune' : '八字每日运势'}
         </h1>
         <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-1.5">
-          {fortune.queryDate.year} 年 {fortune.queryDate.month} 月 {fortune.queryDate.day} 日 · {fortune.queryDate.dayOfWeekZh} · 节气【{fortune.queryDate.solarTerms}】 · 今日【{fortune.todayGanZhi.day}】
+          {isEn
+            ? `${fortune.queryDate.year}-${fortune.queryDate.month}-${fortune.queryDate.day} · ${fortune.queryDate.dayOfWeekEn} · Solar Term [${fortune.queryDate.solarTermsEn}] · Day Pillar [${fortune.todayGanZhi.day}]`
+            : `${fortune.queryDate.year} 年 ${fortune.queryDate.month} 月 ${fortune.queryDate.day} 日 · ${fortune.queryDate.dayOfWeekZh} · 节气【${fortune.queryDate.solarTerms}】 · 今日【${fortune.todayGanZhi.day}】`}
         </p>
       </div>
 
@@ -40,16 +43,20 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
       <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs mb-8">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-serif font-bold text-[#111111]">
-            {lang === 'en' ? 'Birth Profile' : '推演生辰'}
+            {isEn ? 'Birth Profile' : '推演生辰'}
           </span>
           <span className="text-[11px] font-serif text-[#736B5E]">
-            日主元神：{fortune.userDayMaster.nameZh}
+            {isEn
+              ? `Day Master: ${fortune.userDayMaster.nameEn || fortune.userDayMaster.nameZh}`
+              : `日主元神：${fortune.userDayMaster.nameZh}`}
           </span>
         </div>
 
         <form onSubmit={handleRecalculate} className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div>
-            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">出生年</label>
+            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">
+              {isEn ? 'Birth Year' : '出生年'}
+            </label>
             <input
               type="number"
               value={year}
@@ -61,7 +68,9 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">月</label>
+            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">
+              {isEn ? 'Month' : '月'}
+            </label>
             <input
               type="number"
               value={month}
@@ -73,7 +82,9 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">日</label>
+            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">
+              {isEn ? 'Day' : '日'}
+            </label>
             <input
               type="number"
               value={day}
@@ -85,7 +96,9 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
           </div>
 
           <div>
-            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">时辰 (点)</label>
+            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">
+              {isEn ? 'Hour (0-23)' : '时辰 (点)'}
+            </label>
             <input
               type="number"
               value={hour}
@@ -101,7 +114,7 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
               type="submit"
               className="w-full py-2 rounded-xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider transition-colors cursor-pointer"
             >
-              更新运势
+              {isEn ? 'Update Fortune' : '更新运势'}
             </button>
           </div>
         </form>
@@ -114,46 +127,70 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
           <div>
             <div className="flex items-center justify-between mb-4 border-b border-[#111111]/6 pb-3">
               <div>
-                <span className="text-xs font-serif text-[#736B5E]">流日十神</span>
+                <span className="text-xs font-serif text-[#736B5E]">
+                  {isEn ? 'Daily Influence (Ten Gods)' : '流日十神'}
+                </span>
                 <h3 className="font-serif font-black text-2xl text-[#111111] mt-0.5">
-                  {fortune.dailyTenGod.nameZh} · {fortune.dailyTenGod.cosmicThemeZh}
+                  {isEn
+                    ? `${fortune.dailyTenGod.nameEn} · ${fortune.dailyTenGod.cosmicThemeEn}`
+                    : `${fortune.dailyTenGod.nameZh} · ${fortune.dailyTenGod.cosmicThemeZh}`}
                 </h3>
               </div>
               <div className="text-right">
-                <span className="text-[11px] font-serif text-[#736B5E]">综合能量</span>
+                <span className="text-[11px] font-serif text-[#736B5E]">
+                  {isEn ? 'Resonance Score' : '综合能量'}
+                </span>
                 <div className="font-serif font-black text-3xl text-[#8C6D23]">
-                  {fortune.scores.overall} <span className="text-xs text-[#736B5E] font-normal">/ 100</span>
+                  {fortune.scores.overall} <span className="text-xs text-[#736B5E] font-normal">{isEn ? 'pts' : '/ 100'}</span>
                 </div>
               </div>
             </div>
 
             <p className="text-xs font-serif text-[#524B40] leading-relaxed mb-4">
-              {fortune.dailyTenGod.descZh}
+              {isEn ? (fortune.dailyTenGod.descEn || fortune.dailyTenGod.descZh) : fortune.dailyTenGod.descZh}
             </p>
 
             <div className="p-3.5 rounded-xl bg-[#FAF6ED] border border-[#111111]/6 text-xs font-serif text-[#524B40] mb-4">
-              <span className="font-bold text-[#111111] block mb-1">五行交互 · {fortune.elementSynergy.labelZh}</span>
-              {fortune.elementSynergy.descZh}
+              <span className="font-bold text-[#111111] block mb-1">
+                {isEn ? `Elements Synergy · ${fortune.elementSynergy.labelEn}` : `五行交互 · ${fortune.elementSynergy.labelZh}`}
+              </span>
+              {isEn ? (fortune.elementSynergy.descEn || fortune.elementSynergy.descZh) : fortune.elementSynergy.descZh}
             </div>
           </div>
 
           {/* 维度评分条 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-[#111111]/6">
             <div>
-              <span className="text-[11px] font-serif text-[#736B5E] block mb-1">事业指数</span>
-              <span className="text-sm font-serif font-bold text-[#111111]">{fortune.scores.career}分</span>
+              <span className="text-[11px] font-serif text-[#736B5E] block mb-1">
+                {isEn ? 'Career' : '事业指数'}
+              </span>
+              <span className="text-sm font-serif font-bold text-[#111111]">
+                {fortune.scores.career} {isEn ? 'pts' : '分'}
+              </span>
             </div>
             <div>
-              <span className="text-[11px] font-serif text-[#736B5E] block mb-1">财富商机</span>
-              <span className="text-sm font-serif font-bold text-[#111111]">{fortune.scores.wealth}分</span>
+              <span className="text-[11px] font-serif text-[#736B5E] block mb-1">
+                {isEn ? 'Wealth' : '财富商机'}
+              </span>
+              <span className="text-sm font-serif font-bold text-[#111111]">
+                {fortune.scores.wealth} {isEn ? 'pts' : '分'}
+              </span>
             </div>
             <div>
-              <span className="text-[11px] font-serif text-[#736B5E] block mb-1">情感共振</span>
-              <span className="text-sm font-serif font-bold text-[#111111]">{fortune.scores.romance}分</span>
+              <span className="text-[11px] font-serif text-[#736B5E] block mb-1">
+                {isEn ? 'Romance' : '情感共振'}
+              </span>
+              <span className="text-sm font-serif font-bold text-[#111111]">
+                {fortune.scores.romance} {isEn ? 'pts' : '分'}
+              </span>
             </div>
             <div>
-              <span className="text-[11px] font-serif text-[#736B5E] block mb-1">心境活力</span>
-              <span className="text-sm font-serif font-bold text-[#111111]">{fortune.scores.wellness}分</span>
+              <span className="text-[11px] font-serif text-[#736B5E] block mb-1">
+                {isEn ? 'Wellness' : '心境活力'}
+              </span>
+              <span className="text-sm font-serif font-bold text-[#111111]">
+                {fortune.scores.wellness} {isEn ? 'pts' : '分'}
+              </span>
             </div>
           </div>
         </div>
@@ -163,13 +200,15 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
           {/* 宜忌清单 */}
           <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs">
             <h4 className="text-xs font-serif font-bold text-[#111111] mb-3 border-b border-[#111111]/6 pb-2">
-              今日决策宜忌
+              {isEn ? 'Strategic Actions' : '今日决策宜忌'}
             </h4>
             <div className="space-y-3">
               <div>
-                <span className="text-[11px] font-serif font-bold text-emerald-800 block mb-1.5">【宜】</span>
+                <span className="text-[11px] font-serif font-bold text-emerald-800 block mb-1.5">
+                  {isEn ? '【DO】' : '【宜】'}
+                </span>
                 <div className="flex flex-wrap gap-1.5">
-                  {fortune.dosAndDonts.dos.map((d, idx) => (
+                  {(isEn && fortune.dosAndDonts.dosEn ? fortune.dosAndDonts.dosEn : fortune.dosAndDonts.dos).map((d, idx) => (
                     <span key={idx} className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-serif border border-emerald-100">
                       {d}
                     </span>
@@ -178,9 +217,11 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
               </div>
 
               <div>
-                <span className="text-[11px] font-serif font-bold text-rose-800 block mb-1.5">【忌】</span>
+                <span className="text-[11px] font-serif font-bold text-rose-800 block mb-1.5">
+                  {isEn ? '【AVOID】' : '【忌】'}
+                </span>
                 <div className="flex flex-wrap gap-1.5">
-                  {fortune.dosAndDonts.donts.map((d, idx) => (
+                  {(isEn && fortune.dosAndDonts.dontsEn ? fortune.dosAndDonts.dontsEn : fortune.dosAndDonts.donts).map((d, idx) => (
                     <span key={idx} className="text-xs px-2.5 py-1 rounded-lg bg-rose-50 text-rose-800 font-serif border border-rose-100">
                       {d}
                     </span>
@@ -193,25 +234,39 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
           {/* 吉色与方位 */}
           <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs">
             <h4 className="text-xs font-serif font-bold text-[#111111] mb-2.5 border-b border-[#111111]/6 pb-2">
-              天时调候
+              {isEn ? 'Auspicious Alignment' : '天时调候'}
             </h4>
             <div className="grid grid-cols-2 gap-3 text-xs font-serif">
               <div>
-                <span className="text-[11px] text-[#736B5E] block">贵人吉方</span>
-                <span className="font-bold text-[#111111]">{fortune.luckyGuides.directionZh}</span>
+                <span className="text-[11px] text-[#736B5E] block">
+                  {isEn ? 'Benefactor Direction' : '贵人吉方'}
+                </span>
+                <span className="font-bold text-[#111111]">
+                  {isEn ? fortune.luckyGuides.directionEn : fortune.luckyGuides.directionZh}
+                </span>
               </div>
               <div>
-                <span className="text-[11px] text-[#736B5E] block">开运色系</span>
-                <span className="font-bold text-[#111111]">{fortune.luckyGuides.colorZh}</span>
+                <span className="text-[11px] text-[#736B5E] block">
+                  {isEn ? 'Auspicious Colors' : '开运色系'}
+                </span>
+                <span className="font-bold text-[#111111]">
+                  {isEn ? fortune.luckyGuides.colorEn : fortune.luckyGuides.colorZh}
+                </span>
               </div>
               <div>
-                <span className="text-[11px] text-[#736B5E] block">黄金时段</span>
-                <span className="font-bold text-[#111111]">{fortune.luckyGuides.timeWindowZh}</span>
+                <span className="text-[11px] text-[#736B5E] block">
+                  {isEn ? 'Golden Hours' : '黄金时段'}
+                </span>
+                <span className="font-bold text-[#111111]">
+                  {isEn ? fortune.luckyGuides.timeWindowEn : fortune.luckyGuides.timeWindowZh}
+                </span>
               </div>
               <div>
-                <span className="text-[11px] text-[#736B5E] block">心法箴言</span>
-                <span className="text-[11px] text-[#524B40] block truncate" title={fortune.luckyGuides.mindsetZh}>
-                  {fortune.luckyGuides.mindsetZh}
+                <span className="text-[11px] text-[#736B5E] block">
+                  {isEn ? 'Mindset Key' : '心法箴言'}
+                </span>
+                <span className="text-[11px] text-[#524B40] block truncate" title={isEn ? fortune.luckyGuides.mindsetEn : fortune.luckyGuides.mindsetZh}>
+                  {isEn ? fortune.luckyGuides.mindsetEn : fortune.luckyGuides.mindsetZh}
                 </span>
               </div>
             </div>
@@ -222,7 +277,7 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
       {/* 十二时辰时序曲线 */}
       <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 shadow-2xs">
         <h4 className="font-serif font-bold text-sm text-[#111111] mb-4">
-          十二时辰能量流转
+          {isEn ? '12 Double-Hours Energy Flow' : '十二时辰能量流转'}
         </h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
           {fortune.hourlyTimeline.map((h, idx) => (
@@ -235,12 +290,14 @@ export function BaziDailyWidget({ lang = 'zh' }: BaziDailyWidgetProps) {
               }`}
             >
               <span className="text-[10px] text-[#736B5E] block font-serif">{h.timeRange}</span>
-              <span className="text-xs font-serif font-black text-[#111111] block my-0.5">{h.branchName}</span>
-              <span className={`text-[11px] font-serif font-bold block ${h.isFavorable ? 'text-[#8C6D23]' : 'text-[#736B5E]'}`}>
-                {h.score}分
+              <span className="text-xs font-serif font-black text-[#111111] block my-0.5">
+                {isEn ? (h.branchNameEn || h.branchName) : h.branchName}
               </span>
-              <span className="text-[10px] text-[#524B40] block font-serif mt-0.5 truncate" title={h.verdict}>
-                {h.verdict.split('·')[0]}
+              <span className={`text-[11px] font-serif font-bold block ${h.isFavorable ? 'text-[#8C6D23]' : 'text-[#736B5E]'}`}>
+                {h.score} {isEn ? 'pts' : '分'}
+              </span>
+              <span className="text-[10px] text-[#524B40] block font-serif mt-0.5 truncate" title={isEn ? (h.verdictEn || h.verdict) : h.verdict}>
+                {isEn ? (h.verdictEn || h.verdict) : h.verdict.split('·')[0]}
               </span>
             </div>
           ))}

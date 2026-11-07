@@ -1,22 +1,24 @@
 export interface TrigramInfo {
   number: number; // 1 to 8
   nameZh: string; // 乾、兑、离、震、巽、坎、艮、坤
+  nameEn?: string;
   symbol: string; // ☰, ☱, ☲, ☳, ☴, ☵, ☶, ☷
   natureZh: string; // 天、泽、火、雷、风、水、山、地
+  natureEn?: string;
   element: "Metal" | "Wood" | "Water" | "Fire" | "Earth";
   elementZh: string;
   lines: [boolean, boolean, boolean]; // bottom to top: true=yang, false=yin
 }
 
 export const TRIGRAMS: Record<number, TrigramInfo> = {
-  1: { number: 1, nameZh: "乾", symbol: "☰", natureZh: "天", element: "Metal", elementZh: "金", lines: [true, true, true] },
-  2: { number: 2, nameZh: "兑", symbol: "☱", natureZh: "泽", element: "Metal", elementZh: "金", lines: [true, true, false] },
-  3: { number: 3, nameZh: "离", symbol: "☲", natureZh: "火", element: "Fire", elementZh: "火", lines: [true, false, true] },
-  4: { number: 4, nameZh: "震", symbol: "☳", natureZh: "雷", element: "Wood", elementZh: "木", lines: [true, false, false] },
-  5: { number: 5, nameZh: "巽", symbol: "☴", natureZh: "风", element: "Wood", elementZh: "木", lines: [false, true, true] },
-  6: { number: 6, nameZh: "坎", symbol: "☵", natureZh: "水", element: "Water", elementZh: "水", lines: [false, true, false] },
-  7: { number: 7, nameZh: "艮", symbol: "☶", natureZh: "山", element: "Earth", elementZh: "土", lines: [false, false, true] },
-  8: { number: 8, nameZh: "坤", symbol: "☷", natureZh: "地", element: "Earth", elementZh: "土", lines: [false, false, false] }
+  1: { number: 1, nameZh: "乾", nameEn: "Qian (Heaven)", symbol: "☰", natureZh: "天", natureEn: "Heaven", element: "Metal", elementZh: "金", lines: [true, true, true] },
+  2: { number: 2, nameZh: "兑", nameEn: "Dui (Lake)", symbol: "☱", natureZh: "泽", natureEn: "Lake", element: "Metal", elementZh: "金", lines: [true, true, false] },
+  3: { number: 3, nameZh: "离", nameEn: "Li (Fire)", symbol: "☲", natureZh: "火", natureEn: "Fire", element: "Fire", elementZh: "火", lines: [true, false, true] },
+  4: { number: 4, nameZh: "震", nameEn: "Zhen (Thunder)", symbol: "☳", natureZh: "雷", natureEn: "Thunder", element: "Wood", elementZh: "木", lines: [true, false, false] },
+  5: { number: 5, nameZh: "巽", nameEn: "Xun (Wind)", symbol: "☴", natureZh: "风", natureEn: "Wind", element: "Wood", elementZh: "木", lines: [false, true, true] },
+  6: { number: 6, nameZh: "坎", nameEn: "Kan (Water)", symbol: "☵", natureZh: "水", natureEn: "Water", element: "Water", elementZh: "水", lines: [false, true, false] },
+  7: { number: 7, nameZh: "艮", nameEn: "Gen (Mountain)", symbol: "☶", natureZh: "山", natureEn: "Mountain", element: "Earth", elementZh: "土", lines: [false, false, true] },
+  8: { number: 8, nameZh: "坤", nameEn: "Kun (Earth)", symbol: "☷", natureZh: "地", natureEn: "Earth", element: "Earth", elementZh: "土", lines: [false, false, false] }
 };
 
 export interface MeihuaDivinationResult {
@@ -27,6 +29,7 @@ export interface MeihuaDivinationResult {
     upper: TrigramInfo;
     lower: TrigramInfo;
     fullNameZh: string;
+    fullNameEn?: string;
     symbol: string;
     lines: boolean[]; // 6 lines from 1 (bottom) to 6 (top)
   };
@@ -45,26 +48,39 @@ export interface MeihuaDivinationResult {
     upper: TrigramInfo;
     lower: TrigramInfo;
     fullNameZh: string;
+    fullNameEn?: string;
     summaryZh: string;
+    summaryEn?: string;
   };
   transformedHexagram: {
     upper: TrigramInfo;
     lower: TrigramInfo;
     fullNameZh: string;
+    fullNameEn?: string;
     changedApplication: TrigramInfo;
     summaryZh: string;
+    summaryEn?: string;
   };
   wuxingRelation: {
     type: "use_generates_body" | "body_overcomes_use" | "same" | "body_generates_use" | "use_overcomes_body";
     levelZh: "大吉" | "中吉" | "平顺" | "耗神" | "遇阻";
+    levelEn?: string;
     headlineZh: string;
+    headlineEn?: string;
     analysisZh: string;
+    analysisEn?: string;
   };
   decisionActionZh: {
     verdict: string; // 直决断语
     suitable: string[]; // 宜
     unsuitable: string[]; // 忌
     tacticalAdvice: string; // 战术策略
+  };
+  decisionActionEn?: {
+    verdict: string;
+    suitable: string[];
+    unsuitable: string[];
+    tacticalAdvice: string;
   };
 }
 
@@ -165,49 +181,84 @@ export function divineMeihua(
 
   let relationType: "use_generates_body" | "body_overcomes_use" | "same" | "body_generates_use" | "use_overcomes_body" = "same";
   let levelZh: "大吉" | "中吉" | "平顺" | "耗神" | "遇阻" = "平顺";
+  let levelEn = "Peaceful & Harmonious";
   let headlineZh = "体用比和 · 和合共赢";
+  let headlineEn = "Body & Application in Concord · Mutual Harmony";
   let analysisZh = `体卦【${bodyTri.nameZh}】与用卦【${useTri.nameZh}】同属【${bodyTri.elementZh}】，双方气场同频，利于合作商议，无外界克制。`;
+  let analysisEn = `Body [${bodyTri.nameEn || bodyTri.nameZh}] and Application [${useTri.nameEn || useTri.nameZh}] share element ${bodyTri.element}. Energetic frequency aligns with zero external clash.`;
   let verdict = "事态平稳顺畅，顺理成章推进即可。";
+  let verdictEn = "Conditions are smooth and balanced. Proceed steadily according to original plans.";
   let suitable = ["商议协作", "按部就班推进既定方案", "稳健决策"];
+  let suitableEn = ["Consultative collaboration", "Step-by-step rollout", "Prudent agreements"];
   let unsuitable = ["盲目激进拓展", "与合伙人内耗互疑"];
+  let unsuitableEn = ["Aggressive over-expansion", "Unnecessary internal friction"];
   let tacticalAdvice = "保持沉着公允，尊重共识原则。此卦利于合作共赢，切莫贪功冒进。";
+  let tacticalAdviceEn = "Remain composed and fair, adhering to consensus. This reading favors partnership harmony; avoid rash haste.";
 
   if (ELEMENT_GENERATION[uEl] === bEl) {
     relationType = "use_generates_body";
     levelZh = "大吉";
+    levelEn = "Great Auspiciousness";
     headlineZh = "用生体卦 · 顺水推舟";
+    headlineEn = "Application Generates Body · Natural Flow";
     analysisZh = `用卦【${useTri.nameZh}（${useTri.elementZh}）】生助体卦【${bodyTri.nameZh}（${bodyTri.elementZh}）】。外部环境与合作方主动助力，水到渠成！`;
+    analysisEn = `Application [${useTri.nameEn || useTri.nameZh}] actively generates Body [${bodyTri.nameEn || bodyTri.nameZh}]. External environment and allies lend powerful tailwinds.`;
     verdict = "大吉大利！所问之事逢外界贵人或时势生助，宜大胆决断。";
+    verdictEn = "Exceptional fortune! Your undertaking enjoys natural sponsor support; execute boldly.";
     suitable = ["主动出击", "提交重要申请/签约", "推动核心谈判", "开启新项目"];
+    suitableEn = ["Take initiative", "Submit key contracts & filings", "Lead core negotiations", "Launch strategic initiatives"];
     unsuitable = ["优柔寡断错失窗口期", "过分谦退推卸责任"];
+    unsuitableEn = ["Hesitating and missing the window", "Excessive modesty that delays action"];
     tacticalAdvice = "乘势而上，迅速敲定关键条款，借外力成就自身目标。";
+    tacticalAdviceEn = "Ride the momentum; finalize critical terms promptly and leverage external support.";
   } else if (ELEMENT_OVERCOMING[bEl] === uEl) {
     relationType = "body_overcomes_use";
     levelZh = "中吉";
+    levelEn = "Favorable Progress";
     headlineZh = "体克用卦 · 劳而有成";
+    headlineEn = "Body Overcomes Application · Disciplined Mastery";
     analysisZh = `体卦【${bodyTri.nameZh}（${bodyTri.elementZh}）】克制用卦【${useTri.nameZh}（${useTri.elementZh}）】。主导权在我方手中，需付出一份努力方克全功。`;
+    analysisEn = `Body [${bodyTri.nameEn || bodyTri.nameZh}] overcomes Application [${useTri.nameEn || useTri.nameZh}]. Initiative rests firmly in your hands; diligent effort ensures achievement.`;
     verdict = "中吉。事情掌握在你手中，虽然前期需多费心血调和，终能得偿所愿。";
+    verdictEn = "Favorable. You hold the steering wheel; though initial coordination requires work, target will be met.";
     suitable = ["攻坚克难", "主动确立规矩", "严格把控验收标准", "强化执行落地"];
+    suitableEn = ["Overcome technical bottlenecks", "Set firm protocols", "Enforce strict quality criteria", "Drive execution"];
     unsuitable = ["躺平被动等待", "轻易向不合理要求妥协"];
+    unsuitableEn = ["Passive procrastination", "Compromising on vital standards"];
     tacticalAdvice = "保持清晰底线，事必躬亲抓牢关键环节。";
+    tacticalAdviceEn = "Hold clear boundaries; personally safeguard mission-critical milestones.";
   } else if (ELEMENT_GENERATION[bEl] === uEl) {
     relationType = "body_generates_use";
     levelZh = "耗神";
+    levelEn = "Resource Drainage";
     headlineZh = "体生用卦 · 泄气多耗";
+    headlineEn = "Body Generates Application · Energy Drainage";
     analysisZh = `体卦【${bodyTri.nameZh}（${bodyTri.elementZh}）】生泄用卦【${useTri.nameZh}（${useTri.elementZh}）】。付出远大于回馈，需谨防精力或资金被动消耗。`;
+    analysisEn = `Body [${bodyTri.nameEn || bodyTri.nameZh}] pours energy into Application [${useTri.nameEn || useTri.nameZh}]. Output outpaces yield; conserve reserves carefully.`;
     verdict = "耗神劳心。当下推进此事成本偏高、周期较长，不宜孤注一掷。";
+    verdictEn = "Energy-draining. Advancing now involves high overhead and extended duration; avoid speculative all-in moves.";
     suitable = ["设好止损线", "复盘精简流程", "休养生息蓄力"];
+    suitableEn = ["Establish strict stop-loss caps", "Streamline overhead", "Rest and consolidate strength"];
     unsuitable = ["无底线追加投入", "大包大揽替人兜底"];
+    unsuitableEn = ["Unbounded capital injections", "Over-promising and underwriting external debts"];
     tacticalAdvice = "适当收缩防线，只做核心最小可行性尝试，避免战线拉得太长。";
+    tacticalAdviceEn = "Consolidate defensive lines; limit testing to lightweight MVPs and avoid overextending.";
   } else if (ELEMENT_OVERCOMING[uEl] === bEl) {
     relationType = "use_overcomes_body";
     levelZh = "遇阻";
+    levelEn = "Obstacle & Prudence";
     headlineZh = "用克体卦 · 逆风需守";
+    headlineEn = "Application Overcomes Body · Strategic Defense";
     analysisZh = `用卦【${useTri.nameZh}（${useTri.elementZh}）】克制体卦【${bodyTri.nameZh}（${bodyTri.elementZh}）】。外部环境或对方带来较强压制阻力，不宜硬碰。`;
+    analysisEn = `Application [${useTri.nameEn || useTri.nameZh}] clashes with Body [${bodyTri.nameEn || bodyTri.nameZh}]. External headwinds are pronounced; direct confrontation is inadvisable.`;
     verdict = "需谨慎避险。当下阻力较强，宜避其锋芒、以守为攻。";
+    verdictEn = "Exercise prudent caution. Friction is notable; sidestep direct conflict and defend core foundations.";
     suitable = ["静观其变", "补全漏洞资质", "咨询资深智囊", "推迟重大拍板"];
+    suitableEn = ["Observe developments quietly", "Audit structural vulnerabilities", "Seek expert advisors", "Defer major signatures"];
     unsuitable = ["情绪化正面交锋", "仓促签订重大法律/金钱协议"];
+    unsuitableEn = ["Emotional confrontations", "Rushing irreversible legal or financial covenants"];
     tacticalAdvice = "遇克当求通关，暂勿急于求成。静待时移世易，修整内在实力。";
+    tacticalAdviceEn = "Find mediation rather than force. Cultivate internal fortitude until cosmic timing realigns.";
   }
 
   return {
@@ -218,6 +269,7 @@ export function divineMeihua(
       upper: upperTri,
       lower: lowerTri,
       fullNameZh: primaryName,
+      fullNameEn: `${upperTri.nameEn || upperTri.nameZh} over ${lowerTri.nameEn || lowerTri.nameZh}`,
       symbol: `䷀`,
       lines: allLines
     },
@@ -236,26 +288,39 @@ export function divineMeihua(
       upper: mutualUpper,
       lower: mutualLower,
       fullNameZh: mutualName,
-      summaryZh: `互卦见【${mutualName}】，反映事态中间阶段的暗流隐动与转折关口。`
+      fullNameEn: `${mutualUpper.nameEn || mutualUpper.nameZh} over ${mutualLower.nameEn || mutualLower.nameZh}`,
+      summaryZh: `互卦见【${mutualName}】，反映事态中间阶段的暗流隐动与转折关口。`,
+      summaryEn: `Nuclear hexagram reveals underlying dynamics and transitional nuances of the development stage.`
     },
     transformedHexagram: {
       upper: changedUpper,
       lower: changedLower,
       fullNameZh: changedName,
+      fullNameEn: `${changedUpper.nameEn || changedUpper.nameZh} over ${changedLower.nameEn || changedLower.nameZh}`,
       changedApplication: changedUseTri,
-      summaryZh: `动爻引动显化为变卦【${changedName}】，预示后续最终归宿与定局气象。`
+      summaryZh: `动爻引动显化为变卦【${changedName}】，预示后续最终归宿与定局气象。`,
+      summaryEn: `The moving line triggers evolution into the transformed hexagram, indicating the final resolution.`
     },
     wuxingRelation: {
       type: relationType,
       levelZh,
+      levelEn,
       headlineZh,
-      analysisZh
+      headlineEn,
+      analysisZh,
+      analysisEn
     },
     decisionActionZh: {
       verdict,
       suitable,
       unsuitable,
       tacticalAdvice
+    },
+    decisionActionEn: {
+      verdict: verdictEn,
+      suitable: suitableEn,
+      unsuitable: unsuitableEn,
+      tacticalAdvice: tacticalAdviceEn
     }
   };
 }

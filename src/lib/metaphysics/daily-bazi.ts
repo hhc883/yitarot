@@ -5,10 +5,12 @@ export interface HourlyFortune {
   hourIndex: number;
   timeRange: string;
   branchName: string;
+  branchNameEn?: string;
   stemName: string;
   element: WuXing;
   score: number; // 0-100
   verdict: string;
+  verdictEn?: string;
   isFavorable: boolean;
 }
 
@@ -18,7 +20,9 @@ export interface DailyBaziFortuneResult {
     month: number;
     day: number;
     dayOfWeekZh: string;
+    dayOfWeekEn?: string;
     solarTerms: string;
+    solarTermsEn?: string;
   };
   todayGanZhi: {
     year: string;
@@ -34,13 +38,17 @@ export interface DailyBaziFortuneResult {
     stem: string;
     element: WuXing;
     elementZh: string;
+    elementEn?: string;
     nameZh: string;
+    nameEn?: string;
   };
   dailyTenGod: {
     nameZh: string;
     nameEn: string;
     descZh: string;
+    descEn?: string;
     cosmicThemeZh: string;
+    cosmicThemeEn?: string;
   };
   scores: {
     overall: number; // 0-100
@@ -52,19 +60,27 @@ export interface DailyBaziFortuneResult {
   elementSynergy: {
     relationType: "generates" | "overcomes" | "same" | "generatedBy" | "overcomeBy";
     labelZh: string;
+    labelEn?: string;
     descZh: string;
+    descEn?: string;
   };
   dosAndDonts: {
     dos: string[];
+    dosEn?: string[];
     donts: string[];
+    dontsEn?: string[];
   };
   luckyGuides: {
     colorZh: string;
+    colorEn?: string;
     colorHex: string;
     directionZh: string;
+    directionEn?: string;
     number: number;
     timeWindowZh: string;
+    timeWindowEn?: string;
     mindsetZh: string;
+    mindsetEn?: string;
   };
   hourlyTimeline: HourlyFortune[];
 }
@@ -252,20 +268,26 @@ export function calculateDailyBaziFortune(
   const donts = dontsPool[dailyTenGod.zh] || ["急躁行事", "盲目冲动决断"];
 
   // 幸运指南
-  const luckyColors: Record<WuXing, { zh: string; hex: string }> = {
-    Wood: { zh: "松柏绿 / 青玉色", hex: "#10B981" },
-    Fire: { zh: "朱砂赤 / 暖橙红", hex: "#B84034" },
-    Earth: { zh: "宣纸米 / 琥珀黄", hex: "#C8A858" },
-    Metal: { zh: "素雅白 / 月光银", hex: "#736B5E" },
-    Water: { zh: "曜石墨 / 深海蓝", hex: "#111111" }
+  const luckyColors: Record<WuXing, { zh: string; en: string; hex: string }> = {
+    Wood: { zh: "松柏绿 / 青玉色", en: "Pine Green / Jade", hex: "#10B981" },
+    Fire: { zh: "朱砂赤 / 暖橙红", en: "Cinnabar Red / Amber", hex: "#B84034" },
+    Earth: { zh: "宣纸米 / 琥珀黄", en: "Xuan Paper Ochre / Warm Gold", hex: "#C8A858" },
+    Metal: { zh: "素雅白 / 月光银", en: "Pure White / Moon Silver", hex: "#736B5E" },
+    Water: { zh: "曜石墨 / 深海蓝", en: "Obsidian Ink / Deep Blue", hex: "#111111" }
   };
 
-  const luckyDirections: Record<WuXing, string> = {
-    Wood: "正东方、东南方",
-    Fire: "正南方",
-    Earth: "中宫、东北与西南",
-    Metal: "正西方、西北方",
-    Water: "正北方"
+  const luckyDirections: Record<WuXing, { zh: string; en: string }> = {
+    Wood: { zh: "正东方、东南方", en: "East, Southeast" },
+    Fire: { zh: "正南方", en: "South" },
+    Earth: { zh: "中宫、东北与西南", en: "Center, Northeast & Southwest" },
+    Metal: { zh: "正西方、西北方", en: "West, Northwest" },
+    Water: { zh: "正北方", en: "North" }
+  };
+
+  const BRANCH_EN_MAP: Record<string, string> = {
+    子: "Rat (Zi)", 丑: "Ox (Chou)", 寅: "Tiger (Yin)", 卯: "Rabbit (Mao)",
+    辰: "Dragon (Chen)", 巳: "Snake (Si)", 午: "Horse (Wu)", 未: "Goat (Wei)",
+    申: "Monkey (Shen)", 酉: "Rooster (You)", 戌: "Dog (Xu)", 亥: "Pig (Hai)"
   };
 
   // 十二时辰吉凶能量波形
@@ -284,13 +306,59 @@ export function calculateDailyBaziFortune(
       hourIndex: idx,
       timeRange: timeRanges[idx],
       branchName: b + "时",
+      branchNameEn: BRANCH_EN_MAP[b] || b,
       stemName: "",
       element: bInfo.element,
       score: hScore,
       verdict: hScore >= 82 ? "大吉 · 能量充沛" : hScore >= 74 ? "平顺 · 宜稳打稳扎" : "需谨慎 · 宜静不宜动",
+      verdictEn: hScore >= 82 ? "Auspicious · High Vitality" : hScore >= 74 ? "Smooth · Steady Progress" : "Prudent · Rest & Center",
       isFavorable: hScore >= 78
     };
   });
+
+  const dosEnPool: Record<string, string[]> = {
+    比肩: ["Collaborate with trusted peers", "Execute independent goals", "Build disciplined routines"],
+    劫财: ["Review discretionary budget", "Practice measured speech", "Protect capital reserves"],
+    食神: ["Brainstorm creative concepts", "Draft strategic frameworks", "Enjoy mindful nourishment"],
+    伤官: ["Innovate legacy methods", "Express original artistic ideas", "Channel intensity constructively"],
+    偏财: ["Explore market opportunities", "Rebalance investment allocation", "Engage external partners"],
+    正财: ["Execute core workflows", "Audit accounts meticulously", "Deliver on signed commitments"],
+    七杀: ["Resolve legacy bottlenecks", "Lead high-stakes initiatives", "Establish strict boundaries"],
+    正官: ["Present formal deliverables", "Submit administrative approvals", "Uphold rigorous standards"],
+    偏印: ["Deep reading & study", "Solitary skill refinement", "Reflective meditation"],
+    正印: ["Consult respected mentors", "Recharge physical vitality", "Consolidate core foundations"]
+  };
+
+  const dontsEnPool: Record<string, string[]> = {
+    比肩: ["Isolate or reject assistance", "Ignore constructive critiques"],
+    劫财: ["Impulsive high-risk speculation", "Over-leveraging financial exposure", "Ego-driven debates"],
+    食神: ["Procrastination through indulgence", "Unrealistic daydreams without execution"],
+    伤官: ["Direct friction with management", "Sharp unvetted verbal delivery"],
+    偏财: ["Chasing speculative rumors", "Unhedged aggressive wagers"],
+    正财: ["Micromanaging minor frictions", "Complacency that stalls progress"],
+    七杀: ["Impulsive anger outbreaks", "Chronically depleting rest"],
+    正官: ["Bypassing established protocols", "Inflexible bureaucratic paralysis"],
+    偏印: ["Overthinking isolated suspicions", "Self-absorbing theoretical spirals"],
+    正印: ["Passive waiting that misses timing", "Over-comfort that delays action"]
+  };
+
+  const dosEn = dosEnPool[dailyTenGod.zh] || ["Maintain a centered mind", "Execute primary commitments", "Nourish bodily vitality"];
+  const dontsEn = dontsEnPool[dailyTenGod.zh] || ["Hasty overreactions", "Impulsive speculative decisions"];
+
+  const tenGodEnMap: Record<string, { desc: string; theme: string }> = {
+    比肩: { desc: "Empowered self-agency and peer synergy. Excellent window for focused collaboration and bold individual craftsmanship.", theme: "Self-Discipline & Peer Synergy" },
+    劫财: { desc: "Social outflow expands. Guard capital reserves and avoid emotionally charged financial commitments.", theme: "Prudent Stewardship & Composure" },
+    食神: { desc: "Creativity flows effortlessly. Natural expression is favored alongside strategic ideation and fine dining.", theme: "Cultivating Wisdom & Gracious Output" },
+    伤官: { desc: "Sharp, unconventional analytical breakthroughs. Dare to renovate old models while keeping verbal tact in check.", theme: "Radical Innovation & Restrained Edge" },
+    偏财: { desc: "Acute commercial instinct. Favorable timing for flexible deals, negotiations, and noticing asymmetric upside.", theme: "Keen Vision & Nimble Resourcefulness" },
+    正财: { desc: "Earthly reward directly mirrors disciplined effort. Consistent dedication yields steady, satisfying harvest.", theme: "Diligence & Compound Growth" },
+    七杀: { desc: "High pressure paired with decisive resolve. Rising to core challenges yields breakthrough authority.", theme: "Navigating Surges & Tempered Grit" },
+    正官: { desc: "Sponsor support and institutional harmony. Ideal for executive briefings, examinations, and clear protocols.", theme: "Ethical Leadership & Natural Order" },
+    偏印: { desc: "Profound intuitive depth. Exceptional day for technical research, non-traditional study, and strategic synthesis.", theme: "Insightful Contemplation & Deep Learning" },
+    正印: { desc: "Nourished by mentors and calm surroundings. Inner peace restores clarity; favor rest, reading, and foundational vitality.", theme: "Nourishing Life & Tranquil Focus" }
+  };
+
+  const tgMeta = tenGodEnMap[dailyTenGod.zh] || { desc: "Balanced daily flow across five elements.", theme: "Natural Harmony" };
 
   return {
     queryDate: {
@@ -298,7 +366,9 @@ export function calculateDailyBaziFortune(
       month: targetDate.getMonth() + 1,
       day: targetDate.getDate(),
       dayOfWeekZh: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"][targetDate.getDay()],
-      solarTerms: targetLunar.getJieQi() || "平运流转"
+      dayOfWeekEn: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][targetDate.getDay()],
+      solarTerms: targetLunar.getJieQi() || "平运流转",
+      solarTermsEn: targetLunar.getJieQi() || "Season Flow"
     },
     todayGanZhi: {
       year: todayEightChar.getYear(),
@@ -314,13 +384,17 @@ export function calculateDailyBaziFortune(
       stem: dmStem,
       element: dmElement,
       elementZh: ELEMENT_ZH_MAP[dmElement],
-      nameZh: userBazi.dayMaster.nameZh
+      elementEn: dmElement,
+      nameZh: userBazi.dayMaster.nameZh,
+      nameEn: `${userBazi.dayMaster.stem} (${userBazi.dayMaster.element})`
     },
     dailyTenGod: {
       nameZh: dailyTenGod.zh,
       nameEn: dailyTenGod.en,
       descZh: dailyTenGod.desc,
-      cosmicThemeZh: dailyTenGod.theme
+      descEn: tgMeta.desc,
+      cosmicThemeZh: dailyTenGod.theme,
+      cosmicThemeEn: tgMeta.theme
     },
     scores: {
       overall,
@@ -332,19 +406,27 @@ export function calculateDailyBaziFortune(
     elementSynergy: {
       relationType,
       labelZh: relationLabel,
-      descZh: relationDesc
+      labelEn: relationType === 'generates' ? 'Flowing Support' : relationType === 'overcomes' ? 'Decisive Command' : relationType === 'same' ? 'Peer Resonance' : relationType === 'generatedBy' ? 'Nurturing Input' : 'Tension & Challenge',
+      descZh: relationDesc,
+      descEn: `Interaction between Day Master (${dmElement}) and Daily Celestial Energy (${todayElement}).`
     },
     dosAndDonts: {
       dos,
-      donts
+      dosEn,
+      donts,
+      dontsEn
     },
     luckyGuides: {
       colorZh: luckyColors[todayElement].zh,
+      colorEn: luckyColors[todayElement].en,
       colorHex: luckyColors[todayElement].hex,
-      directionZh: luckyDirections[todayElement],
+      directionZh: luckyDirections[todayElement].zh,
+      directionEn: luckyDirections[todayElement].en,
       number: ((birthDay + targetDate.getDate()) % 9) + 1,
       timeWindowZh: "09:00 - 11:00 (巳时) & 15:00 - 17:00 (申时)",
-      mindsetZh: "不以物喜，不以己悲。顺天应人，定静生慧。"
+      timeWindowEn: "09:00 - 11:00 (Si Hour) & 15:00 - 17:00 (Shen Hour)",
+      mindsetZh: "不以物喜，不以己悲。顺天应人，定静生慧。",
+      mindsetEn: "Remain unswayed by external fluctuations. Act in accordance with natural timing; serenity generates wisdom."
     },
     hourlyTimeline
   };

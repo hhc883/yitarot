@@ -10,17 +10,42 @@ export interface BaziAiRequest {
   gender: 'male' | 'female';
   name?: string;
   focusArea?: 'career' | 'wealth' | 'love' | 'health' | 'general';
+  lang?: string;
 }
 
 export interface LiuYaoAiRequest {
   question: string;
   reading: IChingReading;
+  lang?: string;
 }
 
 /**
  * 构造八字深度推演的 System & User Prompt
  */
 export function buildBaziPrompt(data: BaZiCalculationResult, req: BaziAiRequest): string {
+  if (req.lang === 'en') {
+    return `You are a master of classical Zi Ping BaZi metaphysics and modern Jungian archetypal psychology (QiCosmos Architecture).
+Querent: ${req.name || 'Querent'}, Gender: ${req.gender}
+Solar Birth: ${data.birthSolar.year}-${data.birthSolar.month}-${data.birthSolar.day} ${data.birthSolar.hour}:00, Lunar: ${data.lunarString}
+【Four Pillars】:
+- Year Pillar: ${data.pillars.year.gan}${data.pillars.year.zhi} (${data.pillars.year.naYin})
+- Month Pillar: ${data.pillars.month.gan}${data.pillars.month.zhi} (${data.pillars.month.naYin})
+- Day Pillar: ${data.pillars.day.gan}${data.pillars.day.zhi} (${data.pillars.day.naYin})
+- Hour Pillar: ${data.pillars.hour.gan}${data.pillars.hour.zhi} (${data.pillars.hour.naYin})
+
+【Day Master】: ${data.dayMaster.nameEn} (${data.dayMaster.archetypeEn})
+【Five Elements Distribution】:
+${data.fiveElements.map(e => `- ${e.element}: ${e.count} (${e.percentage}%) - ${e.status}`).join('\n')}
+
+Please write an objective, profound, and modern 【AI BaZi Holographic Insight】 in English with markdown headings:
+# 🌟 Day Master Essence & Archetype
+# ⚖️ Five Elements Synergy & Balance
+# 💼 Career Trajectory & Genius Zone
+# 🪙 Wealth Blueprint & Financial Timing
+# ❤️ Romance & Relational Harmony
+# 🧭 Action Strategy & Cosmic Balance`;
+  }
+
   return `你是一位兼具正统子平八字命理精髓与现代荣格心理学视角的资深命理宗师（QiCosmos 天仪灵图全息推演架构）。
 求问者：${req.name || '求问者'}，性别：${req.gender === 'male' ? '男（乾造）' : '女（坤造）'}
 公历出生：${data.birthSolar.year}年${data.birthSolar.month}月${data.birthSolar.day}日${data.birthSolar.hour}时，农历：${data.lunarString}
@@ -47,9 +72,28 @@ ${data.fiveElements.map(e => `- ${e.elementZh}：${e.count}个 (${e.percentage}%
  * 构造六爻占卦的 System & User Prompt
  */
 export function buildLiuYaoPrompt(req: LiuYaoAiRequest): string {
-  const { question, reading } = req;
+  const { question, reading, lang } = req;
   const p = reading.primaryHexagram;
   const t = reading.transformedHexagram;
+
+  if (lang === 'en') {
+    return `You are a revered scholar of classical I Ching 64 Hexagrams, King Wen line casting, and contemporary strategic decision-making.
+Inquiry: "${question}"
+Cast Result:
+- 【Primary Hexagram】: No. ${p.number} · ${p.nameEn} (Upper: ${p.upperTrigram} / Lower: ${p.lowerTrigram})
+- Judgment: ${p.judgmentEn}
+- Image: ${p.imageEn}
+${t ? `- 【Transformed Hexagram】: No. ${t.number} · ${t.nameEn} (Upper: ${t.upperTrigram} / Lower: ${t.lowerTrigram})
+- Transformed Judgment: ${t.judgmentEn}
+- Moving Line Indices: ${reading.changingLineIndices.map(i => `Line ${i}`).join(', ')}` : '- No changing lines; primary hexagram governs fully.'}
+
+Please generate an elegant, rigorous, and insightful I Ching oracle in English:
+# ䷀ Hexagram Overview & Present Timing
+# 🔍 Line Text Deep Reflection
+# ⚖️ Dynamics of Progression & Transformation
+# 🧭 Strategic Action Principles (DO & DON\'T)
+# ✨ Universal Wisdom & Axiom`;
+  }
 
   return `你是一位精通周易六十四卦、纳甲六爻与时代决断的易学智者。
 求问者所决之事：“${question}”
@@ -72,10 +116,46 @@ ${t ? `- 【变卦】：第 ${t.number} 卦 · ${t.nameZh}（${t.upperTrigram}�
 /**
  * 本地智能八字解读引擎（离线/免 Key 降级保障）
  */
-export function generateLocalBaziReport(data: BaZiCalculationResult): string {
+export function generateLocalBaziReport(data: BaZiCalculationResult, lang: string = 'zh'): string {
   const dm = data.dayMaster;
   const dominantElement = data.fiveElements.reduce((prev, curr) => (curr.percentage > prev.percentage ? curr : prev));
   const lackingElement = data.fiveElements.reduce((prev, curr) => (curr.percentage < prev.percentage ? curr : prev));
+
+  if (lang === 'en') {
+    return `### 🌟 Day Master Essence & Archetype
+Your Day Pillar Heavenly Stem is **【${dm.nameEn}】**, classically recognized as the archetype of “${dm.archetypeEn}”.
+${dm.essenceEn}
+You possess innate insight, strategic vision, and methodical perseverance.
+
+---
+
+### ⚖️ Five Elements Synergy & Balance
+In your natal chart, **【${dominantElement.element}】** energy holds prime prominence (~${dominantElement.percentage}%), while **【${lackingElement.element}】** remains latent.
+- **Dynamic Balance**: When five elements circulate freely, decisions flow with composure. Dominant energies require constructive release; latent energies benefit from mindful cultivation.
+- **Harmony Recommendation**: Integrate habits, environments, and routines aligned with ${lackingElement.element}.
+
+---
+
+### 💼 Career Trajectory & Genius Zone
+${dm.cosmicAdviceEn}
+You excel in fields requiring strategic depth, intellectual moat, or autonomous mastery over core milestones. Avoid environments paralyzed by cosmetic bureaucracy.
+
+---
+
+### 🪙 Wealth Blueprint & Financial Timing
+Wealth roots in sustainable production and disciplined constraints. For you, prosperity follows a **"compounding value curve"**—protect foundational assets and deepen your skill moats rather than pursuing high-frequency speculation.
+
+---
+
+### ❤️ Romance & Relational Harmony
+In intimate partnerships, you value mental alignment and respected boundaries. Cultivating warmth and vulnerable authenticity provides enduring emotional security.
+
+---
+
+### 🧭 Action Strategy & Cosmic Balance
+- 💡 **Harmonization**: ${data.elementRecommendationsEn}
+- 🌿 **Mindset**: Align with natural rhythm; clarity emerges from inner stillness.`;
+  }
 
   return `### 🌟 原局元神与性格底色
 你的日柱天干为**【${dm.nameZh}】**，在古典命理中被称为“${dm.archetypeZh}”。
@@ -116,9 +196,42 @@ ${dm.cosmicAdviceZh}
  * 本地六爻神谕解读引擎
  */
 export function generateLocalLiuYaoReport(req: LiuYaoAiRequest): string {
-  const { question, reading } = req;
+  const { question, reading, lang } = req;
   const p = reading.primaryHexagram;
   const t = reading.transformedHexagram;
+
+  if (lang === 'en') {
+    return `Regarding your inquiry: **“${question}”**, the six coins have completed their oracle casting.
+
+---
+
+### ䷀ Primary Hexagram: 【${p.nameEn}】
+Hexagram **【${p.nameEn}】** (${p.upperTrigram} Upper / ${p.lowerTrigram} Lower).
+> *“${p.judgmentEn}”*
+Image Commentary: *“${p.imageEn}”*
+Your situation vibrates with the rhythm of 【${p.nameEn}】. Internal energy is consolidating, prompting deliberate calibration.
+
+---
+
+### 🔍 Line Cast Progression
+${reading.lines.map(l => `- Line ${l.lineIndex} (${l.isYang ? 'Yang ⚊' : 'Yin ⚋'}${l.isChanging ? ' · Moving Line ⚡' : ''}): Sum ${l.sum}, ${l.isChanging ? 'marks a decisive pivot in this stage' : 'stable baseline'}.`).join('\n')}
+
+${t ? `### ⚡ Transformed Hexagram: 【${t.nameEn}】
+Moving lines catalyze evolution into Hexagram **【${t.nameEn}】**.
+> *“${t.judgmentEn}”*
+Following initial friction, matters will mature in the direction governed by ${t.nameEn}.` : 'All six lines are peaceful; adhere strictly to the foundation of the Primary Hexagram.'}
+
+---
+
+### 🧭 Strategic Action Principles
+- 💡 **DO**: ${p.careerAdviceEn} Maintain honesty and plan with foresight.
+- ⚠️ **DON'T**: Avoid impulsive haste or forcing actions during emotional turbulence.
+
+---
+
+### ✨ Universal Wisdom
+> *“Heaven moves with ceaseless power; the noble navigator cultivates unflagging self-reliance. Harmonize with cosmic momentum, and auspicious progress will follow.”*`;
+  }
 
   return `针对你所叩问之事：**“${question}”**，铜钱六掷，神谕已成。
 
@@ -264,7 +377,7 @@ export async function* streamBaziReading(data: BaZiCalculationResult, req: BaziA
   }
 
   // 本地专家引擎流式输出
-  const fullText = generateLocalBaziReport(data);
+  const fullText = generateLocalBaziReport(data, req.lang);
   const parts = fullText.split(/(?<=\n|。|！|？|：|；|\*\*)/);
   for (const p of parts) {
     yield p;
