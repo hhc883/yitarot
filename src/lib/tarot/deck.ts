@@ -31,8 +31,8 @@ export interface TarotCardData {
 export interface DrawnCard {
   card: TarotCardData;
   isReversed: boolean;
-  positionName: string;
-  positionDesc: string;
+  positionName?: string;
+  positionDesc?: string;
 }
 
 export const TAROT_DECK: TarotCardData[] = [
@@ -2425,7 +2425,7 @@ export function getMinorArcana(suit?: TarotSuit): TarotCardData[] {
 }
 
 // 抽取卡牌逻辑
-export function drawRandomCards(count: number, allowReversed = true): { card: TarotCardData; isReversed: boolean }[] {
+export function drawRandomCards(count: number, allowReversed = true): DrawnCard[] {
   const shuffled = [...TAROT_DECK].sort(() => 0.5 - Math.random());
   const selected = shuffled.slice(0, count);
   return selected.map(card => ({

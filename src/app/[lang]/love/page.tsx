@@ -1,24 +1,31 @@
-import React from 'react';
-import { ReadingConsole } from '@/components/tarot/ReadingConsole';
-import { Heart, Sparkles } from 'lucide-react';
+import React, { Suspense } from 'react';
+import { LoveTarotWidget } from '@/components/tarot/LoveTarotWidget';
 
-export default function LovePage() {
+export const instant = false;
+
+export async function generateStaticParams() {
+  return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export default async function LovePage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang: rawLang } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 sm:py-12">
-      {/* 头部介绍 */}
-      <div className="text-center mb-8">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium mb-3">
-          <Heart className="w-3.5 h-3.5 fill-rose-500" /> 情感关系镜像
-        </span>
-        <h1 className="font-serif font-black text-3xl sm:text-4xl text-[#1E1B18]">
-          爱情塔罗占卜
-        </h1>
-        <p className="text-xs sm:text-sm text-[#736B5E] mt-2 max-w-lg mx-auto">
-          暗恋心思、复合可能、相处瓶颈还是正缘出现？让三维爱意牌阵照亮彼此潜意识的真实心声。
-        </p>
-      </div>
-
-      <ReadingConsole defaultCategory="love" />
+      <Suspense
+        fallback={
+          <div className="py-20 text-center text-xs font-serif text-[#736B5E] animate-pulse">
+            加载爱意牌阵...
+          </div>
+        }
+      >
+        <LoveTarotWidget lang={lang} />
+      </Suspense>
     </div>
   );
 }
