@@ -53,7 +53,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-[#FAF7F2] text-[#1E1B18] selection:bg-[#F2ECE1] selection:text-[#1E1B18]">
+      <body className="min-h-full flex flex-col paper-grain bg-[#F7F3EF] text-[#2B261F] selection:bg-[#EAE4D9] selection:text-[#111111]">
         {children}
       </body>
     </html>

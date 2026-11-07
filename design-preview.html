@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QiCosmos (天仪灵图) 设计系统交互预览 (Design System Preview)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Noto+Serif+SC:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* 核心 Design Tokens */
+      --paper: #F7F3EF;
+      --cream: #FFFDF9;
+      --paper-subtle: #F0EAE1;
+      --obsidian: #080B11;
+      
+      --ink-charcoal: #111111;
+      --ink-deep: #2B261F;
+      --ink-body: #524B40;
+      --ink-muted: #7D7466;
+      --ink-faint: #AAA192;
+
+      --gold-champagne: #C8A858;
+      --gold-stream: #D4AF37;
+      --gold-deep: #8C6D23;
+
+      --cinnabar: #B84034;
+      --cinnabar-soft: rgba(184, 64, 52, 0.08);
+
+      --jade-pine: #4F7972;
+      --lunar-silver: #E2DFD8;
+
+      --border-hairline: rgba(17, 17, 17, 0.08);
+      --border-hairline-hover: rgba(17, 17, 17, 0.18);
+      --border-gilded: rgba(200, 168, 88, 0.28);
+
+      --shadow-paper: 0 4px 20px -2px rgba(17, 17, 17, 0.04), 0 2px 6px -1px rgba(17, 17, 17, 0.02);
+      --shadow-hover: 0 12px 32px -4px rgba(17, 17, 17, 0.06), 0 0 20px rgba(200, 168, 88, 0.12);
+
+      --font-serif: 'Noto Serif SC', 'Songti SC', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-brand: 'Cinzel', 'Noto Serif SC', Georgia, serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--paper);
+      color: var(--ink-body);
+      font-family: var(--font-sans);
+      line-height: 1.75;
+      padding: 2.5rem 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* 手作宣纸纤维微颗粒层 */
+    .paper-noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 99;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border-hairline);
+      padding-bottom: 2rem;
+      margin-bottom: 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .badge-system {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold-deep);
+      font-family: var(--font-brand);
+      font-weight: 700;
+    }
+    .badge-system::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cinnabar);
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--ink-charcoal);
+      letter-spacing: 0.08em;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--ink-muted);
+      max-width: 720px;
+    }
+
+    section {
+      margin-bottom: 3.5rem;
+    }
+
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      color: var(--ink-charcoal);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-hairline);
+    }
+    .section-title span.num {
+      font-family: var(--font-brand);
+      font-size: 1.1rem;
+      color: var(--gold-deep);
+    }
+
+    /* 调色盘色卡网格 */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .color-card {
+      background: var(--cream);
+      border: 1px solid var(--border-hairline);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-paper);
+      transition: all 0.25s ease;
+    }
+    .color-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--border-hairline-hover);
+    }
+    .color-swatch {
+      height: 90px;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .color-meta {
+      padding: 0.9rem 1rem;
+    }
+    .color-name {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--ink-charcoal);
+      margin-bottom: 0.2rem;
+    }
+    .color-role {
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      line-height: 1.4;
+    }
+
+    /* 字体层次预览 */
+    .type-specimen {
+      background: var(--cream);
+      border: 1px solid var(--border-hairline);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: var(--shadow-paper);
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .type-row {
+      border-bottom: 1px dashed var(--border-hairline);
+      padding-bottom: 1.5rem;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 1.5rem;
+      align-items: baseline;
+    }
+    .type-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .type-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--gold-deep);
+    }
+    .type-label .desc {
+      display: block;
+      color: var(--ink-muted);
+      font-size: 0.7rem;
+      margin-top: 0.25rem;
+    }
+
+    /* 组件原语演示卡片 */
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .paper-card {
+      background: var(--cream);
+      border: 1px solid var(--border-hairline);
+      border-radius: 1.25rem;
+      padding: 1.8rem;
+      box-shadow: var(--shadow-paper);
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .paper-card:hover {
+      border-color: var(--border-gilded);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-3px);
+    }
+
+    /* 朱砂印章组件 */
+    .cinnabar-stamp {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1.5px solid var(--cinnabar);
+      color: var(--cinnabar);
+      background: var(--cinnabar-soft);
+      border-radius: 4px;
+      font-family: var(--font-serif);
+      font-weight: 900;
+      font-size: 1rem;
+      box-shadow: 0 0 0 1px rgba(184, 64, 52, 0.08);
+    }
+
+    /* 八字排盘四柱精简组件 */
+    .bazi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      text-align: center;
+      margin: 1.2rem 0;
+    }
+    .bazi-col {
+      background: var(--paper-subtle);
+      border: 1px solid var(--border-hairline);
+      border-radius: 8px;
+      padding: 0.6rem 0.2rem;
+    }
+    .bazi-col.active {
+      background: var(--ink-charcoal);
+      color: var(--cream);
+      border-color: var(--ink-charcoal);
+    }
+    .bazi-col.active .bazi-lbl {
+      color: var(--gold-champagne);
+    }
+    .bazi-lbl {
+      font-size: 0.65rem;
+      color: var(--ink-muted);
+      margin-bottom: 0.2rem;
+    }
+    .bazi-char {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    /* 易经六爻图形组件 */
+    .hex-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 80px;
+      margin: 1rem 0;
+    }
+    .yao-solid {
+      height: 6px;
+      background: var(--ink-charcoal);
+      border-radius: 1px;
+    }
+    .yao-broken {
+      display: flex;
+      justify-content: space-between;
+      height: 6px;
+    }
+    .yao-part {
+      width: 44%;
+      height: 100%;
+      background: var(--ink-charcoal);
+      border-radius: 1px;
+    }
+    .yao-moving {
+      background: var(--cinnabar) !important;
+      box-shadow: 0 0 8px rgba(184, 64, 52, 0.35);
+    }
+
+    /* 按钮系统 */
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.2rem;
+    }
+    .btn-primary {
+      background: var(--ink-charcoal);
+      color: var(--cream);
+      border: 1px solid var(--ink-charcoal);
+      padding: 0.55rem 1.4rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .btn-primary:hover {
+      background: #000;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(17, 17, 17, 0.15);
+    }
+    .btn-secondary {
+      background: var(--cream);
+      color: var(--ink-charcoal);
+      border: 1px solid var(--border-hairline);
+      padding: 0.55rem 1.2rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .btn-secondary:hover {
+      border-color: var(--gold-champagne);
+      color: var(--gold-deep);
+    }
+
+    /* 动效缓动曲线展示 */
+    .easing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+    .easing-box {
+      background: var(--cream);
+      border: 1px solid var(--border-hairline);
+      border-radius: 12px;
+      padding: 1.2rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+    .easing-title {
+      font-weight: 700;
+      color: var(--ink-charcoal);
+      margin-bottom: 0.4rem;
+    }
+    .easing-track {
+      height: 6px;
+      background: var(--paper-subtle);
+      border-radius: 3px;
+      margin: 1rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .easing-runner {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 25%;
+      background: var(--gold-deep);
+      border-radius: 3px;
+      animation: runner 2.5s infinite;
+    }
+    @keyframes runner {
+      0% { left: 0%; width: 20%; }
+      50% { left: 80%; width: 20%; }
+      100% { left: 0%; width: 20%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="paper-noise"></div>
+
+  <header>
+    <div class="badge-system">QiCosmos Design System v1.0</div>
+    <h1>天仪灵图 · 视觉规范与设计令牌</h1>
+    <p class="subtitle">
+      东方宋宣古绢纸白为底，焦墨重墨为线，配以哑光香槟金天文刻度与朱砂印鉴点睛。拒绝粗制滥造的马卡龙荧光糖果色与粗暴玻璃拟态，呈现学术级、奢侈品级的玄学与心理学原型美学。
+    </p>
+  </header>
+
+  <!-- 1. 色彩设计令牌 -->
+  <section>
+    <h2 class="section-title"><span class="num">01.</span> 色彩令牌系统 (Color Tokens)</h2>
+    <div class="color-grid">
+      <!-- 宣纸白 -->
+      <div class="color-card">
+        <div class="color-swatch" style="background:#F7F3EF; color:#111111; border-bottom:1px solid rgba(0,0,0,0.06);">
+          #F7F3EF
+        </div>
+        <div class="color-meta">
+          <div class="color-name">宣纸绢白 (Paper)</div>
+          <div class="color-role">全局温润主底色，柔光不刺眼</div>
+        </div>
+      </div>
+
+      <!-- 素宣纯白 -->
+      <div class="color-card">
+        <div class="color-swatch" style="background:#FFFDF9; color:#111111; border-bottom:1px solid rgba(0,0,0,0.06);">
+          #FFFDF9
+        </div>
+        <div class="color-meta">
+          <div class="color-name">素宣纯白 (Cream)</div>
+          <div class="color-role">核心卡片、弹窗与排盘底板</div>
+        </div>
+      </div>
+
+      <!-- 焦墨黑 -->
+      <div class="color-card">
+        <div class="color-swatch" style="background:#111111; color:#FFFDF9;">
+          #111111
+        </div>
+        <div class="color-meta">
+          <div class="color-name">焦墨黑 (Charcoal Ink)</div>
+          <div class="color-role">大标题、最高对比度印章边线</div>
+        </div>
+      </div>
+
+      <!-- 香槟泥金 -->
+      <div class="color-card">
+        <div class="color-swatch" style="background:#C8A858; color:#111111;">
+          #C8A858
+        </div>
+        <div class="color-meta">
+          <div class="color-name">香槟泥金 (Gilded Gold)</div>
+          <div class="color-role">精密天文仪刻度、内敛嵌金线</div>
+        </div>
+      </div>
+
+      <!-- 朱砂赤红 -->
+      <div class="color-card">
+        <div class="color-swatch" style="background:#B84034; color:#FFFDF9;">
+          #B84034
+        </div>
+        <div class="color-meta">
+          <div class="color-name">朱砂赤红 (Cinnabar)</div>
+          <div class="color-role">动爻标记、命盘日主、印章点睛</div>
+        </div>
+      </div>
+
+      <!-- 松石玉青 -->
+      <div class="color-card">
+        <div class="color-swatch" style="background:#4F7972; color:#FFFDF9;">
+          #4F7972
+        </div>
+        <div class="color-meta">
+          <div class="color-name">松石玉青 (Jade Pine)</div>
+          <div class="color-role">五行调候生木、生机平衡</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 字阶规范 -->
+  <section>
+    <h2 class="section-title"><span class="num">02.</span> 字阶与排版律动 (Typography Hierarchy)</h2>
+    <div class="type-specimen">
+      <div class="type-row">
+        <div class="type-label">
+          Level 1 · 庄严大标题
+          <span class="desc">Noto Serif SC 900 · 2.5rem</span>
+        </div>
+        <div style="font-family: var(--font-serif); font-size: 2.25rem; font-weight: 900; color: var(--ink-charcoal); letter-spacing: 0.08em;">
+          易有太极，是生两仪
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-label">
+          Level 2 · 模块主标题
+          <span class="desc">Noto Serif SC 700 · 1.5rem</span>
+        </div>
+        <div style="font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; color: var(--ink-charcoal);">
+          东方易境 · 四柱八字格局推演
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-label">
+          Level 3 · 精密天文数据
+          <span class="desc">JetBrains Mono 500 · 0.95rem</span>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.95rem; color: var(--ink-charcoal); letter-spacing: 0.05em;">
+          甲辰年 · 丙寅月 · 庚申日 (日元) · 壬午时 [真太阳时 12:28:44]
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-label">
+          Level 4 · 人文解读正文
+          <span class="desc">Plus Jakarta Sans 400 · 1rem / 1.75</span>
+        </div>
+        <div style="font-size: 0.95rem; color: var(--ink-body); line-height: 1.8;">
+          卡尔·荣格（Carl Jung）曾指出“共时性原则”：占卜与问象并非宿命论的桎梏，而是潜意识与宇宙能量在此时此刻的同频映照。君子见微知著，顺势而为。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 组件原语 -->
+  <section>
+    <h2 class="section-title"><span class="num">03.</span> 核心组件原语 (Component Primitives)</h2>
+    <div class="component-grid">
+      <!-- 原语卡片 1：八字排盘 -->
+      <div class="paper-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <span style="font-family:var(--font-serif); font-weight:700; font-size:1.1rem; color:var(--ink-charcoal);">四柱命盘格局</span>
+          <div class="cinnabar-stamp">乾</div>
+        </div>
+        <p style="font-size:0.8rem; color:var(--ink-muted);">节气换柱精度保障 · 纯净等宽排版</p>
+
+        <div class="bazi-row">
+          <div class="bazi-col">
+            <div class="bazi-lbl">年柱</div>
+            <div class="bazi-char">甲辰</div>
+          </div>
+          <div class="bazi-col">
+            <div class="bazi-lbl">月柱</div>
+            <div class="bazi-char">丙寅</div>
+          </div>
+          <div class="bazi-col active">
+            <div class="bazi-lbl">日主</div>
+            <div class="bazi-char">庚申</div>
+          </div>
+          <div class="bazi-col">
+            <div class="bazi-lbl">时柱</div>
+            <div class="bazi-char">壬午</div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn-primary">深度命盘解析</button>
+          <button class="btn-secondary">调候生克表</button>
+        </div>
+      </div>
+
+      <!-- 原语卡片 2：六爻铜钱神谕 -->
+      <div class="paper-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <span style="font-family:var(--font-serif); font-weight:700; font-size:1.1rem; color:var(--ink-charcoal);">周易六爻神谕</span>
+          <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--cinnabar); font-weight:700;">初九爻变</span>
+        </div>
+        <p style="font-size:0.8rem; color:var(--ink-muted);">自下而上筑爻 · 红色高亮动爻</p>
+
+        <div class="hex-preview">
+          <div class="yao-solid"></div>
+          <div class="yao-solid"></div>
+          <div class="yao-broken"><div class="yao-part"></div><div class="yao-part"></div></div>
+          <div class="yao-solid"></div>
+          <div class="yao-solid"></div>
+          <!-- 动爻以朱砂赤红标注 -->
+          <div class="yao-solid yao-moving"></div>
+        </div>
+
+        <p style="font-size:0.85rem; color:var(--ink-body); line-height:1.6; font-style:italic;">
+          “风天小畜：密云不雨，自我西郊。君子以懿文德。”
+        </p>
+
+        <div class="btn-group">
+          <button class="btn-primary">起卦问事</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 动效缓动预览 -->
+  <section>
+    <h2 class="section-title"><span class="num">04.</span> 仪式感缓动与帧率 (GSAP Ritual Motions)</h2>
+    <div class="easing-grid">
+      <div class="easing-box">
+        <div class="easing-title">power2.out</div>
+        <div style="color:var(--ink-muted); font-size:0.75rem;">铜钱抛起、卡牌滑出、轻盈舒展</div>
+        <div class="easing-track"><div class="easing-runner" style="animation-timing-function: cubic-bezier(0, 0, 0.58, 1);"></div></div>
+      </div>
+      <div class="easing-box">
+        <div class="easing-title">back.out(1.4)</div>
+        <div style="color:var(--ink-muted); font-size:0.75rem;">掷币落地回弹、双门落定共振</div>
+        <div class="easing-track"><div class="easing-runner" style="animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);"></div></div>
+      </div>
+      <div class="easing-box">
+        <div class="easing-title">power2.inOut</div>
+        <div style="color:var(--ink-muted); font-size:0.75rem;">太极两仪深邃时空穿梭</div>
+        <div class="easing-track"><div class="easing-runner" style="animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1);"></div></div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

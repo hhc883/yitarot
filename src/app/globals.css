@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Serif+SC:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Serif+SC:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -6,36 +6,50 @@
   --font-serif: 'Noto Serif SC', 'Source Han Serif SC', 'Source Han Serif CN', 'Cinzel', 'STSong', 'Songti SC', Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --font-brand: 'Cinzel', 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'DMMono', monospace;
 }
 
 :root {
   --font-brand: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --font-serif-sc: 'Noto Serif SC', 'Source Han Serif SC', 'Source Han Serif CN', 'Cinzel', 'STSong', 'Songti SC', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
   
-  /* QiCosmos 羊皮纸典雅色彩系统 */
-  --paper: #F7F3EF;
-  --cream: #FFFDF9;
-  --subtle-paper: #F2EDE6;
-  --ink: #111111;
-  --star: #FFE59A;
-  --star-gold: #E8CF86;
-  --sky: #A9D3FF;
-  --pinky: #FFB5C1;
-  --minty: #B7E1D1;
+  /* QiCosmos 典雅东方宋宣与曜石玄墨设计系统 Tokens */
+  --paper: #F7F3EF;          /* 温润古绢/宣纸白底 */
+  --cream: #FFFDF9;          /* 素宣卡片纯白 */
+  --subtle-paper: #F0EAE1;   /* 宣纸淡折痕暗纹 */
+  --obsidian: #080B11;       /* 曜石深玄墨 */
+  
+  --ink: #111111;            /* 焦墨大标题 */
+  --ink-body: #524B40;       /* 浓墨易读正文 (WCAG AAA) */
+  --ink-muted: #7D7466;      /* 淡墨次级文本 */
+  --ink-faint: #AAA192;      /* 清墨辅助注释 */
+  
+  --gold-champagne: #C8A858; /* 哑光香槟泥金 (细致天文刻度) */
+  --gold-stream: #D4AF37;    /* 流光正金 (悬停高辉) */
+  --gold-deep: #8C6D23;      /* 赤铜赤金 (重要按钮与徽标) */
+  
+  --cinnabar: #B84034;       /* 朱砂赤红 (动爻、焦点、印章) */
+  --cinnabar-soft: rgba(184, 64, 52, 0.08); /* 朱砂淡晕 */
+  
+  --jade-pine: #4F7972;      /* 松石玉青 (五行调候生木) */
+  --lunar-silver: #E2DFD8;   /* 月魄银霜 (微羽化嵌线) */
   
   --card-bg: #FFFDF9;
   --card-border: rgba(17, 17, 17, 0.08);
+  --card-border-gold: rgba(200, 168, 88, 0.22);
 }
 
 body {
   background-color: var(--paper);
-  color: var(--ink);
+  color: var(--ink-body);
   font-family: var(--font-brand);
   overflow-x: hidden;
+  /* 东方水墨淡雅韵律背景：去除粗俗荧光粉蓝，采用暖宣纸泥金微光与极浅松石玉青 */
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(169, 211, 255, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 90% 30%, rgba(255, 181, 193, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 50% 80%, rgba(255, 229, 154, 0.12) 0%, transparent 50%);
+    radial-gradient(circle at 50% 0%, rgba(200, 168, 88, 0.07) 0%, transparent 55%),
+    radial-gradient(circle at 10% 25%, rgba(79, 121, 114, 0.025) 0%, transparent 40%),
+    radial-gradient(circle at 90% 70%, rgba(184, 64, 52, 0.02) 0%, transparent 45%);
   background-attachment: fixed;
 }
 
@@ -48,20 +62,57 @@ body {
   font-family: var(--font-serif-sc);
 }
 
-/* QiCosmos 专属 Float 浮动核心动效 */
+.font-mono-num {
+  font-family: var(--font-mono);
+}
+
+/* 宣纸微质感噪点覆盖层 */
+.paper-grain {
+  position: relative;
+}
+.paper-grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  z-index: 999;
+}
+
+/* 东方朱砂印章经典原语 */
+.cinnabar-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--cinnabar);
+  color: var(--cinnabar);
+  background: var(--cinnabar-soft);
+  border-radius: 4px;
+  font-family: var(--font-serif-sc);
+  font-weight: 900;
+  box-shadow: 0 0 0 1px rgba(184, 64, 52, 0.08);
+}
+
+/* 内敛泥金发丝边线 */
+.gilded-hairline {
+  border: 1px solid var(--card-border-gold);
+}
+
+/* QiCosmos 核心浮动与转场动效 */
 @keyframes floaty {
   0%, 100% {
     transform: translateY(0px) rotate(var(--r, 0deg));
   }
   50% {
-    transform: translateY(-12px) rotate(var(--r, 0deg));
+    transform: translateY(-10px) rotate(var(--r, 0deg));
   }
 }
 
 @keyframes menu-in {
   0% {
     opacity: 0;
-    transform: translateY(-4px) scale(0.97);
+    transform: translateY(-4px) scale(0.98);
   }
   100% {
     opacity: 1;
@@ -72,7 +123,7 @@ body {
 @keyframes card-deal {
   0% {
     opacity: 0;
-    transform: translateY(-30px) scale(0.85);
+    transform: translateY(-24px) scale(0.88);
   }
   100% {
     opacity: 1;
@@ -114,31 +165,32 @@ body {
   transform: rotateY(180deg);
 }
 
-/* 手作纸感卡片 */
+/* 手作素宣纸感卡片 (升级为 Hairline 泥金描边与微羽化阴影) */
 .paper-card {
   background-color: var(--cream);
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  border: 1px solid var(--card-border);
   box-shadow: 0 4px 20px -2px rgba(17, 17, 17, 0.04), 0 2px 6px -1px rgba(17, 17, 17, 0.02);
   border-radius: 1.5rem;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .paper-card:hover {
-  border-color: rgba(17, 17, 17, 0.16);
-  box-shadow: 0 12px 32px -4px rgba(17, 17, 17, 0.08), 0 4px 12px -2px rgba(232, 207, 134, 0.2);
+  border-color: var(--card-border-gold);
+  box-shadow: 0 12px 32px -4px rgba(17, 17, 17, 0.06), 0 0 20px rgba(200, 168, 88, 0.12);
+  transform: translateY(-2px);
 }
 
-/* 自定义柔和滚动条 */
+/* 自定义柔和微墨滚动条 */
 ::-webkit-scrollbar {
-  width: 7px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--paper);
 }
 ::-webkit-scrollbar-thumb {
-  background: #E5DFD5;
+  background: #E2DBD0;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #CBBFA8;
+  background: #C8BEAC;
 }

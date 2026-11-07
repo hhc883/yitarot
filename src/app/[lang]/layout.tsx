@@ -6,6 +6,8 @@ export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
 }
 
+export const instant = false;
+
 export const metadata: Metadata = {
   title: {
     default: 'QiCosmos｜周易·八字·塔罗 AI 命理 - 在线占卜与自我认知镜像',
@@ -33,7 +35,7 @@ export default async function LangLayout({
   const lang = rawLang === 'en' ? 'en' : 'zh';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] text-[#1E1B18] selection:bg-[#F2ECE1] selection:text-[#1E1B18]">
+    <div className="min-h-screen flex flex-col paper-grain bg-[#F7F3EF] text-[#2B261F] selection:bg-[#EAE4D9] selection:text-[#111111]">
       <TarotNavbar lang={lang} />
       <main className="flex-1">{children}</main>
       <TarotFooter lang={lang} />

@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json.schemastore.org/design-tokens.json",
+  "name": "QiCosmos Design System Tokens",
+  "version": "1.0.0",
+  "description": "东方古籍宣纸曜石深墨 + 西方精密天文仪的高级东方与西洋神秘学设计系统",
+  "color": {
+    "canvas": {
+      "paper": {
+        "value": "#F7F3EF",
+        "description": "温润古绢/宋宣纸底色，低蓝光、高亲和度、无压抑感"
+      },
+      "cream": {
+        "value": "#FFFDF9",
+        "description": "精制素宣卡片背景色，明净通透"
+      },
+      "paperSubtle": {
+        "value": "#F0EAE1",
+        "description": "宣纸折痕/暗纹层背景"
+      },
+      "obsidian": {
+        "value": "#080B11",
+        "description": "曜石深玄夜色，用于太极天球与仪式深邃视差层"
+      }
+    },
+    "ink": {
+      "charcoal": {
+        "value": "#111111",
+        "description": "焦墨，最高对比度大标题与古籍重印"
+      },
+      "deep": {
+        "value": "#2B261F",
+        "description": "浓墨，主标题与重点强调文本"
+      },
+      "body": {
+        "value": "#524B40",
+        "description": "重墨，正文易读文本，对比度达 WCAG AAA"
+      },
+      "muted": {
+        "value": "#7D7466",
+        "description": "淡墨，次级辅助说明文本"
+      },
+      "faint": {
+        "value": "#AAA192",
+        "description": "清墨，时间戳、标签与辅助角标"
+      }
+    },
+    "accent": {
+      "goldChampagne": {
+        "value": "#C8A858",
+        "description": "哑光香槟泥金，精密仪器线与主金线"
+      },
+      "goldStream": {
+        "value": "#D4AF37",
+        "description": "流光正金，悬停高亮与高贵仪式光辉"
+      },
+      "goldDeep": {
+        "value": "#8C6D23",
+        "description": "古铜赤金，重要引导按钮与深色标语"
+      },
+      "cinnabar": {
+        "value": "#B84034",
+        "description": "朱砂赤红，用于动爻、印章印鉴、重要吉煞与命局焦点"
+      },
+      "cinnabarSoft": {
+        "value": "rgba(184, 64, 52, 0.08)",
+        "description": "朱砂淡晕，用于印章衬底与动爻徽标背景"
+      },
+      "jadePine": {
+        "value": "#4F7972",
+        "description": "松石玉青，用于五行生木、吉位调候与生机生发"
+      },
+      "lunarSilver": {
+        "value": "#E2DFD8",
+        "description": "月魄银霜，柔和微羽化边线"
+      }
+    },
+    "border": {
+      "hairline": {
+        "value": "rgba(17, 17, 17, 0.08)",
+        "description": "1px 细微内敛炭墨边线"
+      },
+      "hairlineHover": {
+        "value": "rgba(17, 17, 17, 0.18)",
+        "description": "悬停内敛强化边线"
+      },
+      "goldGilded": {
+        "value": "rgba(200, 168, 88, 0.28)",
+        "description": "泥金微光嵌边"
+      }
+    }
+  },
+  "typography": {
+    "fontFamilies": {
+      "serif": {
+        "value": "'Noto Serif SC', 'Source Han Serif SC', 'Cinzel', 'STSong', 'Songti SC', Georgia, serif",
+        "description": "东方哲学、八字排盘大标题与典雅诗文"
+      },
+      "sans": {
+        "value": "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif",
+        "description": "高清晰度现代人机交互与解读正文"
+      },
+      "mono": {
+        "value": "'JetBrains Mono', 'DMMono', monospace",
+        "description": "精密天干地支五行度数与天文真太阳时"
+      },
+      "brand": {
+        "value": "'Cinzel', 'Noto Serif SC', Georgia, serif",
+        "description": "西方神秘学拉丁字母与徽记"
+      }
+    },
+    "fontSizes": {
+      "xs": { "value": "0.75rem", "lineHeight": "1rem" },
+      "sm": { "value": "0.875rem", "lineHeight": "1.25rem" },
+      "base": { "value": "1rem", "lineHeight": "1.75rem" },
+      "lg": { "value": "1.125rem", "lineHeight": "1.75rem" },
+      "xl": { "value": "1.25rem", "lineHeight": "1.75rem" },
+      "2xl": { "value": "1.5rem", "lineHeight": "2rem" },
+      "3xl": { "value": "1.875rem", "lineHeight": "2.25rem" },
+      "4xl": { "value": "2.25rem", "lineHeight": "2.5rem" },
+      "5xl": { "value": "3rem", "lineHeight": "1.2" }
+    },
+    "letterSpacing": {
+      "tighter": { "value": "-0.04em" },
+      "normal": { "value": "0em" },
+      "wide": { "value": "0.05em" },
+      "wider": { "value": "0.12em" },
+      "widest": { "value": "0.22em" }
+    }
+  },
+  "spacing": {
+    "rhythm": "4px / 8px scale",
+    "scale": {
+      "1": "0.25rem",
+      "2": "0.5rem",
+      "3": "0.75rem",
+      "4": "1rem",
+      "5": "1.25rem",
+      "6": "1.5rem",
+      "8": "2rem",
+      "10": "2.5rem",
+      "12": "3rem",
+      "16": "4rem",
+      "20": "5rem",
+      "24": "6rem"
+    }
+  },
+  "shadow": {
+    "paperRest": {
+      "value": "0 4px 20px -2px rgba(17, 17, 17, 0.04), 0 2px 6px -1px rgba(17, 17, 17, 0.02)",
+      "description": "素宣纸张轻微悬浮阴影"
+    },
+    "paperHover": {
+      "value": "0 12px 32px -4px rgba(17, 17, 17, 0.06), 0 0 20px rgba(200, 168, 88, 0.12)",
+      "description": "悬停带有泥金微晕的漫反射提升阴影"
+    },
+    "gildedHalo": {
+      "value": "0 0 25px rgba(200, 168, 88, 0.25)",
+      "description": "神秘学器具神圣光环"
+    }
+  },
+  "motion": {
+    "easing": {
+      "ritualEaseOut": "power2.out",
+      "ritualEaseInOut": "power2.inOut",
+      "ritualBackOut": "back.out(1.4)",
+      "ritualCinematic": "power3.out"
+    },
+    "duration": {
+      "quick": "0.25s",
+      "smooth": "0.45s",
+      "ritual": "1.2s",
+      "cosmicCycle": "60s"
+    }
+  }
+}

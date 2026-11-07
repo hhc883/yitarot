@@ -137,7 +137,7 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
           y: 0,
           scale: 1,
           duration: 0.5,
-          ease: 'bounce.out'
+          ease: 'back.out(1.4)'
         },
         '-=0.1'
       );
@@ -377,7 +377,7 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
                           <>
                             <div className="w-full h-full bg-[#111111] rounded-xs shadow-xs" />
                             {lineData.isChanging && (
-                              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-rose-500 ring-2 ring-[#FAF6ED] shadow-xs" />
+                              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#B84034] ring-2 ring-[#FAF6ED] shadow-xs" />
                             )}
                           </>
                         ) : (
@@ -385,7 +385,7 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
                           <>
                             <div className="w-[calc(50%-8px)] h-full bg-[#111111] rounded-xs shadow-xs" />
                             {lineData.isChanging && (
-                              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[11px] text-rose-600 font-bold leading-none select-none">
+                              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[11px] text-[#B84034] font-bold leading-none select-none">
                                 ✕
                               </span>
                             )}

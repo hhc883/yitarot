@@ -127,7 +127,7 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
   return (
     <div
       ref={containerRef}
-      className="w-full max-w-3xl mx-auto rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-6 sm:p-10 shadow-xs flex flex-col md:flex-row items-center gap-8 justify-between perspective-1000 overflow-hidden md:min-h-[400px]"
+      className="w-full max-w-3xl mx-auto rounded-3xl bg-[#FFFDF9] border border-[rgba(200,168,88,0.25)] hover:border-[rgba(200,168,88,0.45)] p-6 sm:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row items-center gap-8 justify-between perspective-1000 overflow-hidden md:min-h-[400px]"
     >
       {/* 左侧可交互翻转卡牌 */}
       <div className="flex flex-col items-center shrink-0">

@@ -6,7 +6,7 @@ import { YinYangFish } from '@/components/common/YinYangFish';
 
 export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
   return (
-    <footer className="w-full bg-[#F5EFE6]/70 border-t border-[#1E1B18]/10 text-[#5C5549] mt-20">
+    <footer className="w-full bg-[#F0EAE1]/80 border-t border-[#111111]/8 text-[#524B40] mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* 品牌简介 */}

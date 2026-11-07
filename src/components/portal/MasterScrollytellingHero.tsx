@@ -94,8 +94,8 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
     )
       .fromTo(
         bgLayerRef.current,
-        { backgroundColor: '#FAF7F2', color: '#111111' },
-        { backgroundColor: '#111528', color: '#FFFDF9', ease: 'power1.inOut', duration: 2 },
+        { backgroundColor: '#F7F3EF', color: '#111111' },
+        { backgroundColor: '#080B11', color: '#FFFDF9', ease: 'power2.inOut', duration: 2 },
         '<'
       )
       .fromTo(
@@ -120,7 +120,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
       )
       .to(
         bgLayerRef.current,
-        { backgroundColor: '#261438', duration: 2, ease: 'power1.inOut' },
+        { backgroundColor: '#131118', duration: 2, ease: 'power2.inOut' },
         '<'
       );
 
@@ -155,7 +155,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
     })
       .to(
         bgLayerRef.current,
-        { backgroundColor: '#FAF7F2', color: '#111111', duration: 2, ease: 'power1.inOut' },
+        { backgroundColor: '#F7F3EF', color: '#111111', duration: 2, ease: 'power2.inOut' },
         '<'
       )
       .fromTo(
@@ -329,7 +329,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             className="relative z-20 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 p-4"
           >
             {/* 东方周易门 */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/12 shadow-xl flex flex-col justify-between text-left hover:scale-102 transition-transform">
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] border border-[rgba(200,168,88,0.28)] shadow-xl flex flex-col justify-between text-left hover:scale-102 hover:border-[rgba(200,168,88,0.55)] transition-all duration-300">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <YinYangFish size={28} />
@@ -343,7 +343,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
                 <h3 className="font-serif font-black text-xl sm:text-2xl text-[#111111] mb-2">
                   {lang === 'zh' ? '周易 · 四柱八字 · 六爻神谕' : 'I Ching & BaZi Oracle'}
                 </h3>
-                <p className="text-xs text-[#5C5549] leading-relaxed">
+                <p className="text-xs text-[#524B40] leading-relaxed">
                   {lang === 'zh'
                     ? '24 节气换月柱精准排盘，乾隆通宝 3D 物理掷币，五行能量雷达调候与日主元神剖析。'
                     : 'Authentic 24 solar terms Four Pillars BaZi, Qianlong antique 3D coin toss, and Five Elements balance.'}
@@ -353,16 +353,16 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
               <div className="pt-4 mt-4 border-t border-[#111111]/8">
                 <Link
                   href={`/${lang}/fatemaster`}
-                  className="w-full py-3.5 rounded-2xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                  className="w-full py-3.5 rounded-2xl bg-[#111111] hover:bg-[#2B261F] text-[#FFFDF9] text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer hover:shadow-lg"
                 >
                   <span>{lang === 'zh' ? '叩启东方周易之门' : 'Enter Eastern Metaphysics'}</span>
-                  <ArrowRight className="w-4 h-4 text-[#FFE59A]" />
+                  <ArrowRight className="w-4 h-4 text-[#C8A858]" />
                 </Link>
               </div>
             </div>
 
             {/* 西方塔罗门 */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/12 shadow-xl flex flex-col justify-between text-left hover:scale-102 transition-transform">
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] border border-[rgba(200,168,88,0.28)] shadow-xl flex flex-col justify-between text-left hover:scale-102 hover:border-[rgba(200,168,88,0.55)] transition-all duration-300">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <IconCrystalBall size={28} className="text-[#8C6D23]" />

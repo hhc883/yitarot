@@ -58,45 +58,45 @@ export default async function MasterPortalPage({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <Link
             href={`/${lang}/fatemaster/bazi`}
-            className="p-6 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs hover:shadow-md transition-all group"
+            className="p-6 rounded-3xl bg-[#FFFDF9] border border-[rgba(17,17,17,0.08)] hover:border-[rgba(200,168,88,0.35)] shadow-xs hover:shadow-lg transition-all group duration-300"
           >
-            <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs border border-amber-200/50">
               <IconScrollBaZi size={22} />
             </div>
-            <h3 className="font-serif font-bold text-base text-[#111111] mb-1">
+            <h3 className="font-serif font-bold text-base text-[#111111] mb-1 group-hover:text-[#8C6D23] transition-colors">
               四柱八字排盘
             </h3>
-            <p className="text-xs text-[#5C5549] leading-relaxed">
+            <p className="text-xs text-[#524B40] leading-relaxed">
               天干地支、五行生克、十神格局、大运流年与日主元神特质深度剖析。
             </p>
           </Link>
 
           <Link
             href={`/${lang}/fatemaster/liuyao`}
-            className="p-6 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs hover:shadow-md transition-all group"
+            className="p-6 rounded-3xl bg-[#FFFDF9] border border-[rgba(17,17,17,0.08)] hover:border-[rgba(200,168,88,0.35)] shadow-xs hover:shadow-lg transition-all group duration-300"
           >
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs border border-emerald-200/50">
               <IconCoinLiuYao size={22} />
             </div>
-            <h3 className="font-serif font-bold text-base text-[#111111] mb-1">
+            <h3 className="font-serif font-bold text-base text-[#111111] mb-1 group-hover:text-[#8C6D23] transition-colors">
               周易六爻铜钱神谕
             </h3>
-            <p className="text-xs text-[#5C5549] leading-relaxed">
+            <p className="text-xs text-[#524B40] leading-relaxed">
               乾隆通宝 3D 物理掷币，自下而上筑就六爻，辨本卦变卦之吉凶机缘。
             </p>
           </Link>
 
           <Link
             href={`/${lang}/fatemaster/compatibility`}
-            className="p-6 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs hover:shadow-md transition-all group"
+            className="p-6 rounded-3xl bg-[#FFFDF9] border border-[rgba(17,17,17,0.08)] hover:border-[rgba(200,168,88,0.35)] shadow-xs hover:shadow-lg transition-all group duration-300"
           >
-            <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs border border-rose-200/50">
               <IconZodiacDragon size={22} />
             </div>
-            <h3 className="font-serif font-bold text-base text-[#111111] mb-1">
+            <h3 className="font-serif font-bold text-base text-[#111111] mb-1 group-hover:text-[#8C6D23] transition-colors">
               生肖五行合盘
             </h3>
-            <p className="text-xs text-[#5C5549] leading-relaxed">
+            <p className="text-xs text-[#524B40] leading-relaxed">
               144 组干支配对全覆盖，测算天作六合、三合生财与相冲磨砺指数。
             </p>
           </Link>
@@ -136,7 +136,7 @@ export default async function MasterPortalPage({
 
       {/* 4. 东西合璧哲学背景 (荣格心理学共时性) */}
       <section className="w-full max-w-4xl mx-auto px-5 py-16">
-        <div className="rounded-3xl bg-[#FAF6ED] ring-1 ring-[#111111]/10 p-8 sm:p-12 text-center">
+        <div className="rounded-3xl bg-[#FFFDF9] border border-[rgba(200,168,88,0.25)] shadow-md p-8 sm:p-12 text-center relative overflow-hidden">
           <div className="flex items-center justify-center gap-3 mb-3 text-[#8C6D23]">
             <YinYangFish size={24} spin={false} />
             <span className="text-sm opacity-60">✦</span>
@@ -145,15 +145,15 @@ export default async function MasterPortalPage({
           <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#111111] mb-3">
             东方生克，西方原型 · 终归天人之镜
           </h2>
-          <p className="text-xs sm:text-sm text-[#5C5549] max-w-2xl mx-auto leading-relaxed mb-6">
+          <p className="text-xs sm:text-sm text-[#524B40] max-w-2xl mx-auto leading-relaxed mb-6">
             卡尔·荣格（Carl Jung）在为卫礼贤《周易》英译本作序时曾提出“共时性原则（Synchronicity）”：
             无论是东方蓍草铜钱的数变，还是西方塔罗牌面的图腾，都是人类潜意识对当下时空能量的一次精准投射。
             我们不做宿命论的判决，只为你提供最清澈的心灵镜像。
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-xs text-[#8C6D23] font-medium">
-            <span>• 先由严谨规则排盘</span>
-            <span>• 再由智能 AI 深度解读</span>
-            <span>• 赋能当下自主抉择</span>
+            <span className="px-3 py-1 rounded-full bg-[#F7F3EF] border border-[#111111]/8">• 先由严谨规则排盘</span>
+            <span className="px-3 py-1 rounded-full bg-[#F7F3EF] border border-[#111111]/8">• 再由智能 AI 深度解读</span>
+            <span className="px-3 py-1 rounded-full bg-[#F7F3EF] border border-[#111111]/8">• 赋能当下自主抉择</span>
           </div>
         </div>
       </section>
