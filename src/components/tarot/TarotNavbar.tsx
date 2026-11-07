@@ -268,6 +268,18 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
     return pathname.startsWith(section.href);
   };
 
+  const getLanguageSwitchUrl = (targetLang: 'zh' | 'en') => {
+    if (!pathname) return `/${targetLang}`;
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length === 0) return `/${targetLang}`;
+    if (segments[0] === 'zh' || segments[0] === 'en') {
+      segments[0] = targetLang;
+    } else {
+      segments.unshift(targetLang);
+    }
+    return '/' + segments.join('/');
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full bg-[#F7F3EF]/95 backdrop-blur-md border-b border-[#111111]/8 transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -336,7 +348,7 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
         {/* 右侧操作区：极简双语与纯文字起卦按钮 */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
           <Link
-            href={lang === 'zh' ? '/en' : '/zh'}
+            href={getLanguageSwitchUrl(lang === 'zh' ? 'en' : 'zh')}
             className="text-[11px] font-serif tracking-widest text-[#7D7466] hover:text-[#111111] transition-colors uppercase px-1.5 py-1"
           >
             {lang === 'zh' ? 'EN' : '中文'}
@@ -419,9 +431,9 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
           })}
 
           <div className="pt-3 flex justify-between items-center text-xs font-serif text-[#7D7466]">
-            <span>语言</span>
+            <span>{lang === 'en' ? 'Language' : '语言'}</span>
             <Link
-              href={lang === 'zh' ? '/en' : '/zh'}
+              href={getLanguageSwitchUrl(lang === 'zh' ? 'en' : 'zh')}
               className="text-[#111111] font-semibold underline underline-offset-4"
             >
               {lang === 'zh' ? 'English' : '中文'}

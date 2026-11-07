@@ -4,22 +4,9 @@ import React, { useState } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
+import { getDictionary } from '@/lib/i18n/dict';
 
-interface LoveScenario {
-  id: string;
-  label: string;
-  desc: string;
-}
-
-const LOVE_SCENARIOS: LoveScenario[] = [
-  { id: 'ambiguous', label: '暧昧探索', desc: '推演双方好感度与推进时机' },
-  { id: 'dating', label: '恋爱磨合', desc: '洞察彼此期待与相处核心盲区' },
-  { id: 'single', label: '单身寻缘', desc: '照见近期情感机缘与内在阻力' },
-  { id: 'conflict', label: '矛盾化解', desc: '剖析争执根源与破冰切入点' },
-  { id: 'reunion', label: '复合推演', desc: '审视前缘羁绊与重归于好几率' },
-];
-
-function calculateLoveHarmony(cards: DrawnCard[]): {
+function calculateLoveHarmony(cards: DrawnCard[], isEn: boolean): {
   score: number;
   level: string;
   dynamicSummary: string;
@@ -30,19 +17,15 @@ function calculateLoveHarmony(cards: DrawnCard[]): {
     const name = c.card.nameEn.toLowerCase();
     const isRev = c.isReversed;
 
-    // 圣杯牌与爱意牌增加和谐度
     if (c.card.suit === 'cups' || name.includes('lovers') || name.includes('empress') || name.includes('star') || name.includes('sun')) {
       score += isRev ? 2 : 10;
     }
-    // 宝剑牌或塔牌带来摩擦
     if (c.card.suit === 'swords' || name.includes('tower') || name.includes('devil')) {
       score -= isRev ? 5 : 10;
     }
-    // 权杖带来激情
     if (c.card.suit === 'wands') {
       score += isRev ? -3 : 6;
     }
-    // 星币带来稳固
     if (c.card.suit === 'pentacles') {
       score += isRev ? 0 : 5;
     }
@@ -50,27 +33,47 @@ function calculateLoveHarmony(cards: DrawnCard[]): {
 
   score = Math.max(35, Math.min(98, score));
 
-  let level = '良性共振';
+  let level = isEn ? 'Harmonious Flow' : '良性共振';
   let dynamicSummary = '';
 
-  if (score >= 85) {
-    level = '深层心智共振';
-    dynamicSummary = '双方在情感需求与灵魂步调上高度契合，彼此能提供充分的安全感与滋养，是一段能够共同成长的双向关系。';
-  } else if (score >= 70) {
-    level = '温润和谐相长';
-    dynamicSummary = '总体基调温和顺畅，存在真实的情感流动。偶有的观念分歧属于良性磨合，坦诚沟通即可消除隔阂。';
-  } else if (score >= 50) {
-    level = '现实与期待博弈';
-    dynamicSummary = '双方目前可能处于不同步调，或受到外界现实因素（工作、距离、家庭）的牵制，内心期待与实际行动存在微弱落差。';
+  if (isEn) {
+    if (score >= 85) {
+      level = 'Profound Soul Resonance';
+      dynamicSummary = 'Both parties share high resonance in emotional values and spiritual pacing, providing genuine psychological safety and mutual empowerment.';
+    } else if (score >= 70) {
+      level = 'Gentle & Constructive Flow';
+      dynamicSummary = 'The overarching dynamic is warm and flowing. Occasional differences in viewpoints are healthy growth opportunities easily bridged by open dialogue.';
+    } else if (score >= 50) {
+      level = 'Expectation vs Reality Friction';
+      dynamicSummary = 'You may currently be moving at different paces or constrained by external variables (work, distance). Patience and clear expectations are advised.';
+    } else {
+      level = 'Needs Reconciliation & Renewal';
+      dynamicSummary = 'Defensive postures are elevated. Release the impulse to win arguments, step back, and re-examine the core authentic needs of the relationship.';
+    }
   } else {
-    level = '亟待破冰与重构';
-    dynamicSummary = '彼此防御心较强，可能存在未表达的委屈或误解。当前最需要的是放下输赢执念，退一步审视关系的本质需求。';
+    if (score >= 85) {
+      level = '深层心智共振';
+      dynamicSummary = '双方在情感需求与灵魂步调上高度契合，彼此能提供充分的安全感与滋养，是一段能够共同成长的双向关系。';
+    } else if (score >= 70) {
+      level = '温润和谐相长';
+      dynamicSummary = '总体基调温和顺畅，存在真实的情感流动。偶有的观念分歧属于良性磨合，坦诚沟通即可消除隔阂。';
+    } else if (score >= 50) {
+      level = '现实与期待博弈';
+      dynamicSummary = '双方目前可能处于不同步调，或受到外界现实因素（工作、距离、家庭）的牵制，内心期待与实际行动存在微弱落差。';
+    } else {
+      level = '亟待破冰与重构';
+      dynamicSummary = '彼此防御心较强，可能存在未表达的委屈或误解。当前最需要的是放下输赢执念，退一步审视关系的本质需求。';
+    }
   }
 
   return { score, level, dynamicSummary };
 }
 
 export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
+  const isEn = lang === 'en';
+  const d = getDictionary(lang);
+  const t = d.love;
+
   const [selectedScenario, setSelectedScenario] = useState<string>('ambiguous');
   const [drawnCards, setDrawnCards] = useState<DrawnCard[] | null>(null);
   const [flippedMap, setFlippedMap] = useState<Record<number, boolean>>({ 0: false, 1: false, 2: false });
@@ -82,7 +85,6 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
     setDrawnCards(cards);
     setFlippedMap({ 0: false, 1: false, 2: false });
 
-    // 逐张翻开
     setTimeout(() => {
       setFlippedMap(prev => ({ ...prev, 0: true }));
     }, 400);
@@ -100,24 +102,18 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
     setFlippedMap({ 0: false, 1: false, 2: false });
   };
 
-  const currentScenarioObj = LOVE_SCENARIOS.find(s => s.id === selectedScenario) || LOVE_SCENARIOS[0];
-  const harmony = drawnCards ? calculateLoveHarmony(drawnCards) : null;
-
-  const positions = [
-    { title: '你的心态与深层投射', role: '你当前的内在渴望、防御机制与情感准备度' },
-    { title: '对方的状态与真实态度', role: '对方目前的生活重心、对你的感知与潜在顾虑' },
-    { title: '关系演化与融通之道', role: '未来一段时期的走向预演，以及最适宜的相处行动' }
-  ];
+  const currentScenarioObj = t.scenarios.find(s => s.id === selectedScenario) || t.scenarios[0];
+  const harmony = drawnCards ? calculateLoveHarmony(drawnCards, isEn) : null;
 
   return (
     <div className="w-full max-w-4xl mx-auto">
       {/* 极简标题 */}
       <div className="text-center mb-8">
         <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          爱情塔罗
+          {t.title}
         </h1>
         <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-2">
-          三维情感镜像。照见彼此潜意识的真实心声与关系融通路径。
+          {t.subtitle}
         </p>
       </div>
 
@@ -128,10 +124,10 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
             {/* 场景选择器 */}
             <div>
               <span className="block text-xs font-serif text-[#736B5E] mb-3">
-                选择你当前的情感状态：
+                {t.stateLabel}
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                {LOVE_SCENARIOS.map(item => {
+                {t.scenarios.map(item => {
                   const isSelected = selectedScenario === item.id;
                   return (
                     <button
@@ -166,7 +162,7 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
                 disabled={isDealing}
                 className="w-full py-3.5 rounded-xl bg-[#111111] hover:bg-[#2A2A2A] text-xs font-serif tracking-widest text-[#FFFDF9] transition-all cursor-pointer shadow-xs active:scale-[0.99]"
               >
-                起 卦 抽 取 爱 意 牌 阵
+                {t.drawBtn}
               </button>
             </div>
           </div>
@@ -175,7 +171,7 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
             {/* 当前情境回显 */}
             <div className="flex items-center justify-between pb-4 border-b border-[#111111]/8">
               <div>
-                <span className="text-[11px] font-serif text-[#736B5E]">当前推演情境</span>
+                <span className="text-[11px] font-serif text-[#736B5E]">{t.currentContext}</span>
                 <span className="ml-2 text-xs font-serif font-bold text-[#111111]">
                   {currentScenarioObj.label}
                 </span>
@@ -186,15 +182,19 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
                 className="text-xs font-serif text-[#736B5E] hover:text-[#111111] transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>换个情境重新测</span>
+                <span>{t.switchScenario}</span>
               </button>
             </div>
 
             {/* 3 张卡牌横向排布 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {drawnCards.map((drawn, index) => {
-                const pos = positions[index];
+                const pos = t.positions[index];
                 const isFlipped = flippedMap[index] ?? false;
+                const cardName = isEn ? drawn.card.nameEn : drawn.card.nameZh;
+                const orientationStr = isEn
+                  ? (drawn.isReversed ? 'Reversed' : 'Upright')
+                  : (drawn.isReversed ? '逆位' : '正位');
 
                 return (
                   <div
@@ -222,13 +222,15 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
 
                     <div className="text-center mt-3 w-full">
                       <div className="text-xs font-serif font-bold text-[#111111]">
-                        {drawn.card.nameZh}
+                        {cardName}
                         <span className="ml-1 text-[11px] font-normal text-[#736B5E]">
-                          ({drawn.isReversed ? '逆位' : '正位'})
+                          ({orientationStr})
                         </span>
                       </div>
                       <p className="text-[11px] font-serif text-[#555555] mt-1.5 line-clamp-3 leading-relaxed text-left">
-                        {drawn.isReversed ? drawn.card.reversedMeaning : drawn.card.uprightMeaning}
+                        {isEn
+                          ? drawn.card.loveMeaning
+                          : (drawn.isReversed ? drawn.card.reversedMeaning : drawn.card.uprightMeaning)}
                       </p>
                     </div>
                   </div>
@@ -242,7 +244,7 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#111111]/8">
                   <div>
                     <span className="text-xs font-serif font-bold text-[#111111]">
-                      契合共振指数：{harmony.score}%
+                      {t.harmonyLabel}：{harmony.score}%
                     </span>
                     <span className="ml-2 text-xs font-serif text-[#736B5E]">
                       （{harmony.level}）
@@ -258,14 +260,12 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
 
                 <div className="space-y-3 text-xs font-serif leading-relaxed text-[#111111]">
                   <div>
-                    <span className="font-bold text-[#736B5E] block mb-0.5">【能量态势】</span>
+                    <span className="font-bold text-[#736B5E] block mb-0.5">{t.energyTitle}</span>
                     <p className="text-[#333333]">{harmony.dynamicSummary}</p>
                   </div>
                   <div>
-                    <span className="font-bold text-[#736B5E] block mb-0.5">【融通之道】</span>
-                    <p className="text-[#333333]">
-                      保持心理边界的弹性，不将过去的经验投射到当下。面对感情中的未知，以好奇代替恐惧，以倾听代替预设立场。
-                    </p>
+                    <span className="font-bold text-[#736B5E] block mb-0.5">{t.bridgeTitle}</span>
+                    <p className="text-[#333333]">{t.bridgeText}</p>
                   </div>
                 </div>
               </div>

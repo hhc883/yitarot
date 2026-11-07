@@ -4,15 +4,21 @@ import React, { useState } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
+import { getDictionary } from '@/lib/i18n/dict';
 
 interface ElementPosition {
   id: string;
   element: string;
   elementZh: string;
-  title: string;
-  direction: string;
-  description: string;
-  governance: string;
+  elementEn: string;
+  titleZh: string;
+  titleEn: string;
+  directionZh: string;
+  directionEn: string;
+  descriptionZh: string;
+  descriptionEn: string;
+  governanceZh: string;
+  governanceEn: string;
 }
 
 const POSITIONS: ElementPosition[] = [
@@ -20,51 +26,79 @@ const POSITIONS: ElementPosition[] = [
     id: 'spirit',
     element: 'Spirit',
     elementZh: '灵性以太',
-    title: '中央灵魂之锚',
-    direction: '中央',
-    description: '核心灵魂课题、潜意识主轴与深层觉醒',
-    governance: '指导本季度的整全心识方向'
+    elementEn: 'Spirit / Quintessence',
+    titleZh: '中央灵魂之锚',
+    titleEn: 'Central Soul Anchor',
+    directionZh: '中央',
+    directionEn: 'Center',
+    descriptionZh: '核心灵魂课题、潜意识主轴与深层觉醒',
+    descriptionEn: 'Core soul lesson, subconscious axis & awakening',
+    governanceZh: '指导本季度的整全心识方向',
+    governanceEn: 'Directs the overarching spiritual trajectory'
   },
   {
     id: 'fire',
     element: 'Fire',
     elementZh: '权杖火象',
-    title: '意志与事业之火',
-    direction: '上方 · 南方',
-    description: '行动力、工作野心、开拓进取与生命激情',
-    governance: '决定事业攻坚与行动决断的效率'
+    elementEn: 'Fire of Wands',
+    titleZh: '意志与事业之火',
+    titleEn: 'Fire of Ambition & Will',
+    directionZh: '上方 · 南方',
+    directionEn: 'Top · South',
+    descriptionZh: '行动力、工作野心、开拓进取与生命激情',
+    descriptionEn: 'Action, career drive, pioneering vigor & passion',
+    governanceZh: '决定事业攻坚与行动决断的效率',
+    governanceEn: 'Determines execution velocity and breakthroughs'
   },
   {
     id: 'water',
     element: 'Water',
     elementZh: '圣杯水象',
-    title: '情感与人际之水',
-    direction: '右方 · 西方',
-    description: '亲密羁绊、心理感受、直觉灵感与社交流动',
-    governance: '映照情感和谐与内心滋养程度'
+    elementEn: 'Water of Cups',
+    titleZh: '情感与人际之水',
+    titleEn: 'Water of Love & Bonds',
+    directionZh: '右方 · 西方',
+    directionEn: 'Right · West',
+    descriptionZh: '亲密羁绊、心理感受、直觉灵感与社交流动',
+    descriptionEn: 'Intimate ties, psychological feelings & social flow',
+    governanceZh: '映照情感和谐与内心滋养程度',
+    governanceEn: 'Reflects emotional harmony and inner nourishment'
   },
   {
     id: 'air',
     element: 'Air',
     elementZh: '宝剑风象',
-    title: '心智与理智之风',
-    direction: '左方 · 东方',
-    description: '战略谋划、理性思辨、有效沟通与观念突破',
-    governance: '检验思考清晰度与认知盲点'
+    elementEn: 'Air of Swords',
+    titleZh: '心智与理智之风',
+    titleEn: 'Air of Intellect & Clarity',
+    directionZh: '左方 · 东方',
+    directionEn: 'Left · East',
+    descriptionZh: '战略谋划、理性思辨、有效沟通与观念突破',
+    descriptionEn: 'Strategic planning, discernment & communication',
+    governanceZh: '检验思考清晰度与认知盲点',
+    governanceEn: 'Audits mental clarity and eliminates cognitive blind spots'
   },
   {
     id: 'earth',
     element: 'Earth',
     elementZh: '星币土象',
-    title: '财富与基石之土',
-    direction: '下方 · 北方',
-    description: '财务收入、实务落地、身体精力与资产安全',
-    governance: '衡量现实生活与物质基本盘的稳固'
+    elementEn: 'Earth of Pentacles',
+    titleZh: '财富与基石之土',
+    titleEn: 'Earth of Wealth & Foundation',
+    directionZh: '下方 · 北方',
+    directionEn: 'Bottom · North',
+    descriptionZh: '财务收入、实务落地、身体精力与资产安全',
+    descriptionEn: 'Financial revenue, tangible grounding & vitality',
+    governanceZh: '衡量现实生活与物质基本盘的稳固',
+    governanceEn: 'Measures material foundation and security'
   }
 ];
 
 export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
-  // 5 张牌对应 5 个元素位置
+  const isEn = lang === 'en';
+  const d = getDictionary(lang);
+  const t = d.fortune;
+
   const [cards, setCards] = useState<DrawnCard[]>(() => drawRandomCards(5));
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
 
@@ -75,6 +109,13 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
 
   const currentPos = POSITIONS[selectedIdx];
   const currentCard = cards[selectedIdx];
+  const posTitle = isEn ? currentPos.titleEn : currentPos.titleZh;
+  const posElement = isEn ? currentPos.elementEn : currentPos.elementZh;
+  const posDirection = isEn ? currentPos.directionEn : currentPos.directionZh;
+  const cardName = isEn ? currentCard.card.nameEn : currentCard.card.nameZh;
+  const orientationStr = isEn
+    ? (currentCard.isReversed ? 'Reversed' : 'Upright')
+    : (currentCard.isReversed ? '逆位' : '正位');
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -84,10 +125,10 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
           SOLSTICE & EQUINOX SACRED GEOMETRY
         </span>
         <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          四季牌阵
+          {t.seasonalTitle}
         </h1>
         <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-2">
-          西方赫尔墨斯经典五元阵法。以灵性以太为轴，通透推演火、水、风、土四大现实维度的能量平衡。
+          {t.seasonalSubtitle}
         </p>
       </div>
 
@@ -102,6 +143,7 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
               drawn={cards[1]}
               isSelected={selectedIdx === 1}
               onClick={() => setSelectedIdx(1)}
+              isEn={isEn}
             />
           </div>
 
@@ -113,6 +155,7 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
               drawn={cards[3]}
               isSelected={selectedIdx === 3}
               onClick={() => setSelectedIdx(3)}
+              isEn={isEn}
             />
 
             {/* 中：灵性 */}
@@ -122,6 +165,7 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
               isSelected={selectedIdx === 0}
               onClick={() => setSelectedIdx(0)}
               isCenter={true}
+              isEn={isEn}
             />
 
             {/* 右：水 */}
@@ -130,6 +174,7 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
               drawn={cards[2]}
               isSelected={selectedIdx === 2}
               onClick={() => setSelectedIdx(2)}
+              isEn={isEn}
             />
           </div>
 
@@ -140,6 +185,7 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
               drawn={cards[4]}
               isSelected={selectedIdx === 4}
               onClick={() => setSelectedIdx(4)}
+              isEn={isEn}
             />
           </div>
         </div>
@@ -149,37 +195,52 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
           <div className="pb-3 border-b border-[#111111]/8 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
             <div>
               <span className="text-[11px] font-mono tracking-widest text-[#736B5E] uppercase block">
-                {currentPos.element} · {currentPos.direction}
+                {currentPos.element} · {posDirection}
               </span>
               <h3 className="font-serif font-black text-lg text-[#111111]">
-                {currentPos.title}（{currentPos.elementZh}）· {currentCard.card.nameZh}（{currentCard.isReversed ? '逆位' : '正位'}）
+                {posTitle}（{posElement}）· {cardName}（{orientationStr}）
               </h3>
             </div>
             <span className="text-xs font-serif text-[#736B5E]">
-              {currentPos.governance}
+              {isEn ? currentPos.governanceEn : currentPos.governanceZh}
             </span>
           </div>
 
           <div className="space-y-3 text-xs font-serif leading-relaxed text-[#111111]">
             <div>
-              <span className="font-bold text-[#736B5E] block mb-0.5">【位阶定义与映射】</span>
-              <p className="text-[#333333]">{currentPos.description}</p>
+              <span className="font-bold text-[#736B5E] block mb-0.5">
+                {isEn ? '【Placement Definition & Mapping】' : '【位阶定义与映射】'}
+              </span>
+              <p className="text-[#333333]">
+                {isEn ? currentPos.descriptionEn : currentPos.descriptionZh}
+              </p>
             </div>
 
             <div>
-              <span className="font-bold text-[#736B5E] block mb-0.5">【卡牌能量启示】</span>
+              <span className="font-bold text-[#736B5E] block mb-0.5">
+                {isEn ? '【Archetypal Insight】' : '【卡牌能量启示】'}
+              </span>
               <p className="text-[#333333]">
                 {currentCard.isReversed ? currentCard.card.reversedMeaning : currentCard.card.uprightMeaning}
               </p>
             </div>
 
             <div>
-              <span className="font-bold text-[#736B5E] block mb-0.5">【季内行事调候建议】</span>
+              <span className="font-bold text-[#736B5E] block mb-0.5">
+                {isEn ? '【Seasonal Counsel】' : '【季内行事调候建议】'}
+              </span>
               <p className="text-[#333333]">
-                在该元素位上，保持动态的能量节流。
-                {currentCard.isReversed
-                  ? '注意防范内在的防御阻滞或冲动冒进，放慢节奏，以退为进。'
-                  : '此位能量充沛通畅，是本季值得重点发力与倚重的坚实支点。'}
+                {isEn
+                  ? `In this element position, maintain mindful energetic moderation. ${
+                      currentCard.isReversed
+                        ? 'Guard against defensive resistance or impulsive overextension. Slow down; stepping back often opens strategic horizons.'
+                        : 'Energy flows abundantly and cleanly here; make this your anchor for proactive execution this season.'
+                    }`
+                  : `在该元素位上，保持动态的能量节流。${
+                      currentCard.isReversed
+                        ? '注意防范内在的防御阻滞或冲动冒进，放慢节奏，以退为进。'
+                        : '此位能量充沛通畅，是本季值得重点发力与倚重的坚实支点。'
+                    }`}
               </p>
             </div>
           </div>
@@ -193,7 +254,7 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
             className="px-4 py-2 rounded-xl bg-[#FAF6ED] hover:bg-[#F2ECE1] text-xs font-serif text-[#111111] border border-[#111111]/10 transition-colors cursor-pointer flex items-center gap-1.5"
           >
             <RotateCcw className="w-3.5 h-3.5 text-[#736B5E]" />
-            <span>重新起排四季阵盘</span>
+            <span>{isEn ? 'Redraw Seasonal Spread' : '重新起排四季阵盘'}</span>
           </button>
         </div>
       </div>
@@ -206,14 +267,23 @@ function PositionBadge({
   drawn,
   isSelected,
   onClick,
-  isCenter = false
+  isCenter = false,
+  isEn = false
 }: {
   pos: ElementPosition;
   drawn: DrawnCard;
   isSelected: boolean;
   onClick: () => void;
   isCenter?: boolean;
+  isEn?: boolean;
 }) {
+  const badgeElement = isEn ? pos.elementEn.split(' ')[0] : pos.elementZh;
+  const badgeTitle = isEn ? pos.titleEn.split(' of ')[0] : pos.titleZh.split('之')[0];
+  const cardName = isEn ? drawn.card.nameEn : drawn.card.nameZh;
+  const orientationStr = isEn
+    ? (drawn.isReversed ? 'Rev' : 'Upr')
+    : (drawn.isReversed ? '逆位' : '正位');
+
   return (
     <div
       onClick={onClick}
@@ -231,10 +301,10 @@ function PositionBadge({
             isSelected ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
           }`}
         >
-          {pos.elementZh}
+          {badgeElement}
         </span>
         <span className="text-[11px] font-serif font-bold truncate block">
-          {pos.title.split('之')[0]}
+          {badgeTitle}
         </span>
       </div>
 
@@ -249,14 +319,14 @@ function PositionBadge({
 
       <div className="text-center w-full">
         <span className="text-[10px] font-serif font-bold truncate block">
-          {drawn.card.nameZh}
+          {cardName}
         </span>
         <span
           className={`text-[9px] font-serif block ${
             isSelected ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
           }`}
         >
-          {drawn.isReversed ? '逆位' : '正位'}
+          {orientationStr}
         </span>
       </div>
     </div>

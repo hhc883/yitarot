@@ -3,8 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { YinYangFish } from '@/components/common/YinYangFish';
+import { getDictionary } from '@/lib/i18n/dict';
 
 export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
+  const d = getDictionary(lang);
+  const f = d.footer;
+
   return (
     <footer className="w-full bg-[#F0EAE1]/80 border-t border-[#111111]/8 text-[#524B40] mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -18,35 +22,40 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
               <span className="font-serif font-black text-xl text-[#1E1B18]">QiCosmos</span>
             </div>
             <p className="text-xs leading-relaxed text-[#736B5E]">
-              心里有件事，问问牌吧。QiCosmos 是你的专属 AI 命理与塔罗导师，结合荣格共时性心理学与东西方玄学精髓，为你带来温润治愈的即时解答。
+              {f.brandDesc}
             </p>
             <div className="text-[11px] text-[#8C6D23] font-serif">
-              ✦ 凭直觉抽牌 · 探寻潜意识指引 ✦
+              {f.intuition}
             </div>
           </div>
 
           {/* 占卜模式 */}
           <div>
-            <h4 className="font-serif font-bold text-sm text-[#1E1B18] mb-3">占卜频道</h4>
+            <h4 className="font-serif font-bold text-sm text-[#1E1B18] mb-3">{f.channels}</h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href={`/${lang}/reading`} className="hover:text-[#1E1B18] transition-colors">
-                  AI 塔罗综合占卜
+                  {f.reading}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/yes-no`} className="hover:text-[#1E1B18] transition-colors">
-                  是否塔罗（Yes or No）
+                  {f.yesNo}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/love`} className="hover:text-[#1E1B18] transition-colors">
-                  爱情与关系解读
+                  {f.love}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/fortune/daily`} className="hover:text-[#1E1B18] transition-colors">
-                  每日塔罗运势签
+                  {f.dailyFortune}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${lang}/fortune/seasonal`} className="hover:text-[#1E1B18] transition-colors">
+                  {f.seasonalSpread}
                 </Link>
               </li>
             </ul>
@@ -54,48 +63,48 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
 
           {/* 塔罗知识库 */}
           <div>
-            <h4 className="font-serif font-bold text-sm text-[#1E1B18] mb-3">牌库与牌阵</h4>
+            <h4 className="font-serif font-bold text-sm text-[#1E1B18] mb-3">{f.knowledge}</h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href={`/${lang}/cards`} className="hover:text-[#1E1B18] transition-colors">
-                  78 张塔罗牌全义大全
+                  {f.deck78}
                 </Link>
               </li>
               <li>
                 <Link href={`/${lang}/spreads`} className="hover:text-[#1E1B18] transition-colors">
-                  经典塔罗牌阵详解
+                  {f.spreads}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/cards/the-fool`} className="hover:text-[#1E1B18] transition-colors">
-                  愚人牌（The Fool）牌义
+                <Link href={`/${lang}/draw`} className="hover:text-[#1E1B18] transition-colors">
+                  {f.freeDraw}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/cards/the-magician`} className="hover:text-[#1E1B18] transition-colors">
-                  魔术师（The Magician）牌义
+                <Link href={`/${lang}/blog`} className="hover:text-[#1E1B18] transition-colors">
+                  {f.handbook}
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* 规则与商业 */}
+          {/* 会员与支持 */}
           <div>
-            <h4 className="font-serif font-bold text-sm text-[#1E1B18] mb-3">会员与支持</h4>
+            <h4 className="font-serif font-bold text-sm text-[#1E1B18] mb-3">{f.membership}</h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link href={`/${lang}/pricing`} className="hover:text-[#1E1B18] transition-colors">
-                  会员权益与订阅
+                  {f.pricing}
                 </Link>
               </li>
               <li>
-                <span className="text-[#A59E92]">隐私政策与使用条款</span>
+                <span className="text-[#A59E92]">{f.privacy}</span>
               </li>
               <li>
-                <span className="text-[#A59E92]">退款与取消政策</span>
+                <span className="text-[#A59E92]">{f.terms}</span>
               </li>
               <li>
-                <span className="text-[#A59E92]">联系客服支持</span>
+                <span className="text-[#A59E92]">{f.contact}</span>
               </li>
             </ul>
           </div>
@@ -103,9 +112,11 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
 
         {/* 底部版权与免责 */}
         <div className="mt-12 pt-6 border-t border-[#1E1B18]/10 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#A59E92] gap-3">
-          <p>© 2026 QiCosmos. 保留所有权利。</p>
+          <p>{f.copyright}</p>
           <p className="text-center sm:text-right max-w-md">
-            免责声明：塔罗牌占卜旨在提供心灵陪伴、直觉启发与自我反思，不可替代专业心理咨询、医疗或法律财务决策。
+            {lang === 'en'
+              ? 'Disclaimer: Tarot divination is intended for psychological reflection, emotional companionship, and intuitive insight. It does not replace professional medical, legal, or financial advice.'
+              : '免责声明：塔罗牌占卜旨在提供心灵陪伴、直觉启发与自我反思，不可替代专业心理咨询、医疗或法律财务决策。'}
           </p>
         </div>
       </div>

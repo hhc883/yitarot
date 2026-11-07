@@ -10,16 +10,24 @@ import { ShareCardModal } from './ShareCardModal';
 import { Sparkles, HelpCircle, ArrowRight, Wand2, Compass } from 'lucide-react';
 import { CategoryIcon, ReaderAvatarIcon } from '@/components/icons/QiIcons';
 
-const CATEGORIES = [
-  { id: 'love', name: '爱情感情', hint: '暗恋、复合、关系转折、桃花走向' },
-  { id: 'career', name: '事业发展', hint: '跳槽机遇、职场人际、创业项目' },
-  { id: 'decision', name: '重大抉择', hint: '两难选择、该不该行动、利弊分析' },
-  { id: 'fortune', name: '运势启示', hint: '近期待遇、核心课题、转机节点' },
-  { id: 'emotion', name: '情绪心境', hint: '抚平焦虑、向内觉察、灵性疗愈' },
-  { id: 'growth', name: '个人成长', hint: '潜能发掘、突破瓶颈、寻找天命' }
+interface CategoryItem {
+  id: string;
+  nameZh: string;
+  nameEn: string;
+  hintZh: string;
+  hintEn: string;
+}
+
+const CATEGORIES: CategoryItem[] = [
+  { id: 'love', nameZh: '爱情感情', nameEn: 'Love & Romance', hintZh: '暗恋、复合、关系转折、桃花走向', hintEn: 'Feelings, reconciliation, chemistry' },
+  { id: 'career', nameZh: '事业发展', nameEn: 'Career & Ambition', hintZh: '跳槽机遇、职场人际、创业项目', hintEn: 'Job opportunities, ventures, focus' },
+  { id: 'decision', nameZh: '重大抉择', nameEn: 'Decisive Forks', hintZh: '两难选择、该不该行动、利弊分析', hintEn: 'Dilemmas, whether to act, trade-offs' },
+  { id: 'fortune', nameZh: '运势启示', nameEn: 'Fortune & Timing', hintZh: '近期待遇、核心课题、转机节点', hintEn: 'Upcoming lessons, timing, momentum' },
+  { id: 'emotion', nameZh: '情绪心境', nameEn: 'Emotional Solace', hintZh: '抚平焦虑、向内觉察、灵性疗愈', hintEn: 'Inner mindfulness, anxiety relief' },
+  { id: 'growth', nameZh: '个人成长', nameEn: 'Personal Growth', hintZh: '潜能发掘、突破瓶颈、寻找天命', hintEn: 'Unlocking potential, purpose' }
 ];
 
-const PRESET_QUESTIONS: Record<string, string[]> = {
+const PRESET_QUESTIONS_ZH: Record<string, string[]> = {
   love: [
     '我和他未来的关系走向会如何？',
     '他心里对我的真实想法究竟是什么？',
@@ -52,7 +60,56 @@ const PRESET_QUESTIONS: Record<string, string[]> = {
   ]
 };
 
-export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?: string }) {
+const PRESET_QUESTIONS_EN: Record<string, string[]> = {
+  love: [
+    'What is the unfolding trajectory of our relationship?',
+    'What are their true, unspoken feelings toward me?',
+    'What is the core emotional blockage between us right now?',
+    'Will a genuine romantic connection emerge soon?'
+  ],
+  career: [
+    'Is there meaningful breakthrough potential in my current role?',
+    'Is now the opportune moment for a job transition or career pivot?',
+    'What latent resistance might my current project encounter?',
+    'What is my greatest competitive edge and professional strength?'
+  ],
+  decision: [
+    'Between the two paths before me, which aligns more with my soul?',
+    'Should I take the proactive first step to break the current impasse?',
+    'If I choose to release and walk away now, will the outcome be better?'
+  ],
+  fortune: [
+    'What is the overarching energetic theme of my upcoming month?',
+    'What key signs or synchronicities should I pay close attention to?',
+    'What important wisdom does the universe wish to convey to me today?'
+  ],
+  emotion: [
+    'What is the root cause of my recent anxiety and inner unrest?',
+    'How can I restore my inner tranquility, peace, and self-trust?'
+  ],
+  growth: [
+    'What is my core soul lesson and evolutionary focus right now?',
+    'How can I overcome my present ceiling in self-understanding?'
+  ]
+};
+
+function sSummary(s: TarotSpread): string {
+  const enSummaries: Record<string, string> = {
+    single: 'Quick direct insight for daily reflection or immediate clarity.',
+    yes_no: 'Decisive binary clarity and directional trend for crossroads.',
+    triangle: 'Classic past, present, and future trajectory for relationships and dilemmas.',
+    two_choices: 'Side-by-side comparison of two divergent paths and their outcomes.',
+    celtic_cross: 'The gold standard 10-card comprehensive panoramic inquiry.',
+    horseshoe: '7-card sequence examining subconscious drivers and external influences.',
+    astrological: '12-house full lifecycle diagnostic mapping your upcoming year.',
+    hexagram: 'Spiritual alignment and psychological breakthrough spread.',
+    relationship: 'Synastry and mirror spread exploring dynamics between two souls.'
+  };
+  return enSummaries[s.id] || s.summary;
+}
+
+export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defaultCategory?: string; lang?: string }) {
+  const isEn = lang === 'en';
   // 步骤：'input' -> 'shuffle' -> 'result'
   const [step, setStep] = useState<'input' | 'shuffle' | 'result'>('input');
   const [category, setCategory] = useState(defaultCategory);
@@ -155,10 +212,12 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
           {/* 标头 */}
           <div className="text-center mb-6">
             <h1 className="font-serif font-black text-2xl sm:text-3xl text-[#1E1B18] tracking-tight">
-              塔罗占卜
+              {isEn ? 'AI Tarot Divination' : '塔罗占卜'}
             </h1>
             <p className="text-xs text-[#736B5E] mt-1.5 max-w-sm mx-auto">
-              凝聚意念，向韦特塔罗叩问当下课题与启示。
+              {isEn
+                ? 'Focus your intention to consult the archetypes of the Rider-Waite deck.'
+                : '凝聚意念，向韦特塔罗叩问当下课题与启示。'}
             </p>
           </div>
 
@@ -175,7 +234,7 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                     : 'bg-[#FFFDF9] text-[#736B5E] hover:bg-[#F5EFE6] border border-[#1E1B18]/10'
                 }`}
               >
-                <span>{cat.name}</span>
+                <span>{isEn ? cat.nameEn : cat.nameZh}</span>
               </button>
             ))}
           </div>
@@ -185,14 +244,18 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
             <form onSubmit={handleStartDraw} className="flex flex-col gap-4">
               <div>
                 <label className="block text-xs font-serif font-semibold text-[#1E1B18] mb-2">
-                  问题与困惑
+                  {isEn ? 'Your Inquiry' : '问题与困惑'}
                 </label>
                 <div className="relative">
                   <textarea
                     rows={3}
                     value={question}
                     onChange={e => setQuestion(e.target.value)}
-                    placeholder="输入心中所求之事，如：近期事业发展的转机与阻碍是什么？"
+                    placeholder={
+                      isEn
+                        ? 'Enter your question, e.g. What are the key catalysts and obstacles in my career right now?'
+                        : '输入心中所求之事，如：近期事业发展的转机与阻碍是什么？'
+                    }
                     className="w-full px-3.5 py-3 rounded-xl bg-[#FAF6ED] border border-[#1E1B18]/10 text-xs sm:text-sm text-[#1E1B18] placeholder-[#736B5E]/50 focus:outline-hidden focus:border-[#1E1B18] resize-none"
                   />
                 </div>
@@ -200,7 +263,10 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
 
               {/* 常见提问 */}
               <div className="flex flex-wrap gap-1.5">
-                {(PRESET_QUESTIONS[category] || PRESET_QUESTIONS.love).map((q, idx) => (
+                {(isEn
+                  ? (PRESET_QUESTIONS_EN[category] || PRESET_QUESTIONS_EN.love)
+                  : (PRESET_QUESTIONS_ZH[category] || PRESET_QUESTIONS_ZH.love)
+                ).map((q, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -217,7 +283,7 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                 {/* 牌阵选择 */}
                 <div>
                   <label className="block text-xs font-serif font-semibold text-[#1E1B18] mb-1.5">
-                    牌阵
+                    {isEn ? 'Spread' : '牌阵'}
                   </label>
                   <select
                     value={selectedSpread.id}
@@ -229,17 +295,19 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                   >
                     {TAROT_SPREADS.map(s => (
                       <option key={s.id} value={s.id}>
-                        {s.nameZh}（{s.cardCount} 张牌）
+                        {isEn ? `${s.nameEn} (${s.cardCount} cards)` : `${s.nameZh}（${s.cardCount} 张牌）`}
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11px] font-serif text-[#736B5E] mt-1">{selectedSpread.summary}</p>
+                  <p className="text-[11px] font-serif text-[#736B5E] mt-1">
+                    {isEn ? sSummary(selectedSpread) : selectedSpread.summary}
+                  </p>
                 </div>
 
                 {/* 塔罗师人设选择 */}
                 <div>
                   <label className="block text-xs font-serif font-semibold text-[#1E1B18] mb-1.5">
-                    解牌视角
+                    {isEn ? 'Reader Perspective' : '解牌视角'}
                   </label>
                   <div className="flex gap-2">
                     {TAROT_READERS.map(r => (
@@ -260,8 +328,12 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                             selectedReader.id === r.id ? 'text-[#8C6D23]' : 'text-[#736B5E]'
                           }`}
                         />
-                        <span className="text-xs font-serif font-semibold">{r.name.split('·')[0]}</span>
-                        <span className="text-[10px] text-[#8C6D23] font-serif">{r.titleZh}</span>
+                        <span className="text-xs font-serif font-semibold">
+                          {isEn ? r.id.toUpperCase() : r.name.split('·')[0]}
+                        </span>
+                        <span className="text-[10px] text-[#8C6D23] font-serif">
+                          {isEn ? r.titleEn : r.titleZh}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -275,7 +347,7 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                   disabled={!question.trim()}
                   className="w-full py-3 rounded-xl bg-[#1E1B18] hover:bg-[#38332D] text-[#FFFDF9] font-serif text-xs tracking-wider flex items-center justify-center gap-2 disabled:opacity-40 transition-all cursor-pointer"
                 >
-                  <span>开始抽牌</span>
+                  <span>{isEn ? 'Begin Draw' : '开始抽牌'}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -292,7 +364,7 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
               “{question}”
             </h2>
             <p className="text-xs font-serif text-[#736B5E] mt-1">
-              逐一揭开卡牌
+              {isEn ? 'Reveal the cards one by one' : '逐一揭开卡牌'}
             </p>
           </div>
 

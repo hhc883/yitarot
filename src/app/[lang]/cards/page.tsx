@@ -42,13 +42,15 @@ export default function CardsEncyclopediaPage() {
       {/* 头部标题与引言 */}
       <div className="text-center max-w-3xl mx-auto mb-10">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C29026]/10 text-[#8C6D23] border border-[#C29026]/20 text-xs font-medium mb-3">
-          <IconBook78 size={14} className="text-[#8C6D23]" /> 78 张经典韦特塔罗全解
+          <IconBook78 size={14} className="text-[#8C6D23]" /> {lang === 'en' ? '78 Rider-Waite Cards Codex' : '78 张经典韦特塔罗全解'}
         </span>
         <h1 className="font-serif font-black text-3xl sm:text-4xl text-[#1E1B18] tracking-tight">
-          塔罗牌义百科大全
+          {lang === 'en' ? 'Tarot Card Encyclopedia' : '塔罗牌义百科大全'}
         </h1>
         <p className="text-xs sm:text-sm text-[#736B5E] mt-2 leading-relaxed">
-          深入探索 22 张大阿卡纳与 56 张小阿卡纳。点击任意卡牌即可查阅其正逆位深层牌义、爱情与事业映射、象征图案及神谕启示。
+          {lang === 'en'
+            ? 'Explore 22 Major Arcana and 56 Minor Arcana. Tap any card to inspect upright and reversed meanings, psychological archetypes, and symbolism.'
+            : '深入探索 22 张大阿卡纳与 56 张小阿卡纳。点击任意卡牌即可查阅其正逆位深层牌义、爱情与事业映射、象征图案及神谕启示。'}
         </p>
       </div>
 
@@ -57,12 +59,12 @@ export default function CardsEncyclopediaPage() {
         {/* 分类 Tab */}
         <div className="flex flex-wrap justify-center gap-1.5 p-1 rounded-2xl bg-[#FFFDF9] border border-[#1E1B18]/10 shadow-xs">
           {[
-            { id: 'all' as TabType, label: '全部 (78)' },
-            { id: 'major' as TabType, label: '大阿卡纳 (22)' },
-            { id: 'wands' as TabType, label: '权杖 · 火 (14)' },
-            { id: 'cups' as TabType, label: '圣杯 · 水 (14)' },
-            { id: 'swords' as TabType, label: '宝剑 · 风 (14)' },
-            { id: 'pentacles' as TabType, label: '星币 · 土 (14)' }
+            { id: 'all' as TabType, label: lang === 'en' ? 'All (78)' : '全部 (78)' },
+            { id: 'major' as TabType, label: lang === 'en' ? 'Major (22)' : '大阿卡纳 (22)' },
+            { id: 'wands' as TabType, label: lang === 'en' ? 'Wands · Fire (14)' : '权杖 · 火 (14)' },
+            { id: 'cups' as TabType, label: lang === 'en' ? 'Cups · Water (14)' : '圣杯 · 水 (14)' },
+            { id: 'swords' as TabType, label: lang === 'en' ? 'Swords · Air (14)' : '宝剑 · 风 (14)' },
+            { id: 'pentacles' as TabType, label: lang === 'en' ? 'Pentacles · Earth (14)' : '星币 · 土 (14)' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -85,7 +87,7 @@ export default function CardsEncyclopediaPage() {
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="搜索牌名（如：愚人 / 恋人）..."
+            placeholder={lang === 'en' ? 'Search card (e.g. Fool / Lovers)...' : '搜索牌名（如：愚人 / 恋人）...'}
             className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#FFFDF9] border border-[#1E1B18]/12 text-xs sm:text-sm text-[#1E1B18] placeholder-[#736B5E]/50 focus:outline-hidden focus:border-[#C29026]"
           />
         </div>
@@ -94,7 +96,7 @@ export default function CardsEncyclopediaPage() {
       {/* 卡牌网格展现 */}
       {filteredCards.length === 0 ? (
         <div className="text-center py-20 text-[#736B5E] text-sm">
-          未检索到匹配的塔罗牌，请尝试更换关键词。
+          {lang === 'en' ? 'No matching cards found. Try another keyword.' : '未检索到匹配的塔罗牌，请尝试更换关键词。'}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
