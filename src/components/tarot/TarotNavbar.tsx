@@ -29,8 +29,17 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 导航结构与对应子菜单映射 (无任何 Icon，全纯正文人古籍质感)
+  // 导航结构与对应子菜单映射 (首页为纯直达链接，其余分类配备纯正文人古籍子菜单)
   const navSections: NavSection[] = [
+    {
+      key: 'home',
+      titleZh: '首页',
+      titleEn: 'Home',
+      href: `/${lang}`,
+      tagZh: '',
+      tagEn: '',
+      subItems: []
+    },
     {
       key: 'eastern',
       titleZh: '东方周易',
@@ -180,6 +189,9 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   };
 
   const isCurrentActive = (section: NavSection) => {
+    if (section.key === 'home') {
+      return pathname === `/${lang}` || pathname === `/${lang}/` || pathname === '/';
+    }
     return pathname.startsWith(section.href);
   };
 
@@ -202,18 +214,19 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
           </div>
         </Link>
 
-        {/* 中间桌面导航：悬停自动展现精美子菜单 */}
+        {/* 中间桌面导航：悬停自动展现精美子菜单（首页为纯直达，无子菜单） */}
         <nav className="hidden md:flex items-center gap-7 lg:gap-10">
           {navSections.map(section => {
             const isActive = isCurrentActive(section);
-            const isOpen = activeDropdown === section.key;
+            const hasSubItems = section.subItems && section.subItems.length > 0;
+            const isOpen = hasSubItems && activeDropdown === section.key;
 
             return (
               <div
                 key={section.key}
                 className="relative py-5"
-                onMouseEnter={() => handleMouseEnter(section.key)}
-                onMouseLeave={handleMouseLeave}
+                onMouseEnter={hasSubItems ? () => handleMouseEnter(section.key) : undefined}
+                onMouseLeave={hasSubItems ? handleMouseLeave : undefined}
               >
                 {/* 顶层主链接 */}
                 <Link
@@ -324,17 +337,19 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
                   >
                     {lang === 'en' ? section.titleEn : section.titleZh}
                   </Link>
-                  <button
-                    onClick={() => setMobileExpandedSection(isExpanded ? null : section.key)}
-                    className="text-xs text-[#8C6D23] px-2 py-1 font-serif"
-                    aria-label="Toggle submenu"
-                  >
-                    {isExpanded ? '收起 ▲' : '详情 ▼'}
-                  </button>
+                  {section.subItems && section.subItems.length > 0 && (
+                    <button
+                      onClick={() => setMobileExpandedSection(isExpanded ? null : section.key)}
+                      className="text-xs text-[#8C6D23] px-2 py-1 font-serif"
+                      aria-label="Toggle submenu"
+                    >
+                      {isExpanded ? '收起 ▲' : '详情 ▼'}
+                    </button>
+                  )}
                 </div>
 
-                {/* 移动端展开的子菜单 */}
-                {isExpanded && (
+                {/* 移动端展开的子菜单 (仅当存在子菜单时才展开) */}
+                {isExpanded && section.subItems && section.subItems.length > 0 && (
                   <div className="pl-3 pr-1 py-1 space-y-2 bg-[#F7F3EF]/60 rounded-xl my-1 border-l-2 border-[#8C6D23]">
                     {section.subItems.map((sub, sIdx) => (
                       <Link
