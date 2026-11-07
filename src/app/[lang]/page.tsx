@@ -3,13 +3,11 @@ import Link from 'next/link';
 import { MasterScrollytellingHero } from '@/components/portal/MasterScrollytellingHero';
 import { HeroFloatingCards } from '@/components/tarot/HeroFloatingCards';
 import { DailyDrawWidget } from '@/components/tarot/DailyDrawWidget';
-import { Sparkles, ArrowRight, Compass, Layers, ShieldCheck, Heart } from 'lucide-react';
-import { YinYangFish } from '@/components/common/YinYangFish';
+import { ArrowRight } from 'lucide-react';
 import {
   IconScrollBaZi,
   IconCoinLiuYao,
-  IconZodiacDragon,
-  IconCrystalBall
+  IconZodiacDragon
 } from '@/components/icons/QiIcons';
 
 export const instant = false;
@@ -28,133 +26,106 @@ export default async function MasterPortalPage({
 
   return (
     <div className="w-full flex flex-col items-center overflow-hidden">
-      {/* 1. 核心双门开幕：900% GSAP 钉图深度长卷交互 */}
+      {/* 1. 核心长卷交互 */}
       <MasterScrollytellingHero lang={lang} />
 
-      {/* 2. 东方周易特质专区展示 */}
-      <section id="portal-content" className="w-full max-w-6xl mx-auto px-5 py-16 border-t border-[#111111]/8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-10">
-          <div>
-            <span className="text-xs font-semibold text-[#8C6D23] uppercase tracking-widest">
-              EASTERN METAPHYSICS
-            </span>
-            <h2 className="font-serif font-black text-2xl sm:text-3xl text-[#111111] mt-1">
-              东方易境 · QiCosmos 周易
-            </h2>
-            <p className="text-xs sm:text-sm text-[#736B5E] mt-1">
-              四柱八字严格按节气换柱 · 乾隆通宝 3D 金钱卦 · 五行能量全息调候
-            </p>
-          </div>
+      {/* 2. 东方周易 */}
+      <section id="portal-content" className="w-full max-w-5xl mx-auto px-5 py-20 border-t border-[#111111]/8">
+        <div className="flex items-baseline justify-between mb-8">
+          <h2 className="font-serif font-black text-2xl text-[#111111]">
+            {lang === 'en' ? 'Eastern Metaphysics' : '东方周易'}
+          </h2>
 
           <Link
             href={`/${lang}/fatemaster`}
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#111111] hover:text-[#8C6D23] transition-colors"
+            className="flex items-center gap-1 text-xs font-serif text-[#6E675B] hover:text-[#111111] transition-colors"
           >
-            <span>进入东方命理专区</span>
+            <span>{lang === 'en' ? 'Explore I Ching' : '进入专厅'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <Link
             href={`/${lang}/fatemaster/bazi`}
-            className="p-6 rounded-3xl bg-[#FFFDF9] border border-[rgba(17,17,17,0.08)] hover:border-[rgba(200,168,88,0.35)] shadow-xs hover:shadow-lg transition-all group duration-300"
+            className="p-6 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/20 shadow-xs hover:shadow-md transition-all group"
           >
-            <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs border border-amber-200/50">
-              <IconScrollBaZi size={22} />
+            <div className="w-10 h-10 rounded-xl bg-[#F7F3EF] text-[#8C6D23] flex items-center justify-center mb-4">
+              <IconScrollBaZi size={20} />
             </div>
-            <h3 className="font-serif font-bold text-base text-[#111111] mb-1 group-hover:text-[#8C6D23] transition-colors">
-              四柱八字排盘
+            <h3 className="font-serif font-bold text-base text-[#111111] mb-1.5 group-hover:text-[#8C6D23] transition-colors">
+              {lang === 'en' ? 'BaZi Chart' : '四柱八字排盘'}
             </h3>
-            <p className="text-xs text-[#524B40] leading-relaxed">
-              天干地支、五行生克、十神格局、大运流年与日主元神特质深度剖析。
+            <p className="text-xs text-[#6E675B] leading-relaxed">
+              {lang === 'en' ? 'Precise 24 solar terms, five elements, and core archetype.' : '节气换柱、五行生克与日主元神深度推演。'}
             </p>
           </Link>
 
           <Link
             href={`/${lang}/fatemaster/liuyao`}
-            className="p-6 rounded-3xl bg-[#FFFDF9] border border-[rgba(17,17,17,0.08)] hover:border-[rgba(200,168,88,0.35)] shadow-xs hover:shadow-lg transition-all group duration-300"
+            className="p-6 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/20 shadow-xs hover:shadow-md transition-all group"
           >
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs border border-emerald-200/50">
-              <IconCoinLiuYao size={22} />
+            <div className="w-10 h-10 rounded-xl bg-[#F7F3EF] text-[#8C6D23] flex items-center justify-center mb-4">
+              <IconCoinLiuYao size={20} />
             </div>
-            <h3 className="font-serif font-bold text-base text-[#111111] mb-1 group-hover:text-[#8C6D23] transition-colors">
-              周易六爻铜钱神谕
+            <h3 className="font-serif font-bold text-base text-[#111111] mb-1.5 group-hover:text-[#8C6D23] transition-colors">
+              {lang === 'en' ? 'Six Lines Oracle' : '周易六爻神谕'}
             </h3>
-            <p className="text-xs text-[#524B40] leading-relaxed">
-              乾隆通宝 3D 物理掷币，自下而上筑就六爻，辨本卦变卦之吉凶机缘。
+            <p className="text-xs text-[#6E675B] leading-relaxed">
+              {lang === 'en' ? '3D coin toss oracle, changing lines, and hexagram shifts.' : '乾隆通宝 3D 物理掷币，自下而上筑爻断卦。'}
             </p>
           </Link>
 
           <Link
             href={`/${lang}/fatemaster/compatibility`}
-            className="p-6 rounded-3xl bg-[#FFFDF9] border border-[rgba(17,17,17,0.08)] hover:border-[rgba(200,168,88,0.35)] shadow-xs hover:shadow-lg transition-all group duration-300"
+            className="p-6 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/20 shadow-xs hover:shadow-md transition-all group"
           >
-            <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-800 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-xs border border-rose-200/50">
-              <IconZodiacDragon size={22} />
+            <div className="w-10 h-10 rounded-xl bg-[#F7F3EF] text-[#8C6D23] flex items-center justify-center mb-4">
+              <IconZodiacDragon size={20} />
             </div>
-            <h3 className="font-serif font-bold text-base text-[#111111] mb-1 group-hover:text-[#8C6D23] transition-colors">
-              生肖五行合盘
+            <h3 className="font-serif font-bold text-base text-[#111111] mb-1.5 group-hover:text-[#8C6D23] transition-colors">
+              {lang === 'en' ? 'Compatibility' : '生肖五行合盘'}
             </h3>
-            <p className="text-xs text-[#524B40] leading-relaxed">
-              144 组干支配对全覆盖，测算天作六合、三合生财与相冲磨砺指数。
+            <p className="text-xs text-[#6E675B] leading-relaxed">
+              {lang === 'en' ? '144 pairwise combinations, harmony and friction points.' : '144 组干支配对，天作六合与相冲相克分析。'}
             </p>
           </Link>
         </div>
       </section>
 
-      {/* 3. 西方塔罗特质专区展示 */}
-      <section className="w-full max-w-6xl mx-auto px-5 py-16 border-t border-[#111111]/8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-10">
-          <div>
-            <span className="text-xs font-semibold text-[#8C6D23] uppercase tracking-widest">
-              WESTERN TAROT
-            </span>
-            <h2 className="font-serif font-black text-2xl sm:text-3xl text-[#111111] mt-1">
-              西方秘境 · QiCosmos 塔罗
-            </h2>
-            <p className="text-xs sm:text-sm text-[#736B5E] mt-1">
-              78 张经典韦特塔罗全解 · 3D 洗牌抽牌 · 多位专属 AI 导师陪伴解牌
-            </p>
-          </div>
+      {/* 3. 西方塔罗 */}
+      <section className="w-full max-w-5xl mx-auto px-5 py-20 border-t border-[#111111]/8">
+        <div className="flex items-baseline justify-between mb-8">
+          <h2 className="font-serif font-black text-2xl text-[#111111]">
+            {lang === 'en' ? 'Western Tarot' : '西方塔罗'}
+          </h2>
 
           <Link
             href={`/${lang}/reading`}
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#8C6D23] hover:text-[#111111] transition-colors"
+            className="flex items-center gap-1 text-xs font-serif text-[#6E675B] hover:text-[#111111] transition-colors"
           >
-            <span>进入西方塔罗空间</span>
+            <span>{lang === 'en' ? 'Explore Tarot' : '进入专厅'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        {/* 动态卡牌与每日一签组合预览 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           <HeroFloatingCards />
           <DailyDrawWidget lang={lang} />
         </div>
       </section>
 
-      {/* 4. 东西合璧哲学背景 (荣格心理学共时性) */}
-      <section className="w-full max-w-4xl mx-auto px-5 py-16">
-        <div className="rounded-3xl bg-[#FFFDF9] border border-[rgba(200,168,88,0.25)] shadow-md p-8 sm:p-12 text-center relative overflow-hidden">
-          <div className="flex items-center justify-center gap-3 mb-3 text-[#8C6D23]">
-            <YinYangFish size={24} spin={false} />
-            <span className="text-sm opacity-60">✦</span>
-            <IconCrystalBall size={24} />
-          </div>
-          <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#111111] mb-3">
-            东方生克，西方原型 · 终归天人之镜
+      {/* 4. 共时性与心理原型 */}
+      <section className="w-full max-w-3xl mx-auto px-5 py-20">
+        <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 p-8 sm:p-12 text-center">
+          <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#111111] mb-3">
+            {lang === 'en' ? 'Synchronicity & The Archetypes' : '共时性与心理原型'}
           </h2>
-          <p className="text-xs sm:text-sm text-[#524B40] max-w-2xl mx-auto leading-relaxed mb-6">
-            卡尔·荣格（Carl Jung）在为卫礼贤《周易》英译本作序时曾提出“共时性原则（Synchronicity）”：
-            无论是东方蓍草铜钱的数变，还是西方塔罗牌面的图腾，都是人类潜意识对当下时空能量的一次精准投射。
-            我们不做宿命论的判决，只为你提供最清澈的心灵镜像。
+          <p className="text-xs sm:text-sm text-[#6E675B] leading-relaxed">
+            {lang === 'en'
+              ? 'As Carl Jung stated, divination is a mirror of subconscious synchronicity. We provide clear psychological reflection rather than fatalistic decrees.'
+              : '荣格在《周易》序言中提出“共时性原则”：蓍草数变与塔罗图腾，皆为潜意识对时空能量的投射。不做宿命判决，只作内心镜像。'}
           </p>
-          <div className="flex flex-wrap justify-center gap-4 text-xs text-[#8C6D23] font-medium">
-            <span className="px-3 py-1 rounded-full bg-[#F7F3EF] border border-[#111111]/8">• 先由严谨规则排盘</span>
-            <span className="px-3 py-1 rounded-full bg-[#F7F3EF] border border-[#111111]/8">• 再由智能 AI 深度解读</span>
-            <span className="px-3 py-1 rounded-full bg-[#F7F3EF] border border-[#111111]/8">• 赋能当下自主抉择</span>
-          </div>
         </div>
       </section>
     </div>

@@ -186,19 +186,17 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
           className="absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300"
         />
 
-        {/* 顶部标语与滚动提示 */}
+        {/* 顶部简明标识 */}
         <div className="relative z-30 max-w-7xl mx-auto w-full px-5 pt-6 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#8C6D23] animate-pulse" />
-            <span className="text-xs font-serif font-black tracking-widest uppercase opacity-80">
-              QICOSMOS · {lang === 'zh' ? '乾坤流转长卷' : 'COSMIC CONTINUUM'}
-            </span>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-1.5 text-xs font-serif opacity-75 animate-bounce">
-            <span>{lang === 'zh' ? '向下滚动，启幕乾坤' : 'Scroll down to explore'}</span>
-            <ChevronDown className="w-3.5 h-3.5" />
-          </div>
+          <span className="text-xs font-serif font-bold tracking-widest uppercase opacity-70">
+            QiCosmos
+          </span>
+          <button
+            onClick={handleSkip}
+            className="text-xs font-serif tracking-wider text-[#6E675B] hover:text-[#111111] transition-colors"
+          >
+            {lang === 'en' ? 'Skip to Content ↓' : '跳过开幕 ↓'}
+          </button>
         </div>
 
         {/* 侧边步骤进度胶囊指示器 (progress-bullet 1 到 5) */}
@@ -238,9 +236,6 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             ref={title1Ref}
             className="absolute text-center max-w-xl mx-auto pointer-events-none px-4"
           >
-            <span className="text-xs font-serif tracking-widest text-[#E8CF86] uppercase block mb-2">
-              {lang === 'zh' ? '✦ 混沌初开 · 天人之镜 ✦' : '✦ THE CELESTIAL ORIGIN ✦'}
-            </span>
             <h1 className="font-serif font-black text-3xl sm:text-6xl leading-tight">
               {lang === 'zh' ? (
                 <>
@@ -266,9 +261,6 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             ref={title2Ref}
             className="absolute -top-10 sm:-top-16 text-center max-w-lg mx-auto pointer-events-none px-4"
           >
-            <span className="text-xs font-serif tracking-widest text-[#E8CF86] uppercase block mb-1">
-              DUAL ARCHETYPES
-            </span>
             <h2 className="font-serif font-black text-2xl sm:text-4xl text-[#FFFDF9]">
               {lang === 'zh' ? '东方以数起爻 · 西方以象明心' : 'Eastern Hexagrams · Western Archetypes'}
             </h2>
@@ -329,19 +321,13 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             className="relative z-20 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 p-4"
           >
             {/* 东方周易门 */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] border border-[rgba(200,168,88,0.28)] shadow-xl flex flex-col justify-between text-left hover:scale-102 hover:border-[rgba(200,168,88,0.55)] transition-all duration-300">
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-sm flex flex-col justify-between text-left hover:border-[#111111]/30 transition-all duration-300">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <YinYangFish size={28} />
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#111111] text-[#FFFDF9]">
-                    {lang === 'zh' ? '东方系统' : 'Eastern'}
-                  </span>
+                <div className="mb-3">
+                  <YinYangFish size={26} />
                 </div>
-                <span className="text-[11px] font-serif font-semibold text-[#8C6D23] uppercase">
-                  QICOSMOS · 东方易境
-                </span>
                 <h3 className="font-serif font-black text-xl sm:text-2xl text-[#111111] mb-2">
-                  {lang === 'zh' ? '周易 · 四柱八字 · 六爻神谕' : 'I Ching & BaZi Oracle'}
+                  {lang === 'zh' ? '周易 · 八字 · 六爻' : 'I Ching & BaZi'}
                 </h3>
                 <p className="text-xs text-[#524B40] leading-relaxed">
                   {lang === 'zh'
@@ -350,31 +336,25 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
                 </p>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-[#111111]/8">
+              <div className="pt-4 mt-6 border-t border-[#111111]/8">
                 <Link
                   href={`/${lang}/fatemaster`}
-                  className="w-full py-3.5 rounded-2xl bg-[#111111] hover:bg-[#2B261F] text-[#FFFDF9] text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer hover:shadow-lg"
+                  className="w-full py-3 rounded-xl bg-[#111111] hover:bg-[#2B261F] text-[#FFFDF9] text-xs font-serif tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
                 >
-                  <span>{lang === 'zh' ? '叩启东方周易之门' : 'Enter Eastern Metaphysics'}</span>
-                  <ArrowRight className="w-4 h-4 text-[#C8A858]" />
+                  <span>{lang === 'zh' ? '进入周易专厅' : 'Enter Eastern Metaphysics'}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#C8A858]" />
                 </Link>
               </div>
             </div>
 
             {/* 西方塔罗门 */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] border border-[rgba(200,168,88,0.28)] shadow-xl flex flex-col justify-between text-left hover:scale-102 hover:border-[rgba(200,168,88,0.55)] transition-all duration-300">
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-sm flex flex-col justify-between text-left hover:border-[#111111]/30 transition-all duration-300">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <IconCrystalBall size={28} className="text-[#8C6D23]" />
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#8C6D23] text-[#FFFDF9]">
-                    {lang === 'zh' ? '西方系统' : 'Western'}
-                  </span>
+                <div className="mb-3">
+                  <IconCrystalBall size={26} className="text-[#8C6D23]" />
                 </div>
-                <span className="text-[11px] font-serif font-semibold text-[#8C6D23] uppercase">
-                  QICOSMOS · 西方原型
-                </span>
                 <h3 className="font-serif font-black text-xl sm:text-2xl text-[#111111] mb-2">
-                  {lang === 'zh' ? '经典韦特塔罗 · 3D 洗牌' : 'Classic Waite Tarot 3D'}
+                  {lang === 'zh' ? '韦特塔罗 · 78 牌' : 'Waite Tarot 78 Cards'}
                 </h3>
                 <p className="text-xs text-[#5C5549] leading-relaxed">
                   {lang === 'zh'
@@ -383,39 +363,36 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
                 </p>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-[#111111]/8">
+              <div className="pt-4 mt-6 border-t border-[#111111]/8">
                 <Link
                   href={`/${lang}/reading`}
-                  className="w-full py-3.5 rounded-2xl bg-[#8C6D23] hover:bg-[#A37F29] text-[#FFFDF9] text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-[#8C6D23] hover:bg-[#A37F29] text-[#FFFDF9] text-xs font-serif tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
                 >
-                  <span>{lang === 'zh' ? '叩启西方塔罗之门' : 'Enter Western Tarot'}</span>
-                  <ArrowRight className="w-4 h-4 text-[#FFFDF9]" />
+                  <span>{lang === 'zh' ? '进入塔罗专厅' : 'Enter Western Tarot'}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#FFFDF9]" />
                 </Link>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 底部微信息与步骤计数 */}
-        <div className="relative z-30 max-w-7xl mx-auto w-full px-5 pb-5 flex justify-between items-center text-[11px] opacity-60">
-          <span className="hidden sm:inline">
-            {lang === 'zh' ? '双门合一 · 荣格共时性驱动' : 'Dual Portals · Powered by Synchronicity'}
-          </span>
+        {/* 底部步骤计数 */}
+        <div className="relative z-30 max-w-7xl mx-auto w-full px-5 pb-5 flex justify-end items-center text-[11px] opacity-60">
           <span className="font-serif">
-            {lang === 'zh' ? `步骤 ${activeStep} / 4` : `Step ${activeStep} / 4`}
+            {lang === 'zh' ? `第 ${activeStep} 幕 / 共 4 幕` : `Step ${activeStep} / 4`}
           </span>
         </div>
 
-        {/* 右下角跳过交互按钮：浮动定位于视口右下角，完全不展示中间交互动画，瞬间直达下方 */}
+        {/* 右下角跳过交互按钮 */}
         {activeStep < 4 && (
           <button
             type="button"
             onClick={handleSkip}
-            className="pointer-events-auto absolute bottom-5 right-5 sm:bottom-7 sm:right-7 z-40 flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#111111]/90 hover:bg-[#111111] backdrop-blur-md text-[#FFFDF9] text-xs font-serif font-medium shadow-xl hover:shadow-2xl transition-all hover:scale-105 active:scale-95 group border border-white/20 cursor-pointer"
-            title={lang === 'zh' ? '跳过开幕交互，直接到达下方内容' : 'Skip intro and jump directly below'}
+            className="pointer-events-auto absolute bottom-5 right-5 sm:bottom-7 sm:right-7 z-40 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#111111]/90 hover:bg-[#111111] text-[#FFFDF9] text-xs font-serif transition-all hover:scale-102 cursor-pointer border border-white/20"
+            title={lang === 'zh' ? '跳过开幕' : 'Skip intro'}
           >
-            <span>{lang === 'zh' ? '跳过交互' : 'Skip Intro'}</span>
-            <SkipForward className="w-3.5 h-3.5 text-[#E8CF86] group-hover:translate-x-0.5 transition-transform" />
+            <span>{lang === 'zh' ? '跳过' : 'Skip'}</span>
+            <SkipForward className="w-3 h-3 text-[#E8CF86]" />
           </button>
         )}
       </div>

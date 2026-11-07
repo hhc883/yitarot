@@ -153,85 +153,71 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
       {step === 'input' && (
         <div className="w-full max-w-3xl flex flex-col items-center">
           {/* 标头 */}
-          <div className="text-center mb-8">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C29026]/10 text-[#8C6D23] border border-[#C29026]/20 text-xs font-medium mb-3">
-              <Sparkles className="w-3.5 h-3.5" /> 倾听你的内在心流
-            </span>
-            <h1 className="font-serif font-black text-3xl sm:text-4xl text-[#1E1B18] tracking-tight">
-              心里有件事，问问牌吧。
+          <div className="text-center mb-6">
+            <h1 className="font-serif font-black text-2xl sm:text-3xl text-[#1E1B18] tracking-tight">
+              塔罗占卜
             </h1>
-            <p className="text-sm text-[#736B5E] mt-2 max-w-md mx-auto">
-              静下心来，凝聚你当下的意念。AI 塔罗师将借助象征镜像为你照亮迷津。
+            <p className="text-xs text-[#736B5E] mt-1.5 max-w-sm mx-auto">
+              凝聚意念，向韦特塔罗叩问当下课题与启示。
             </p>
           </div>
 
           {/* 分类选项胶囊 */}
-          <div className="w-full flex flex-wrap justify-center gap-2 mb-6">
+          <div className="w-full flex flex-wrap justify-center gap-1.5 mb-6">
             {CATEGORIES.map(cat => (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => setCategory(cat.id)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-serif transition-all cursor-pointer ${
                   category === cat.id
-                    ? 'bg-[#1E1B18] text-[#FFFDF9] shadow-sm'
+                    ? 'bg-[#1E1B18] text-[#FFFDF9]'
                     : 'bg-[#FFFDF9] text-[#736B5E] hover:bg-[#F5EFE6] border border-[#1E1B18]/10'
                 }`}
               >
-                <CategoryIcon
-                  id={cat.id}
-                  size={15}
-                  className={category === cat.id ? 'text-[#FFE59A]' : 'text-[#8C6D23]'}
-                />
                 <span>{cat.name}</span>
               </button>
             ))}
           </div>
 
           {/* 提问输入卡片 */}
-          <div className="w-full rounded-3xl bg-[#FFFDF9] border border-[#1E1B18]/12 p-6 sm:p-8 shadow-sm mb-6">
+          <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#1E1B18]/10 p-5 sm:p-7 shadow-2xs mb-6">
             <form onSubmit={handleStartDraw} className="flex flex-col gap-4">
               <div>
-                <label className="block text-xs font-semibold text-[#1E1B18] mb-2 flex items-center justify-between">
-                  <span>描述你的具体问题或困惑</span>
-                  <span className="text-[11px] text-[#736B5E] font-normal">越具体，启示越深刻</span>
+                <label className="block text-xs font-serif font-semibold text-[#1E1B18] mb-2">
+                  问题与困惑
                 </label>
                 <div className="relative">
                   <textarea
                     rows={3}
                     value={question}
                     onChange={e => setQuestion(e.target.value)}
-                    placeholder="如：我和他最近有些冷战，彼此的心意是怎样的？我该主动联系吗？"
-                    className="w-full px-4 py-3.5 rounded-2xl bg-[#FAF6ED] border border-[#1E1B18]/10 text-sm text-[#1E1B18] placeholder-[#736B5E]/50 focus:outline-hidden focus:border-[#C29026] resize-none"
+                    placeholder="输入心中所求之事，如：近期事业发展的转机与阻碍是什么？"
+                    className="w-full px-3.5 py-3 rounded-xl bg-[#FAF6ED] border border-[#1E1B18]/10 text-xs sm:text-sm text-[#1E1B18] placeholder-[#736B5E]/50 focus:outline-hidden focus:border-[#1E1B18] resize-none"
                   />
                 </div>
               </div>
 
-              {/* 灵感快捷推荐 */}
-              <div>
-                <span className="text-[11px] font-medium text-[#736B5E] mb-2 block flex items-center gap-1">
-                  <HelpCircle className="w-3 h-3 text-[#C29026]" /> 你也可以直接挑选常见提问：
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {(PRESET_QUESTIONS[category] || PRESET_QUESTIONS.love).map((q, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleSelectPreset(q)}
-                      className="text-left text-xs px-3 py-1.5 rounded-xl bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#5C5549] transition-colors border border-[#1E1B18]/5 cursor-pointer"
-                    >
-                      {q}
-                    </button>
-                  ))}
-                </div>
+              {/* 常见提问 */}
+              <div className="flex flex-wrap gap-1.5">
+                {(PRESET_QUESTIONS[category] || PRESET_QUESTIONS.love).map((q, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelectPreset(q)}
+                    className="text-left text-xs px-2.5 py-1 rounded-lg bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#5C5549] transition-colors border border-[#1E1B18]/5 cursor-pointer font-serif"
+                  >
+                    {q}
+                  </button>
+                ))}
               </div>
 
               {/* 牌阵与塔罗师选择 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#1E1B18]/10 mt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#1E1B18]/8 mt-1">
                 {/* 牌阵选择 */}
                 <div>
-                  <label className="block text-xs font-semibold text-[#1E1B18] mb-1.5 flex items-center gap-1">
-                    <Compass className="w-3.5 h-3.5 text-[#C29026]" /> 选择合适牌阵
+                  <label className="block text-xs font-serif font-semibold text-[#1E1B18] mb-1.5">
+                    牌阵
                   </label>
                   <select
                     value={selectedSpread.id}
@@ -239,7 +225,7 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                       const sp = getSpreadById(e.target.value);
                       if (sp) setSelectedSpread(sp);
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF6ED] border border-[#1E1B18]/10 text-xs sm:text-sm text-[#1E1B18] focus:outline-hidden focus:border-[#C29026]"
+                    className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#1E1B18]/10 text-xs text-[#1E1B18] focus:outline-hidden focus:border-[#1E1B18]"
                   >
                     {TAROT_SPREADS.map(s => (
                       <option key={s.id} value={s.id}>
@@ -247,13 +233,13 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11px] text-[#736B5E] mt-1">{selectedSpread.summary}</p>
+                  <p className="text-[11px] font-serif text-[#736B5E] mt-1">{selectedSpread.summary}</p>
                 </div>
 
                 {/* 塔罗师人设选择 */}
                 <div>
-                  <label className="block text-xs font-semibold text-[#1E1B18] mb-1.5 flex items-center gap-1">
-                    <Wand2 className="w-3.5 h-3.5 text-[#C29026]" /> 选择为你解牌的导师
+                  <label className="block text-xs font-serif font-semibold text-[#1E1B18] mb-1.5">
+                    解牌视角
                   </label>
                   <div className="flex gap-2">
                     {TAROT_READERS.map(r => (
@@ -263,19 +249,19 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
                         onClick={() => setSelectedReader(r)}
                         className={`flex-1 flex flex-col items-center p-2 rounded-xl text-center border transition-all cursor-pointer ${
                           selectedReader.id === r.id
-                            ? 'bg-[#FAF6ED] border-[#C29026] text-[#1E1B18] shadow-xs'
+                            ? 'bg-[#FAF6ED] border-[#111111] text-[#1E1B18]'
                             : 'bg-white border-[#1E1B18]/10 text-[#736B5E] hover:bg-[#FAF6ED]/50'
                         }`}
                       >
                         <ReaderAvatarIcon
                           id={r.id}
-                          size={24}
+                          size={20}
                           className={`mb-1 transition-colors ${
                             selectedReader.id === r.id ? 'text-[#8C6D23]' : 'text-[#736B5E]'
                           }`}
                         />
-                        <span className="text-xs font-serif font-bold">{r.name.split('·')[0]}</span>
-                        <span className="text-[10px] text-[#8C6D23]">{r.titleZh}</span>
+                        <span className="text-xs font-serif font-semibold">{r.name.split('·')[0]}</span>
+                        <span className="text-[10px] text-[#8C6D23] font-serif">{r.titleZh}</span>
                       </button>
                     ))}
                   </div>
@@ -283,14 +269,14 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
               </div>
 
               {/* 提交按钮 */}
-              <div className="pt-4 mt-2">
+              <div className="pt-3 mt-1">
                 <button
                   type="submit"
                   disabled={!question.trim()}
-                  className="w-full py-4 rounded-2xl bg-[#1E1B18] hover:bg-[#38332D] text-[#FFFDF9] font-medium text-sm sm:text-base flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-40 transition-all cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-[#1E1B18] hover:bg-[#38332D] text-[#FFFDF9] font-serif text-xs tracking-wider flex items-center justify-center gap-2 disabled:opacity-40 transition-all cursor-pointer"
                 >
-                  <span>凝聚意念 · 开始抽牌</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>开始抽牌</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </form>
@@ -302,14 +288,11 @@ export function ReadingConsole({ defaultCategory = 'love' }: { defaultCategory?:
       {step === 'shuffle' && (
         <div className="w-full flex flex-col items-center animate-in fade-in duration-500">
           <div className="text-center mb-6">
-            <span className="text-xs font-medium text-[#8C6D23] bg-[#C29026]/10 px-3 py-1 rounded-full">
-              第 2 步 / 共 3 步 · 直觉共鸣
-            </span>
-            <h2 className="font-serif font-bold text-2xl text-[#1E1B18] mt-2">
+            <h2 className="font-serif font-bold text-xl text-[#1E1B18]">
               “{question}”
             </h2>
-            <p className="text-xs text-[#736B5E] mt-1">
-              深呼吸，放下心中杂念，逐一点击卡牌揭开当下的象征
+            <p className="text-xs font-serif text-[#736B5E] mt-1">
+              逐一揭开卡牌
             </p>
           </div>
 

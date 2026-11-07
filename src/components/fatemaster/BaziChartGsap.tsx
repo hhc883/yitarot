@@ -159,15 +159,12 @@ ${dm.cosmicAdviceZh}
   return (
     <div ref={containerRef} className="w-full max-w-4xl mx-auto flex flex-col items-center">
       {/* 出生信息输入表单 */}
-      <div className="w-full rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-6 sm:p-8 shadow-xs mb-8">
+      <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 sm:p-6 shadow-2xs mb-8">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#8C6D23]" />
-            <h3 className="font-serif font-bold text-base text-[#111111]">
-              输入生辰八字（公历）
-            </h3>
-          </div>
-          <span className="text-[11px] text-[#736B5E]">
+          <h3 className="font-serif font-bold text-sm text-[#111111]">
+            生辰八字
+          </h3>
+          <span className="text-[11px] font-serif text-[#736B5E]">
             农历：{baziResult.lunarString} · 生肖【{baziResult.zodiacSignZh}】
           </span>
         </div>
@@ -181,7 +178,7 @@ ${dm.cosmicAdviceZh}
               onChange={e => setYear(Number(e.target.value))}
               min={1920}
               max={2035}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] ring-1 ring-[#111111]/10 text-xs text-[#111111]"
+              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
             />
           </div>
 
@@ -193,7 +190,7 @@ ${dm.cosmicAdviceZh}
               onChange={e => setMonth(Number(e.target.value))}
               min={1}
               max={12}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] ring-1 ring-[#111111]/10 text-xs text-[#111111]"
+              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
             />
           </div>
 
@@ -205,7 +202,7 @@ ${dm.cosmicAdviceZh}
               onChange={e => setDay(Number(e.target.value))}
               min={1}
               max={31}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] ring-1 ring-[#111111]/10 text-xs text-[#111111]"
+              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
             />
           </div>
 
@@ -217,7 +214,7 @@ ${dm.cosmicAdviceZh}
               onChange={e => setHour(Number(e.target.value))}
               min={0}
               max={23}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] ring-1 ring-[#111111]/10 text-xs text-[#111111]"
+              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
             />
           </div>
 
@@ -227,7 +224,7 @@ ${dm.cosmicAdviceZh}
               <button
                 type="button"
                 onClick={() => setGender('male')}
-                className={`flex-1 rounded-xl text-xs font-medium cursor-pointer transition-colors ${
+                className={`flex-1 rounded-xl text-xs font-serif transition-colors ${
                   gender === 'male' ? 'bg-[#111111] text-[#FFFDF9]' : 'bg-[#FAF6ED] text-[#736B5E]'
                 }`}
               >
@@ -236,7 +233,7 @@ ${dm.cosmicAdviceZh}
               <button
                 type="button"
                 onClick={() => setGender('female')}
-                className={`flex-1 rounded-xl text-xs font-medium cursor-pointer transition-colors ${
+                className={`flex-1 rounded-xl text-xs font-serif transition-colors ${
                   gender === 'female' ? 'bg-[#111111] text-[#FFFDF9]' : 'bg-[#FAF6ED] text-[#736B5E]'
                 }`}
               >
@@ -248,10 +245,9 @@ ${dm.cosmicAdviceZh}
           <div className="col-span-2 sm:col-span-5 pt-2">
             <button
               type="submit"
-              className="w-full py-3 rounded-2xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs sm:text-sm font-medium flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider transition-colors cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-[#FFE59A]" />
-              <span>立即精准排盘</span>
+              <span>开始排盘</span>
             </button>
           </div>
         </form>
@@ -260,15 +256,15 @@ ${dm.cosmicAdviceZh}
       {/* 四柱八字盘面展示 (GSAP 飞入动效) */}
       <div ref={pillarsRef} className="w-full grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {[
-          { label: '年柱 (根基·祖荫)', p: baziResult.pillars.year },
-          { label: '月柱 (提纲·父母)', p: baziResult.pillars.month },
-          { label: '日柱 (元神·自身)', p: baziResult.pillars.day, isSelf: true },
-          { label: '时柱 (归宿·子女)', p: baziResult.pillars.hour }
+          { label: '年柱 · 祖荫', p: baziResult.pillars.year },
+          { label: '月柱 · 提纲', p: baziResult.pillars.month },
+          { label: '日柱 · 元神', p: baziResult.pillars.day, isSelf: true },
+          { label: '时柱 · 归宿', p: baziResult.pillars.hour }
         ].map((item, idx) => (
           <div
             key={idx}
-            className={`pillar-box p-4 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 text-center shadow-xs flex flex-col justify-between ${
-              item.isSelf ? 'ring-2 ring-[#E8CF86] bg-[#FFFDF9]' : ''
+            className={`pillar-box p-4 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 text-center shadow-2xs flex flex-col justify-between ${
+              item.isSelf ? 'border-[#8C6D23]/60 shadow-xs' : ''
             }`}
           >
             <div>

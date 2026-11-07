@@ -159,57 +159,52 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
             showDetails={isFlipped}
           />
         </div>
-        <span className="text-[11px] text-[#736B5E] mt-3 flex items-center gap-1 font-medium transition-colors duration-300">
-          {isFlipped ? '✨ 点击卡牌可合上' : '👉 点击牌背，揭晓你的今日指引'}
-        </span>
       </div>
 
-      {/* 右侧卡牌解读与行动 (高度平衡设计，消除未翻与翻开状态的高度落差) */}
+      {/* 右侧卡牌解读与行动 */}
       <div ref={textContentRef} className="flex-1 flex flex-col justify-between text-left w-full h-full">
         <div>
-          {/* 标签与换一张 */}
-          <div className="flex items-center justify-between mb-3">
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#FFE59A]/40 text-[#8C6D23] border border-[#E8CF86]/50 shadow-2xs">
-              今日能量日签
-            </span>
+          {/* 标题与换一张 */}
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h3 className="font-serif font-bold text-xl sm:text-2xl text-[#111111] tracking-tight">
+                {isFlipped ? dailyCard.card.nameZh : (lang === 'en' ? 'Daily Draw' : '每日一签')}
+              </h3>
+              <p className="text-xs font-serif text-[#7D7466] mt-0.5">
+                {isFlipped ? dailyCard.card.nameEn : (lang === 'en' ? 'Daily Archetype' : '今日能量原形')}
+              </p>
+            </div>
+
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="text-xs text-[#736B5E] hover:text-[#111111] flex items-center gap-1.5 transition-colors cursor-pointer px-2.5 py-1 rounded-lg hover:bg-[#FAF6ED]"
-              title="重新抽取一张"
+              className="text-xs text-[#7D7466] hover:text-[#111111] flex items-center gap-1 transition-colors cursor-pointer px-2.5 py-1 rounded-md hover:bg-[#F7F3EF]"
+              title="重新抽取"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-[#8C6D23]' : ''}`} />
-              <span>换一张</span>
+              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-[#8C6D23]' : ''}`} />
+              <span>{lang === 'en' ? 'Redraw' : '重抽'}</span>
             </button>
           </div>
 
-          {/* 标题与副标题 */}
-          <div className="min-h-[58px] flex flex-col justify-center">
-            <h3 className="font-serif font-black text-2xl sm:text-3xl text-[#111111] tracking-tight">
-              {isFlipped ? dailyCard.card.nameZh : '神秘神谕静候揭幕'}
-            </h3>
-            <p className="text-xs font-serif italic text-[#736B5E] mt-1">
-              {isFlipped ? dailyCard.card.nameEn : '点击左侧卡牌感应今日专属信号'}
-            </p>
-          </div>
-
           {/* 阐述正文 */}
-          <p className="text-xs sm:text-sm text-[#5C5549] leading-relaxed mt-2.5 min-h-[44px]">
+          <p className="text-xs sm:text-sm text-[#524B40] leading-relaxed mt-3 min-h-[44px]">
             {isFlipped
               ? dailyCard.card.uprightMeaning
-              : '每天清晨，给自己三分钟的留白时间。深呼吸，让潜意识的指针与宇宙频率对齐，汲取前行的勇气。'}
+              : (lang === 'en'
+                ? 'Take a quiet moment. Click the card to draw your guiding archetype for today.'
+                : '留白三分钟，感应时空能量。轻触牌面，显化今日指引。')}
           </p>
 
-          {/* 启示箴言/静候仪式指引（两态对称平衡，避免高度骤变） */}
+          {/* 启示箴言 */}
           <div
             ref={adviceRef}
-            className="p-3.5 rounded-2xl bg-[#FAF6ED] ring-1 ring-[#111111]/5 text-xs text-[#111111] font-serif italic border-l-2 border-[#8C6D23] shadow-2xs mt-3.5 mb-1 transition-colors duration-300"
+            className="p-3 rounded-xl bg-[#F7F3EF] text-xs text-[#111111] font-serif border-l-2 border-[#8C6D23] mt-3 mb-1 transition-colors duration-300"
           >
             {isFlipped ? (
-              <span>“{dailyCard.card.advice}”</span>
+              <span>{dailyCard.card.advice}</span>
             ) : (
-              <span className="text-[#736B5E]">
-                “静心默想当下最关切的疑惑，随后轻触牌背，聆听宇宙的回响。”
+              <span className="text-[#7D7466]">
+                {lang === 'en' ? 'A direct psychological mirror for clear decisions.' : '不做宿命判决，只作内心镜像。'}
               </span>
             )}
           </div>
@@ -221,27 +216,26 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
             <>
               <Link
                 href={`/${lang}/reading?card=${dailyCard.card.id}`}
-                className="px-5 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm hover:scale-102"
+                className="px-4 py-2 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-medium flex items-center gap-1.5 transition-all shadow-xs"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#FFE59A]" />
-                <span>向 AI 深入探讨此牌</span>
+                <Sparkles className="w-3.5 h-3.5 text-[#C8A858]" />
+                <span>{lang === 'en' ? 'AI Consultation' : 'AI 深入解析'}</span>
               </Link>
 
               <Link
                 href={`/${lang}/cards/${dailyCard.card.slug}`}
-                className="px-4 py-2.5 rounded-full bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#111111] text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap border border-[#111111]/6"
+                className="px-3.5 py-2 rounded-full bg-[#F7F3EF] hover:bg-[#EAE4D9] text-[#111111] text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap border border-[#111111]/6"
               >
-                <span>查看牌义详解</span>
+                <span>{lang === 'en' ? 'Card Details' : '牌义详解'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </>
           ) : (
             <button
               onClick={handleCardClick}
-              className="px-5 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm cursor-pointer hover:scale-102"
+              className="px-4 py-2 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider transition-all shadow-xs cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#FFE59A]" />
-              <span>轻触牌背开启神谕</span>
+              {lang === 'en' ? 'Flip Card' : '翻开卡牌'}
             </button>
           )}
         </div>

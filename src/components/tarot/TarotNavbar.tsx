@@ -17,8 +17,6 @@ interface NavSection {
   titleZh: string;
   titleEn: string;
   href: string;
-  tagZh: string;
-  tagEn: string;
   subItems: SubNavItem[];
 }
 
@@ -29,15 +27,13 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   const [mobileExpandedSection, setMobileExpandedSection] = useState<string | null>(null);
   const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 导航结构与对应子菜单映射 (首页为纯直达链接，其余分类配备纯正文人古籍子菜单)
+  // 极简线性导航结构 (去标语、去次要标签、内容直达)
   const navSections: NavSection[] = [
     {
       key: 'home',
       titleZh: '首页',
       titleEn: 'Home',
       href: `/${lang}`,
-      tagZh: '',
-      tagEn: '',
       subItems: []
     },
     {
@@ -45,35 +41,33 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
       titleZh: '东方周易',
       titleEn: 'I Ching',
       href: `/${lang}/fatemaster`,
-      tagZh: '✦ 东方命理 · 象数相生 ✦',
-      tagEn: 'EASTERN METAPHYSICS',
       subItems: [
         {
-          titleZh: '东方命理总厅',
-          titleEn: 'I Ching Portal',
-          descZh: '易经天地之机，东方象数系统全貌',
-          descEn: 'The universe of Eastern divination',
+          titleZh: '命理总厅',
+          titleEn: 'Overview',
+          descZh: '周易象数与命理系统概览',
+          descEn: 'Eastern metaphysics overview',
           href: `/${lang}/fatemaster`
         },
         {
-          titleZh: '四柱八字排盘',
-          titleEn: 'Four Pillars BaZi',
-          descZh: '节气换柱 · 日主元神 · 十神五行全息',
-          descEn: 'Precision solar terms & destiny chart',
+          titleZh: '四柱八字',
+          titleEn: 'BaZi Chart',
+          descZh: '节气换柱与五行生克',
+          descEn: 'Solar terms & four pillars',
           href: `/${lang}/fatemaster/bazi`
         },
         {
-          titleZh: '周易六爻神谕',
-          titleEn: 'Six Lines Hexagrams',
-          descZh: '乾隆通宝 3D 物理掷币 · 动爻定乾坤',
-          descEn: '3D coin toss oracle & changing lines',
+          titleZh: '六爻神谕',
+          titleEn: 'Six Lines',
+          descZh: '3D 铜钱起卦与变爻推演',
+          descEn: '3D coin toss & hexagram lines',
           href: `/${lang}/fatemaster/liuyao`
         },
         {
-          titleZh: '生肖五行合盘',
-          titleEn: 'Zodiac Compatibility',
-          descZh: '144 组干支配对 · 天作六合与三合',
-          descEn: '144 pairwise synergy & balance',
+          titleZh: '生肖合盘',
+          titleEn: 'Compatibility',
+          descZh: '144 组干支六合与三合',
+          descEn: 'Pairwise balance & resonance',
           href: `/${lang}/fatemaster/compatibility`
         }
       ]
@@ -81,37 +75,35 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
     {
       key: 'tarot',
       titleZh: '西方塔罗',
-      titleEn: 'Tarot Archetypes',
+      titleEn: 'Tarot',
       href: `/${lang}/reading`,
-      tagZh: '✦ 潜意识原型 · 荣格共时 ✦',
-      tagEn: 'WESTERN TAROT',
       subItems: [
         {
-          titleZh: 'AI 综合深度占卜',
-          titleEn: 'Comprehensive Reading',
-          descZh: '潜意识同频投射，全景多牌阵解答',
-          descEn: 'Multi-spread deep subconscious inquiry',
+          titleZh: '深度占卜',
+          titleEn: 'AI Reading',
+          descZh: '潜意识投射与多牌阵解答',
+          descEn: 'Subconscious archetypes & inquiry',
           href: `/${lang}/reading`
         },
         {
-          titleZh: '每日能量运势签',
-          titleEn: 'Daily Draw Oracle',
-          descZh: '晨起一抽 · 今日时空与心念指引',
-          descEn: 'Align your morning frequency',
+          titleZh: '每日一签',
+          titleEn: 'Daily Draw',
+          descZh: '今日专属能量卡牌',
+          descEn: 'Daily archetype & clarity',
           href: `/${lang}/fortune/daily`
         },
         {
-          titleZh: '是否神谕 (Yes or No)',
-          titleEn: 'Yes / No Quick Oracle',
-          descZh: '单张神谕 · 迷茫时刻的关键行动契机',
-          descEn: 'Direct guidance for clear decisions',
+          titleZh: '是否神谕',
+          titleEn: 'Yes / No',
+          descZh: '清晰决断的快速指引',
+          descEn: 'Single card direct clarity',
           href: `/${lang}/yes-no`
         },
         {
-          titleZh: '爱情与关系解读',
-          titleEn: 'Love & Relationships',
-          descZh: '双人能量共振场 · 深度情感羁绊透视',
-          descEn: 'Subconscious mirrors of bonding',
+          titleZh: '爱情关系',
+          titleEn: 'Love & Bond',
+          descZh: '双人能量场与情感羁绊',
+          descEn: 'Relationship resonance mirror',
           href: `/${lang}/love`
         }
       ]
@@ -119,30 +111,28 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
     {
       key: 'cards',
       titleZh: '牌义典藏',
-      titleEn: 'Card Codex',
+      titleEn: 'Codex',
       href: `/${lang}/cards`,
-      tagZh: '✦ 78 张经典韦特全解 ✦',
-      tagEn: 'TAROT ENCYCLOPEDIA',
       subItems: [
         {
-          titleZh: '78 张全牌典藏库',
-          titleEn: '78 Deck Codex',
-          descZh: '大阿卡纳 22 张 + 小阿卡纳 56 张完整图谱',
-          descEn: '22 Major & 56 Minor Arcana library',
+          titleZh: '78 牌全集',
+          titleEn: '78 Deck',
+          descZh: '大阿卡纳与小阿卡纳详解',
+          descEn: 'Complete Rider-Waite cards',
           href: `/${lang}/cards`
         },
         {
-          titleZh: '大阿卡纳核心原形',
-          titleEn: 'Major Arcana Spotlight',
-          descZh: '愚人、魔术师、命运之轮等灵魂篇章',
-          descEn: 'The Fool to The World deep dive',
+          titleZh: '核心大牌',
+          titleEn: 'Major Arcana',
+          descZh: '22 张原型历程详解',
+          descEn: '22 archetype journeys',
           href: `/${lang}/cards/the-fool`
         },
         {
-          titleZh: '经典牌阵布局详解',
-          titleEn: 'Classic Spreads Guide',
-          descZh: '单张、时间流、圣三角、凯尔特十字',
-          descEn: 'Timeflow, Triangle, Celtic Cross',
+          titleZh: '经典牌阵',
+          titleEn: 'Spreads',
+          descZh: '时间流、圣三角与凯尔特十字',
+          descEn: 'Classic spread layouts',
           href: `/${lang}/spreads`
         }
       ]
@@ -150,30 +140,27 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
     {
       key: 'pricing',
       titleZh: '会员知命',
-      titleEn: 'Membership',
+      titleEn: 'Pricing',
       href: `/${lang}/pricing`,
-      tagZh: '✦ 洞见天机 · 智者自省 ✦',
-      tagEn: 'MEMBERSHIP & WISDOM',
       subItems: [
         {
-          titleZh: '知命会员权益',
-          titleEn: 'Membership Plans',
-          descZh: '无限制 AI 深度长解 · 高清命盘终身存档',
-          descEn: 'Unlimited AI divination & chart archive',
+          titleZh: '会员权益',
+          titleEn: 'Plans',
+          descZh: '无限推演与命盘存档',
+          descEn: 'Unlimited reading & archive',
           href: `/${lang}/pricing`
         },
         {
-          titleZh: '命理学科学观 FAQ',
-          titleEn: 'Wisdom FAQ',
-          descZh: '荣格共时性原理与拒绝宿命论承诺',
-          descEn: 'Jungian synchronicity & ethical oracle',
+          titleZh: '常见问题',
+          titleEn: 'FAQ',
+          descZh: '占卜原理与隐私保障',
+          descEn: 'Philosophy & privacy',
           href: `/${lang}/pricing#faq`
         }
       ]
     }
   ];
 
-  // 鼠标悬停管理（带防抖缓冲，避免鼠标微移时下拉框意外关闭）
   const handleMouseEnter = (key: string) => {
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
@@ -185,7 +172,7 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   const handleMouseLeave = () => {
     leaveTimeoutRef.current = setTimeout(() => {
       setActiveDropdown(null);
-    }, 160);
+    }, 120);
   };
 
   const isCurrentActive = (section: NavSection) => {
@@ -197,25 +184,17 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-[#F7F3EF]/95 backdrop-blur-md border-b border-[#111111]/8 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
-        {/* 左侧品牌区：朱砂赤印 + 典雅字标 */}
-        <Link href={`/${lang}`} className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-[3px] border border-[#B84034] text-[#B84034] bg-[rgba(184,64,52,0.06)] flex items-center justify-center font-serif font-black text-sm select-none shadow-2xs group-hover:scale-105 transition-transform duration-300">
-            象
-          </div>
-          <div className="flex flex-col">
-            <span className="font-serif font-black text-lg sm:text-xl tracking-tight text-[#111111]">
-              QiCosmos
-            </span>
-            <span className="text-[9px] tracking-[0.22em] text-[#8C8375] uppercase -mt-0.5 font-serif font-medium">
-              {lang === 'en' ? 'Cosmic Continuum' : '天仪灵图 · 易境塔罗'}
-            </span>
-          </div>
+        {/* 左侧品牌区：纯净自然字标，去多余标语 */}
+        <Link href={`/${lang}`} className="flex items-center gap-2 group">
+          <span className="font-serif font-black text-xl tracking-tight text-[#111111] group-hover:opacity-80 transition-opacity">
+            QiCosmos
+          </span>
         </Link>
 
-        {/* 中间桌面导航：悬停自动展现精美子菜单（首页为纯直达，无子菜单） */}
-        <nav className="hidden md:flex items-center gap-7 lg:gap-10">
+        {/* 中间桌面导航：极简文人排版，纯文字律动 */}
+        <nav className="hidden md:flex items-center gap-8 lg:gap-10">
           {navSections.map(section => {
             const isActive = isCurrentActive(section);
             const hasSubItems = section.subItems && section.subItems.length > 0;
@@ -224,53 +203,37 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             return (
               <div
                 key={section.key}
-                className="relative py-5"
+                className="relative py-4"
                 onMouseEnter={hasSubItems ? () => handleMouseEnter(section.key) : undefined}
                 onMouseLeave={hasSubItems ? handleMouseLeave : undefined}
               >
-                {/* 顶层主链接 */}
                 <Link
                   href={section.href}
-                  className={`relative py-1.5 text-xs lg:text-sm font-serif tracking-wider transition-all duration-200 select-none ${
+                  className={`relative py-1 text-xs lg:text-sm font-serif tracking-wider transition-all duration-200 select-none ${
                     isActive
-                      ? 'text-[#111111] font-bold after:content-[""] after:absolute after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:w-4 after:h-[1.5px] after:bg-[#8C6D23]'
+                      ? 'text-[#111111] font-bold after:content-[""] after:absolute after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:w-3.5 after:h-[1.5px] after:bg-[#8C6D23]'
                       : 'text-[#6E675B] hover:text-[#111111]'
                   }`}
                 >
                   {lang === 'en' ? section.titleEn : section.titleZh}
                 </Link>
 
-                {/* 悬停自动弹出子菜单浮层 (带空气垫 bridge 避免鼠标滑脱) */}
+                {/* 悬停自动弹出极简子菜单 (去标语、去计数，纯粹高效) */}
                 {isOpen && (
-                  <div className="absolute top-[52px] left-1/2 -translate-x-1/2 w-[320px] pt-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="rounded-2xl bg-[#FFFDF9] border border-[rgba(200,168,88,0.28)] shadow-xl shadow-[#111111]/8 p-4 backdrop-blur-md">
-                      
-                      {/* 分类古籍角标 */}
-                      <div className="pb-2.5 mb-2.5 border-b border-[#111111]/8 flex items-center justify-between">
-                        <span className="text-[10px] font-serif tracking-widest text-[#8C6D23] uppercase font-bold">
-                          {lang === 'en' ? section.tagEn : section.tagZh}
-                        </span>
-                        <span className="text-[9px] font-mono text-[#AAA192]">
-                          {section.subItems.length} ITEMS
-                        </span>
-                      </div>
-
-                      {/* 子菜单列表 */}
-                      <div className="flex flex-col gap-1">
+                  <div className="absolute top-[48px] left-1/2 -translate-x-1/2 w-[260px] pt-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="rounded-xl bg-[#FFFDF9] border border-[#111111]/10 shadow-lg shadow-[#111111]/4 p-2 backdrop-blur-md">
+                      <div className="flex flex-col gap-0.5">
                         {section.subItems.map((subItem, idx) => (
                           <Link
                             key={idx}
                             href={subItem.href}
                             onClick={() => setActiveDropdown(null)}
-                            className="group/item flex flex-col p-2.5 rounded-xl hover:bg-[#F7F3EF] transition-all duration-200 text-left"
+                            className="group/item flex flex-col px-3 py-2 rounded-lg hover:bg-[#F7F3EF] transition-colors duration-150 text-left"
                           >
-                            <span className="font-serif font-bold text-xs text-[#111111] group-hover/item:text-[#8C6D23] transition-colors flex items-center justify-between">
-                              <span>{lang === 'en' ? subItem.titleEn : subItem.titleZh}</span>
-                              <span className="opacity-0 group-hover/item:opacity-100 transition-opacity text-[10px] text-[#8C6D23] font-mono">
-                                ↗
-                              </span>
+                            <span className="font-serif font-semibold text-xs text-[#111111] group-hover/item:text-[#8C6D23] transition-colors">
+                              {lang === 'en' ? subItem.titleEn : subItem.titleZh}
                             </span>
-                            <span className="text-[11px] text-[#7D7466] mt-0.5 leading-relaxed font-normal">
+                            <span className="text-[11px] text-[#7D7466] leading-snug mt-0.5">
                               {lang === 'en' ? subItem.descEn : subItem.descZh}
                             </span>
                           </Link>
@@ -284,36 +247,34 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
           })}
         </nav>
 
-        {/* 右侧操作区：极简双语切换 + 纯字排版仪式感按钮 */}
+        {/* 右侧操作区：极简双语与纯文字按钮 */}
         <div className="hidden md:flex items-center gap-4">
           <Link
             href={lang === 'zh' ? '/en' : '/zh'}
-            className="text-[11px] font-serif tracking-widest text-[#7D7466] hover:text-[#111111] transition-colors uppercase px-2 py-1"
+            className="text-[11px] font-serif tracking-widest text-[#7D7466] hover:text-[#111111] transition-colors uppercase px-1.5 py-1"
           >
             {lang === 'zh' ? 'EN' : '中文'}
           </Link>
 
-          <span className="w-px h-3 bg-[#111111]/15" />
-
           <Link
             href={`/${lang}/reading`}
-            className="px-5 py-2 rounded-full border border-[#111111] text-[#111111] hover:bg-[#111111] hover:text-[#FFFDF9] text-xs font-serif tracking-widest transition-all duration-300 shadow-2xs hover:shadow-sm"
+            className="px-4 py-1.5 rounded-full border border-[#111111] text-[#111111] hover:bg-[#111111] hover:text-[#FFFDF9] text-xs font-serif tracking-wider transition-all duration-200"
           >
-            {lang === 'en' ? 'Consult Oracle' : '凝神起卦'}
+            {lang === 'en' ? 'Oracle' : '起卦'}
           </Link>
         </div>
 
-        {/* 移动端菜单按钮：极简文字设计 */}
+        {/* 移动端菜单按钮 */}
         <div className="md:hidden flex items-center gap-3">
           <Link
             href={`/${lang}/reading`}
-            className="px-3.5 py-1.5 rounded-full border border-[#111111] text-[11px] font-serif text-[#111111]"
+            className="px-3 py-1 rounded-full border border-[#111111] text-[11px] font-serif text-[#111111]"
           >
             {lang === 'en' ? 'Oracle' : '起卦'}
           </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-xs font-serif tracking-widest text-[#111111] select-none"
+            className="p-1 text-xs font-serif tracking-widest text-[#111111] select-none"
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? 'CLOSE' : 'MENU'}
@@ -321,15 +282,15 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
         </div>
       </div>
 
-      {/* 移动端菜单抽屉：支持折叠展开所有子菜单 */}
+      {/* 移动端菜单抽屉 */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#FFFDF9] border-b border-[#111111]/10 px-6 pt-3 pb-8 space-y-2 shadow-lg animate-in slide-in-from-top-2 max-h-[80vh] overflow-y-auto">
+        <div className="md:hidden bg-[#FFFDF9] border-b border-[#111111]/10 px-6 pt-3 pb-6 space-y-2 shadow-lg animate-in slide-in-from-top-2 max-h-[80vh] overflow-y-auto">
           {navSections.map(section => {
             const isExpanded = mobileExpandedSection === section.key;
 
             return (
               <div key={section.key} className="border-b border-[#111111]/6 pb-2">
-                <div className="flex items-center justify-between py-2.5">
+                <div className="flex items-center justify-between py-2">
                   <Link
                     href={section.href}
                     onClick={() => setMobileMenuOpen(false)}
@@ -343,22 +304,21 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
                       className="text-xs text-[#8C6D23] px-2 py-1 font-serif"
                       aria-label="Toggle submenu"
                     >
-                      {isExpanded ? '收起 ▲' : '详情 ▼'}
+                      {isExpanded ? '收起' : '展开'}
                     </button>
                   )}
                 </div>
 
-                {/* 移动端展开的子菜单 (仅当存在子菜单时才展开) */}
                 {isExpanded && section.subItems && section.subItems.length > 0 && (
-                  <div className="pl-3 pr-1 py-1 space-y-2 bg-[#F7F3EF]/60 rounded-xl my-1 border-l-2 border-[#8C6D23]">
+                  <div className="pl-3 pr-1 py-1 space-y-2 bg-[#F7F3EF]/60 rounded-lg my-1 border-l border-[#8C6D23]">
                     {section.subItems.map((sub, sIdx) => (
                       <Link
                         key={sIdx}
                         href={sub.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block py-1.5 text-xs font-serif text-[#524B40] hover:text-[#111111]"
+                        className="block py-1 text-xs font-serif text-[#524B40] hover:text-[#111111]"
                       >
-                        <span className="font-bold block text-[#111111]">
+                        <span className="font-semibold block text-[#111111]">
                           {lang === 'en' ? sub.titleEn : sub.titleZh}
                         </span>
                         <span className="text-[10px] text-[#7D7466]">
@@ -372,13 +332,13 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             );
           })}
 
-          <div className="pt-4 flex justify-between items-center text-xs font-serif text-[#7D7466]">
-            <span>语言选择 / Language</span>
+          <div className="pt-3 flex justify-between items-center text-xs font-serif text-[#7D7466]">
+            <span>语言</span>
             <Link
               href={lang === 'zh' ? '/en' : '/zh'}
               className="text-[#111111] font-semibold underline underline-offset-4"
             >
-              {lang === 'zh' ? 'English' : '中文版'}
+              {lang === 'zh' ? 'English' : '中文'}
             </Link>
           </div>
         </div>

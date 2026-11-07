@@ -250,29 +250,28 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
   return (
     <div ref={containerRef} className="w-full max-w-4xl mx-auto flex flex-col items-center">
       {/* 提问框 */}
-      <div className="w-full max-w-2xl mb-8 p-5 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs">
-        <label className="flex items-center gap-1.5 text-xs font-semibold text-[#8C6D23] mb-2">
-          <YinYangFish size={14} spin={false} />
-          <span>凝神默念心事，向周易六十四卦叩问</span>
+      <div className="w-full max-w-2xl mb-8 p-4 sm:p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-2xs">
+        <label className="block text-xs font-serif font-semibold text-[#736B5E] mb-2">
+          {lang === 'en' ? 'Inquiry' : '所求之事'}
         </label>
         <input
           type="text"
           value={question}
           onChange={e => setQuestion(e.target.value)}
-          placeholder="如：当前的项目合作是否存在隐性阻力？如何转危为安？"
-          className="w-full px-4 py-3 rounded-2xl bg-[#FAF6ED] ring-1 ring-[#111111]/10 text-sm text-[#111111] placeholder-[#736B5E]/50 focus:outline-hidden focus:ring-[#C29026]"
+          placeholder={lang === 'en' ? 'State your question or decision...' : '输入心中所问之事或决策困惑...'}
+          className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-sm text-[#111111] placeholder-[#736B5E]/50 focus:outline-hidden focus:border-[#111111]"
         />
       </div>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* 左侧：3D 铜钱抛掷台 */}
-        <div className="md:col-span-7 flex flex-col items-center p-6 sm:p-8 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs text-center">
+        <div className="md:col-span-7 flex flex-col items-center p-6 sm:p-8 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-2xs text-center">
           <div className="flex items-center justify-between w-full mb-6">
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#FFE59A]/40 text-[#8C6D23] border border-[#E8CF86]/50">
-              乾隆通宝 · 金钱起卦法
+            <span className="text-xs font-serif font-bold text-[#111111]">
+              {lang === 'en' ? 'I Ching Coin Toss' : '金钱起卦'}
             </span>
-            <span className="text-xs text-[#736B5E]">
-              {currentLine === 6 ? '六爻已成' : `第 ${currentLine + 1} 爻 / 共 6 爻`}
+            <span className="text-xs font-serif text-[#736B5E]">
+              {currentLine === 6 ? (lang === 'en' ? 'Complete' : '六爻已成') : (lang === 'en' ? `Line ${currentLine + 1} / 6` : `第 ${currentLine + 1} 爻 / 共 6 爻`)}
             </span>
           </div>
 
@@ -324,21 +323,20 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
               <button
                 onClick={handleCastNextLine}
                 disabled={isFlipping}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] font-medium text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:scale-103 cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] font-serif text-xs tracking-wider transition-all cursor-pointer"
               >
-                <Sparkles className="w-4 h-4 text-[#FFE59A]" />
-                <span>{isFlipping ? '铜钱飞掷流转中...' : `掷出第 ${currentLine + 1} 爻`}</span>
+                <span>{isFlipping ? (lang === 'en' ? 'Casting...' : '流转中...') : (lang === 'en' ? `Cast Line ${currentLine + 1}` : `掷第 ${currentLine + 1} 爻`)}</span>
               </button>
             ) : (
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" /> 六爻圆满，卦象已定
+                <span className="text-xs font-serif text-[#111111] flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#8C6D23]" /> {lang === 'en' ? 'Hexagram Complete' : '六爻已成'}
                 </span>
                 <button
                   onClick={handleReset}
-                  className="px-4 py-2 rounded-xl text-xs font-medium bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#111111] transition-colors ring-1 ring-[#111111]/10 flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg text-xs font-serif bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#111111] transition-colors border border-[#111111]/10 flex items-center gap-1 cursor-pointer"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" /> 重新起卦
+                  <RotateCcw className="w-3 h-3" /> {lang === 'en' ? 'Reset' : '重起'}
                 </button>
               </div>
             )}
@@ -348,11 +346,12 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
         {/* 右侧：六爻逐层筑构面板 */}
         <div
           ref={linesBoardRef}
-          className="md:col-span-5 flex flex-col p-6 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs"
+          className="md:col-span-5 flex flex-col p-6 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-2xs"
         >
           <div className="flex items-center justify-between mb-4 border-b border-[#111111]/8 pb-2">
-            <h4 className="font-serif font-bold text-sm text-[#111111]">六爻层递图谱</h4>
-            <span className="text-[11px] text-[#736B5E]">自下而上（初爻至上爻）</span>
+            <h4 className="font-serif font-bold text-xs text-[#111111]">
+              {lang === 'en' ? 'Hexagram' : '卦爻'}
+            </h4>
           </div>
 
           {/* 6 爻画线区（倒序排列：第6爻在最上，第1爻在最下） */}
