@@ -38,37 +38,95 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
     },
     {
       key: 'eastern',
-      titleZh: '东方周易',
-      titleEn: 'I Ching',
+      titleZh: '八字命理',
+      titleEn: 'BaZi',
       href: `/${lang}/fatemaster`,
       subItems: [
         {
-          titleZh: '命理总厅',
-          titleEn: 'Overview',
-          descZh: '周易象数与命理系统概览',
-          descEn: 'Eastern metaphysics overview',
-          href: `/${lang}/fatemaster`
-        },
-        {
-          titleZh: '四柱八字',
+          titleZh: '四柱八字排盘',
           titleEn: 'BaZi Chart',
-          descZh: '节气换柱与五行生克',
-          descEn: 'Solar terms & four pillars',
+          descZh: '节气换柱与五行十神推演',
+          descEn: 'Four pillars & ten gods',
           href: `/${lang}/fatemaster/bazi`
         },
         {
-          titleZh: '六爻神谕',
-          titleEn: 'Six Lines',
-          descZh: '3D 铜钱起卦与变爻推演',
+          titleZh: '八字每日运势',
+          titleEn: 'Daily Fortune',
+          descZh: '流日十神、时辰吉凶与天时调候',
+          descEn: 'Daily ten god & hourly luck',
+          href: `/${lang}/fatemaster/bazi-daily`
+        },
+        {
+          titleZh: '关系合盘中心',
+          titleEn: 'Synastry Hub',
+          descZh: '合婚、恋爱、事业、婆媳等九大合盘',
+          descEn: '9 relationship synastry types',
+          href: `/${lang}/fatemaster/relationship`
+        },
+        {
+          titleZh: '八字关系图谱',
+          titleEn: 'Relationship Network',
+          descZh: '六亲与社会关系多维拓扑图',
+          descEn: 'Visual relationship network',
+          href: `/${lang}/fatemaster/relationship-network`
+        },
+        {
+          titleZh: '生肖配对',
+          titleEn: 'Zodiac Match',
+          descZh: '144 组生肖六合三合六冲',
+          descEn: 'Zodiac pairwise harmony',
+          href: `/${lang}/fatemaster/compatibility`
+        }
+      ]
+    },
+    {
+      key: 'ziwei',
+      titleZh: '紫微斗数',
+      titleEn: 'ZiWei',
+      href: `/${lang}/fatemaster/ziwei`,
+      subItems: [
+        {
+          titleZh: 'AI 紫微斗数',
+          titleEn: 'Ziwei Chart',
+          descZh: '十二宫位、十四主星与生年四化',
+          descEn: '12 palaces & 14 major stars',
+          href: `/${lang}/fatemaster/ziwei`
+        },
+        {
+          titleZh: '紫微合婚',
+          titleEn: 'Ziwei Marriage',
+          descZh: '命宫与夫妻宫星耀共振合盘',
+          descEn: 'Star resonance & marriage synastry',
+          href: `/${lang}/fatemaster/ziwei-marriage`
+        }
+      ]
+    },
+    {
+      key: 'divination',
+      titleZh: '易道占卜',
+      titleEn: 'Oracle',
+      href: `/${lang}/fatemaster/liuyao`,
+      subItems: [
+        {
+          titleZh: '梅花易数 · 决策',
+          titleEn: 'Plum Blossom Divination',
+          descZh: '心易神数、体用生克与具体决断',
+          descEn: 'Meihua daily decision',
+          href: `/${lang}/fatemaster/meihua`
+        },
+        {
+          titleZh: '周易六爻神谕',
+          titleEn: 'Six Lines Coin Toss',
+          descZh: '3D 铜钱古法起卦与变爻破局',
           descEn: '3D coin toss & hexagram lines',
           href: `/${lang}/fatemaster/liuyao`
         },
         {
-          titleZh: '生肖合盘',
-          titleEn: 'Compatibility',
-          descZh: '144 组干支六合与三合',
-          descEn: 'Pairwise balance & resonance',
-          href: `/${lang}/fatemaster/compatibility`
+          titleZh: 'AI 奇门遁甲',
+          titleEn: 'Qimen Dunjia',
+          descZh: '九宫八门九星八神运筹决断',
+          descEn: 'Nine palaces & strategic gates',
+          href: `/${lang}/fatemaster/qimen`
         }
       ]
     },
@@ -98,13 +156,6 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
           descZh: '清晰决断的快速指引',
           descEn: 'Single card direct clarity',
           href: `/${lang}/yes-no`
-        },
-        {
-          titleZh: '爱情关系',
-          titleEn: 'Love & Bond',
-          descZh: '双人能量场与情感羁绊',
-          descEn: 'Relationship resonance mirror',
-          href: `/${lang}/love`
         }
       ]
     },

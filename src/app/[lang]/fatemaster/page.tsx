@@ -62,91 +62,200 @@ export default async function FateMasterHomePage({
         </div>
       </section>
 
-      {/* 三大核心命理分析系统 */}
-      <section className="w-full max-w-5xl mx-auto px-4 py-12 border-t border-[#111111]/8">
-        <div className="mb-8">
-          <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#111111]">
-            {lang === 'en' ? 'Metaphysics Systems' : '命理系统'}
-          </h2>
+      {/* 命理三大核心矩阵 */}
+      <section className="w-full max-w-5xl mx-auto px-4 py-12 border-t border-[#111111]/8 space-y-16">
+        {/* 1. 八字全系 */}
+        <div>
+          <div className="flex items-baseline justify-between mb-6">
+            <div>
+              <h2 className="font-serif font-black text-xl sm:text-2xl text-[#111111]">
+                {lang === 'en' ? 'BaZi Four Pillars' : '八字命理系统'}
+              </h2>
+              <p className="text-xs font-serif text-[#736B5E] mt-0.5">
+                干支推演 · 五行调候 · 每日运势 · 全息关系合盘
+              </p>
+            </div>
+            <Link
+              href={`/${lang}/fatemaster/relationship`}
+              className="text-xs font-serif text-[#8C6D23] hover:text-[#111111] transition-colors"
+            >
+              关系合盘中心 →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <Link
+              href={`/${lang}/fatemaster/bazi`}
+              className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-serif font-bold text-[#111111] group-hover:text-[#8C6D23] transition-colors block mb-1">
+                  四柱八字排盘
+                </span>
+                <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+                  24 节气换柱，大运流年与十神格局深度剖析。
+                </p>
+              </div>
+              <span className="text-[11px] font-serif text-[#8C6D23] mt-3 block">排盘 →</span>
+            </Link>
+
+            <Link
+              href={`/${lang}/fatemaster/bazi-daily`}
+              className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-serif font-bold text-[#111111] group-hover:text-[#8C6D23] transition-colors block mb-1">
+                  八字每日运势
+                </span>
+                <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+                  流日十神、时辰吉凶能量波形与天时调候建议。
+                </p>
+              </div>
+              <span className="text-[11px] font-serif text-[#8C6D23] mt-3 block">看今日 →</span>
+            </Link>
+
+            <Link
+              href={`/${lang}/fatemaster/relationship`}
+              className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-serif font-bold text-[#111111] group-hover:text-[#8C6D23] transition-colors block mb-1">
+                  全系关系合盘
+                </span>
+                <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+                  合婚、恋爱、事业、婆媳、亲子、朋友与职场九大合盘。
+                </p>
+              </div>
+              <span className="text-[11px] font-serif text-[#8C6D23] mt-3 block">合盘中心 →</span>
+            </Link>
+
+            <Link
+              href={`/${lang}/fatemaster/relationship-network`}
+              className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-serif font-bold text-[#111111] group-hover:text-[#8C6D23] transition-colors block mb-1">
+                  八字关系图谱
+                </span>
+                <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+                  全景映射配偶、父母、子女与合伙人的多维气场网络。
+                </p>
+              </div>
+              <span className="text-[11px] font-serif text-[#8C6D23] mt-3 block">查看图谱 →</span>
+            </Link>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* 八字排盘 */}
-          <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 shadow-2xs hover:border-[#111111]/25 transition-all flex flex-col justify-between">
+        {/* 2. 紫微斗数 */}
+        <div>
+          <div className="flex items-baseline justify-between mb-6">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-[#F7F3EF] text-[#8C6D23] flex items-center justify-center mb-4">
-                <IconScrollBaZi size={22} />
-              </div>
-              <h3 className="font-serif font-bold text-base text-[#111111] mb-2">
-                {lang === 'en' ? 'BaZi Four Pillars' : '八字四柱排盘'}
-              </h3>
-              <p className="text-xs text-[#5C5549] leading-relaxed mb-4">
-                {lang === 'en'
-                  ? 'Calculate four pillars, ten gods, and five elements based on solar calendar.'
-                  : '基于公历/农历智能换算四柱，计算十神生克、五行能量分布及日主元神特质。'}
+              <h2 className="font-serif font-black text-xl sm:text-2xl text-[#111111]">
+                {lang === 'en' ? 'Ziwei Doushu' : '紫微斗数系统'}
+              </h2>
+              <p className="text-xs font-serif text-[#736B5E] mt-0.5">
+                十二宫位 · 十四主星 · 生年四化 · 命身双核
               </p>
             </div>
+            <Link
+              href={`/${lang}/fatemaster/ziwei-marriage`}
+              className="text-xs font-serif text-[#8C6D23] hover:text-[#111111] transition-colors"
+            >
+              紫微合婚 →
+            </Link>
+          </div>
 
-            <div className="mt-4 pt-3 border-t border-[#111111]/8">
-              <Link
-                href={`/${lang}/fatemaster/bazi`}
-                className="w-full py-2 rounded-lg bg-[#FAF6ED] hover:bg-[#111111] hover:text-[#FFFDF9] text-[#111111] text-xs font-serif text-center block transition-colors"
-              >
-                {lang === 'en' ? 'Open BaZi' : '进入排盘'}
-              </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Link
+              href={`/${lang}/fatemaster/ziwei`}
+              className="p-6 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-serif font-bold text-[#111111] group-hover:text-[#8C6D23] transition-colors block mb-1">
+                  AI 紫微斗数排盘
+                </span>
+                <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+                  经典十二宫方形盘面，计算命身宫、五行局与生年四化飞星，全景展现天赋潜能与大限运势。
+                </p>
+              </div>
+              <span className="text-[11px] font-serif text-[#8C6D23] mt-4 block">进入紫微命盘 →</span>
+            </Link>
+
+            <Link
+              href={`/${lang}/fatemaster/ziwei-marriage`}
+              className="p-6 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-serif font-bold text-[#111111] group-hover:text-[#8C6D23] transition-colors block mb-1">
+                  紫微双盘合婚
+                </span>
+                <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+                  双方命宫与夫妻宫主星互映交辉，分析生年四化引动与深层情缘默契，提供成熟婚后相处指引。
+                </p>
+              </div>
+              <span className="text-[11px] font-serif text-[#8C6D23] mt-4 block">测算紫微合婚 →</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* 3. 易道占卜 */}
+        <div>
+          <div className="flex items-baseline justify-between mb-6">
+            <div>
+              <h2 className="font-serif font-black text-xl sm:text-2xl text-[#111111]">
+                {lang === 'en' ? 'I Ching & Divination' : '易道决策神谕系统'}
+              </h2>
+              <p className="text-xs font-serif text-[#736B5E] mt-0.5">
+                梅花易数 · 周易六爻 · 奇门遁甲
+              </p>
             </div>
           </div>
 
-          {/* 周易六爻 */}
-          <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 shadow-2xs hover:border-[#111111]/25 transition-all flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-[#F7F3EF] text-[#8C6D23] flex items-center justify-center mb-4">
-                <IconCoinLiuYao size={22} />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Link
+              href={`/${lang}/fatemaster/meihua`}
+              className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-serif font-bold text-[#111111] group-hover:text-[#8C6D23] transition-colors block mb-1">
+                  梅花易数 · 每日决策
+                </span>
+                <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+                  邵康节心易神数，体用生克断吉凶，专为当下投资、合作与职场决断提供精准行动指令。
+                </p>
               </div>
-              <h3 className="font-serif font-bold text-base text-[#111111] mb-2">
-                {lang === 'en' ? 'I Ching Coin Toss' : '周易六爻神谕'}
-              </h3>
-              <p className="text-xs text-[#5C5549] leading-relaxed mb-4">
-                {lang === 'en'
-                  ? '3D coin toss simulation with hexagram judgments and changing lines.'
-                  : '模拟古法三枚铜钱 3D 物理掷币，推演初爻至上爻、本卦、动爻与变卦。'}
-              </p>
-            </div>
+              <span className="text-[11px] font-serif text-[#8C6D23] mt-3 block">梅花决断 →</span>
+            </Link>
 
-            <div className="mt-4 pt-3 border-t border-[#111111]/8">
-              <Link
-                href={`/${lang}/fatemaster/liuyao`}
-                className="w-full py-2 rounded-lg bg-[#FAF6ED] hover:bg-[#111111] hover:text-[#FFFDF9] text-[#111111] text-xs font-serif text-center block transition-colors"
-              >
-                {lang === 'en' ? 'Cast Hexagram' : '开始起卦'}
-              </Link>
-            </div>
-          </div>
-
-          {/* 生肖合盘 */}
-          <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 shadow-2xs hover:border-[#111111]/25 transition-all flex flex-col justify-between">
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-[#F7F3EF] text-[#8C6D23] flex items-center justify-center mb-4">
-                <IconZodiacDragon size={22} />
+            <Link
+              href={`/${lang}/fatemaster/liuyao`}
+              className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-serif font-bold text-[#111111] group-hover:text-[#8C6D23] transition-colors block mb-1">
+                  周易六爻神谕
+                </span>
+                <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+                  真实模拟乾隆通宝 3D 物理掷币，推演初爻至上爻、本卦、动爻与变卦破局。
+                </p>
               </div>
-              <h3 className="font-serif font-bold text-base text-[#111111] mb-2">
-                {lang === 'en' ? 'Zodiac Compatibility' : '生肖与五行合盘'}
-              </h3>
-              <p className="text-xs text-[#5C5549] leading-relaxed mb-4">
-                {lang === 'en'
-                  ? '144 pairs matrix for compatibility, mutual affinities, and balance.'
-                  : '144 组生肖纳音配对矩阵，结合六合、三合吉局与相冲，推演关系契合度。'}
-              </p>
-            </div>
+              <span className="text-[11px] font-serif text-[#8C6D23] mt-3 block">金钱起卦 →</span>
+            </Link>
 
-            <div className="mt-4 pt-3 border-t border-[#111111]/8">
-              <Link
-                href={`/${lang}/fatemaster/compatibility`}
-                className="w-full py-2 rounded-lg bg-[#FAF6ED] hover:bg-[#111111] hover:text-[#FFFDF9] text-[#111111] text-xs font-serif text-center block transition-colors"
-              >
-                {lang === 'en' ? 'Check Compatibility' : '测算合盘'}
-              </Link>
-            </div>
+            <Link
+              href={`/${lang}/fatemaster/qimen`}
+              className="p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs group flex flex-col justify-between"
+            >
+              <div>
+                <span className="text-xs font-serif font-bold text-[#111111] group-hover:text-[#8C6D23] transition-colors block mb-1">
+                  AI 奇门遁甲
+                </span>
+                <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+                  九宫八门九星八神，计算生门、开门、休门三大吉方，运筹帷幄决胜千里。
+                </p>
+              </div>
+              <span className="text-[11px] font-serif text-[#8C6D23] mt-3 block">运筹奇门 →</span>
+            </Link>
           </div>
         </div>
       </section>
