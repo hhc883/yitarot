@@ -32,37 +32,6 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   // 导航结构与对应子菜单映射 (无任何 Icon，全纯正文人古籍质感)
   const navSections: NavSection[] = [
     {
-      key: 'home',
-      titleZh: '双门首页',
-      titleEn: 'Origins',
-      href: `/${lang}`,
-      tagZh: '✦ 东西合璧 · 天人之镜 ✦',
-      tagEn: 'DUAL PORTALS',
-      subItems: [
-        {
-          titleZh: '全景长卷开幕',
-          titleEn: 'Celestial Continuum',
-          descZh: '太极两仪、铜钱与塔罗牌破空而起',
-          descEn: 'Ancient origins and synchronicity journey',
-          href: `/${lang}#portal-content`
-        },
-        {
-          titleZh: '周易命理专厅',
-          titleEn: 'Eastern Hub',
-          descZh: '天干地支、周易神谕与五行全息',
-          descEn: 'Authentic 24 solar terms metaphysics',
-          href: `/${lang}/fatemaster`
-        },
-        {
-          titleZh: '西方秘境塔罗',
-          titleEn: 'Western Hub',
-          descZh: '78 张经典韦特塔罗全解与 AI 占卜',
-          descEn: '78 Rider-Waite cards & AI oracle',
-          href: `/${lang}/reading`
-        }
-      ]
-    },
-    {
       key: 'eastern',
       titleZh: '东方周易',
       titleEn: 'I Ching',
@@ -211,9 +180,6 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
   };
 
   const isCurrentActive = (section: NavSection) => {
-    if (section.key === 'home') {
-      return pathname === `/${lang}` || pathname === `/${lang}/` || pathname === '/';
-    }
     return pathname.startsWith(section.href);
   };
 
