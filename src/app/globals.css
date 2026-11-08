@@ -194,3 +194,86 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #C8BEAC;
 }
+
+/* 首页西方塔罗卡牌扇形展开与玻璃拟态交互 (适配东方宋宣与流光金系统) */
+.hero-cards-deck {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  padding: 16px 0;
+}
+
+.hero-glass-card {
+  position: relative;
+  width: 146px;
+  height: 234px;
+  background: linear-gradient(155deg, rgba(255, 253, 249, 0.96) 0%, rgba(247, 243, 239, 0.9) 100%);
+  border: 1px solid rgba(200, 168, 88, 0.35);
+  box-shadow: 0 14px 26px -4px rgba(17, 17, 17, 0.1), 0 0 14px rgba(200, 168, 88, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+              margin 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.35s ease,
+              border-color 0.35s ease;
+  border-radius: 18px;
+  margin: 0 -30px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform: rotate(calc(var(--r) * 1deg));
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  transform-origin: center center;
+}
+
+@media (min-width: 640px) {
+  .hero-glass-card {
+    width: 178px;
+    height: 284px;
+    padding: 8px;
+    margin: 0 -42px;
+    border-radius: 20px;
+  }
+}
+
+/* 鼠标悬停在卡牌组容器时：卡牌整齐展开、旋转归零、等比放大 (scale 1.06~1.08) 气势舒展 */
+.hero-cards-deck:hover .hero-glass-card {
+  transform: rotate(0deg) scale(1.06);
+  margin: 0 8px;
+  box-shadow: 0 20px 32px -4px rgba(17, 17, 17, 0.14), 0 0 20px rgba(200, 168, 88, 0.2);
+}
+
+@media (min-width: 640px) {
+  .hero-cards-deck:hover .hero-glass-card {
+    transform: rotate(0deg) scale(1.08);
+    margin: 0 14px;
+    box-shadow: 0 22px 36px -4px rgba(17, 17, 17, 0.15), 0 0 22px rgba(200, 168, 88, 0.22);
+  }
+}
+
+/* 鼠标悬停单张卡牌时：独立上浮、更大幅度放大、金色光晕漫射高亮 */
+.hero-cards-deck .hero-glass-card:hover {
+  transform: rotate(0deg) translateY(-14px) scale(1.15) !important;
+  margin: 0 10px;
+  z-index: 50 !important;
+  box-shadow: 0 26px 42px -6px rgba(17, 17, 17, 0.2), 0 0 28px rgba(200, 168, 88, 0.38) !important;
+  border-color: rgba(212, 175, 55, 0.7) !important;
+}
+
+@media (min-width: 640px) {
+  .hero-cards-deck .hero-glass-card:hover {
+    margin: 0 16px;
+  }
+}
+
+/* 选中激活状态卡牌微发光 */
+.hero-glass-card.is-active {
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 18px 30px -4px rgba(17, 17, 17, 0.14), 0 0 18px rgba(200, 168, 88, 0.25);
+}

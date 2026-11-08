@@ -86,24 +86,20 @@ export function YinYangFish({
           fill="url(#yin-ink-grad)"
         />
 
-        {/* 4. 阴中之阳眼 (上方黑鱼头部里的白色鱼眼) */}
+        {/* 4. 阳中之阴眼 (上方白鱼头部里的实心黑眼：阳中有阴) */}
         <circle
           cx="0"
           cy="-47"
-          r="11"
-          fill="#FFFDF9"
-          stroke="#111111"
-          strokeWidth="0.8"
+          r="11.5"
+          fill="#111111"
         />
 
-        {/* 5. 阳中之阴眼 (下方白鱼头部里的黑色鱼眼) */}
+        {/* 5. 阴中之阳眼 (下方黑鱼头部里的实心白眼：阴中有阳) */}
         <circle
           cx="0"
           cy="47"
-          r="11"
-          fill="#111111"
-          stroke="#FFFDF9"
-          strokeWidth="0.8"
+          r="11.5"
+          fill="#FFFDF9"
         />
 
         {/* 6. 最外层修容发丝线 (精细收口) */}
