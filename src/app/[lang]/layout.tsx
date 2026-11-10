@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { TarotNavbar } from '@/components/tarot/TarotNavbar';
-import { TarotFooter } from '@/components/tarot/TarotFooter';
+import React from 'react';
+import { SiteChrome } from '@/components/site/SiteChrome';
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
@@ -34,11 +34,5 @@ export default async function LangLayout({
   const { lang: rawLang } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
 
-  return (
-    <div className="min-h-screen flex flex-col paper-grain bg-[#F7F3EF] text-[#2B261F] selection:bg-[#EAE4D9] selection:text-[#111111]">
-      <TarotNavbar lang={lang} />
-      <main className="flex-1">{children}</main>
-      <TarotFooter lang={lang} />
-    </div>
-  );
+  return <SiteChrome lang={lang}>{children}</SiteChrome>;
 }
