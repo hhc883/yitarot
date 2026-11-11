@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { PointsGateProvider } from '@/components/site/PointsGateProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://qicosmos.com'),
@@ -54,7 +55,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className="h-full antialiased">
       <body className="min-h-full flex flex-col paper-grain bg-[#F7F3EF] text-[#2B261F] selection:bg-[#EAE4D9] selection:text-[#111111]">
-        {children}
+        <PointsGateProvider>{children}</PointsGateProvider>
       </body>
     </html>
   );

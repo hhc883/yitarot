@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { streamLiuYaoReading, LiuYaoAiRequest } from '@/lib/metaphysics/fatemaster-ai';
+import { verifyReadingSpend, pointsErrorResponse } from '@/lib/points/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,6 +12,10 @@ export async function POST(req: NextRequest) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
+
+    // 积分校验：确认本次测算已完成扣分（服务端二次防线）
+    const spend = await verifyReadingSpend(body.points_ref);
+    if (!spend.ok) return pointsErrorResponse(spend.status);
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({

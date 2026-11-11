@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { CONTAINER } from './constants';
+import { useUser } from '@/lib/auth/use-user';
+import { UserAvatar } from './UserAvatar';
 
 interface NavItem {
   key: string;
@@ -24,6 +26,7 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
 
   const [pastHero, setPastHero] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { loading: userLoading, user, balance } = useUser();
 
   // 首屏（100svh）之内不显示导航；非首页由 !isHome 直接可见，无需监听
   useEffect(() => {
@@ -141,14 +144,41 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
             </Link>
           </div>
 
-          <Link
-            href={`/${lang}/pricing`}
-            className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-[12.5px] text-white transition-opacity hover:opacity-80"
-          >
-            <span>登录</span>
-            <span className="text-[11px] text-white/60">Log in</span>
-          </Link>
+          {user ? (
+            <Link
+              href={`/${lang}/account`}
+              className="flex items-center gap-2.5 rounded-full transition-opacity hover:opacity-80"
+              title={user.email}
+            >
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[12.5px] text-ink tabular-nums">
+                <span className="text-[10px] leading-none">◆</span>
+                <span>{balance}</span>
+              </span>
+              <UserAvatar user={user} />
+            </Link>
+          ) : userLoading ? (
+            <span className="inline-flex h-9 w-[84px] items-center justify-center rounded-full bg-ink/80" aria-hidden="true" />
+          ) : (
+            <Link
+              href={`/${lang}/login`}
+              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-[12.5px] text-white transition-opacity hover:opacity-80"
+            >
+              <span>登录</span>
+              <span className="text-[11px] text-white/60">Log in</span>
+            </Link>
+          )}
         </div>
+
+        {/* 移动端：余额胶囊（登录后显示） */}
+        {user ? (
+          <Link
+            href={`/${lang}/account`}
+            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[12px] text-ink tabular-nums lg:hidden"
+          >
+            <span className="text-[9px] leading-none">◆</span>
+            <span>{balance}</span>
+          </Link>
+        ) : null}
 
         {/* 移动端菜单按钮 */}
         <button
@@ -217,14 +247,28 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
             </Link>
           </div>
 
-          <Link
-            href={`/${lang}/pricing`}
-            onClick={() => setMenuOpen(false)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-[13px] text-white"
-          >
-            <span>登录</span>
-            <span className="text-[11px] text-white/60">Log in</span>
-          </Link>
+          {user ? (
+            <Link
+              href={`/${lang}/account`}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2.5"
+            >
+              <UserAvatar user={user} size={30} />
+              <span className="flex flex-col leading-tight">
+                <span className="text-[12px] text-ink tabular-nums">◆ {balance}</span>
+                <span className="max-w-[180px] truncate text-[11px] text-whisper">{user.email}</span>
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href={`/${lang}/login`}
+              onClick={() => setMenuOpen(false)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-[13px] text-white"
+            >
+              <span>登录</span>
+              <span className="text-[11px] text-white/60">Log in</span>
+            </Link>
+          )}
         </div>
       </div>
     </>

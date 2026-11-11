@@ -8,16 +8,21 @@ import { SiteNavbar } from './SiteNavbar';
 import { SiteFooter } from './SiteFooter';
 
 /**
- * 站点外壳：首页与东 / 西 Landing 走新的黑白中性导航（首页首屏隐藏导航），
+ * 站点外壳：首页 / 东·西 Landing / 登录 / 账号 / 定价走新的黑白中性导航（首页首屏隐藏导航），
  * 其余原有页面（排盘、塔罗、知识库等）完全沿用既有导航与页脚，不做任何改动。
  */
 export function SiteChrome({ lang, children }: { lang: string; children: React.ReactNode }) {
   const pathname = usePathname() || '';
-  const isMarketing =
-    pathname === `/${lang}` ||
-    pathname === `/${lang}/` ||
-    pathname === `/${lang}/east` ||
-    pathname === `/${lang}/west`;
+  const isMarketing = [
+    `/${lang}`,
+    `/${lang}/east`,
+    `/${lang}/west`,
+    `/${lang}/login`,
+    `/${lang}/account`,
+    `/${lang}/pricing`
+  ].some(
+    (path) => pathname === path || pathname === `${path}/`
+  );
 
   if (isMarketing) {
     return (

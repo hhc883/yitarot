@@ -9,6 +9,8 @@ export interface InterpretationRequest {
   reader: TarotReader;
   drawnCards: DrawnCard[];
   followUpHistory?: { role: 'user' | 'assistant'; content: string }[];
+  /** 积分扣分幂等键（/api/readings/consume 返回） */
+  points_ref?: string;
 }
 
 /**

@@ -12,6 +12,7 @@ import {
 } from '@/lib/metaphysics/iching';
 import { Sparkles, RotateCcw, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { YinYangFish } from '@/components/common/YinYangFish';
+import { usePointsGate } from '@/components/site/PointsGateProvider';
 
 gsap.registerPlugin(useGSAP);
 
@@ -40,6 +41,7 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
   const [reading, setReading] = useState<IChingReading | null>(null);
   const [aiReport, setAiReport] = useState<string>('');
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
+  const pointsGate = usePointsGate();
 
   // GSAP 掷币抛掷物理时间轴
   const handleCastNextLine = useCallback(() => {
@@ -158,9 +160,13 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
     setAiReport('');
   };
 
-  // 生成 AI 六爻断卦报告（支持 SSE 流式推演）
+  // 生成 AI 六爻断卦报告：先扣 10 积分（失败弹「积分不足」），再流式推演
   const handleGenerateAiReport = async () => {
     if (!reading) return;
+
+    const consumed = await pointsGate.consume('liuyao');
+    if (!consumed.ok) return;
+
     setIsGeneratingAi(true);
     setAiReport('');
 
@@ -171,7 +177,8 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
         body: JSON.stringify({
           question,
           reading,
-          lang
+          lang,
+          points_ref: consumed.ref_id
         })
       });
 
@@ -202,6 +209,10 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
             }
           }
         }
+      } else if (response.status === 401 || response.status === 402) {
+        // 未登录 / 积分不足：不降级本地引擎，避免绕过积分
+        setIsGeneratingAi(false);
+        return;
       } else {
         throw new Error('API unavailable');
       }

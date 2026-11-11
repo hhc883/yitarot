@@ -11,6 +11,7 @@ import {
   ELEMENT_COLORS
 } from '@/lib/metaphysics/bazi';
 import { Sparkles, Calendar, Compass } from 'lucide-react';
+import { usePointsGate } from '@/components/site/PointsGateProvider';
 
 gsap.registerPlugin(useGSAP);
 
@@ -33,6 +34,7 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
 
   const [aiReport, setAiReport] = useState<string>('');
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
+  const pointsGate = usePointsGate();
 
   // 当输入变化时重新推演八字
   const handleCalculate = (e: React.FormEvent) => {
@@ -63,8 +65,11 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
     }
   }, { dependencies: [baziResult], scope: containerRef });
 
-  // 生成 AI 命理全息报告（支持 SSE 流式推演）
+  // 生成 AI 命理全息报告：先扣 10 积分（失败弹「积分不足」），再流式推演
   const handleGenerateAiReport = async () => {
+    const consumed = await pointsGate.consume('bazi');
+    if (!consumed.ok) return;
+
     setIsGeneratingAi(true);
     setAiReport('');
 
@@ -78,7 +83,8 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
           day,
           hour,
           gender,
-          lang
+          lang,
+          points_ref: consumed.ref_id
         })
       });
 
@@ -109,6 +115,10 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
             }
           }
         }
+      } else if (response.status === 401 || response.status === 402) {
+        // 未登录 / 积分不足：不降级本地引擎，避免绕过积分
+        setIsGeneratingAi(false);
+        return;
       } else {
         throw new Error('API unavailable');
       }

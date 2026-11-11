@@ -11,12 +11,16 @@ export interface BaziAiRequest {
   name?: string;
   focusArea?: 'career' | 'wealth' | 'love' | 'health' | 'general';
   lang?: string;
+  /** 积分扣分幂等键（/api/readings/consume 返回） */
+  points_ref?: string;
 }
 
 export interface LiuYaoAiRequest {
   question: string;
   reading: IChingReading;
   lang?: string;
+  /** 积分扣分幂等键（/api/readings/consume 返回） */
+  points_ref?: string;
 }
 
 /**

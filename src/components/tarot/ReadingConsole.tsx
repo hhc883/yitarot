@@ -9,6 +9,7 @@ import { ReadingResult } from './ReadingResult';
 import { ShareCardModal } from './ShareCardModal';
 import { Sparkles, HelpCircle, ArrowRight, Wand2, Compass } from 'lucide-react';
 import { CategoryIcon, ReaderAvatarIcon } from '@/components/icons/QiIcons';
+import { usePointsGate } from '@/components/site/PointsGateProvider';
 
 interface CategoryItem {
   id: string;
@@ -120,6 +121,7 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
   const [interpretationText, setInterpretationText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const pointsGate = usePointsGate();
 
   // 点击预设问题
   const handleSelectPreset = (q: string) => {
@@ -133,12 +135,19 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
     setStep('shuffle');
   };
 
-  // 抽牌完毕，调用 API 解牌
+  // 抽牌完毕：先扣 10 积分（失败弹「积分不足」），成功后调用 API 解牌
   const handleCardsReady = useCallback(async (cards: DrawnCard[]) => {
     setDrawnCards(cards);
     setStep('result');
     setIsStreaming(true);
     setInterpretationText('');
+
+    const consumed = await pointsGate.consume('tarot');
+    if (!consumed.ok) {
+      setIsStreaming(false);
+      setStep('input');
+      return;
+    }
 
     try {
       const response = await fetch('/api/tarot/read', {
@@ -149,7 +158,8 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
           category,
           spread: selectedSpread,
           reader: selectedReader,
-          drawnCards: cards
+          drawnCards: cards,
+          points_ref: consumed.ref_id
         })
       });
 
@@ -193,7 +203,7 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
     } finally {
       setIsStreaming(false);
     }
-  }, [category, question, selectedReader, selectedSpread]);
+  }, [category, question, selectedReader, selectedSpread, pointsGate]);
 
   // 重置占卜
   const handleReset = () => {
