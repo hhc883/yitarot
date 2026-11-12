@@ -8,7 +8,12 @@ export function SiteFooter({ lang = 'zh' }: { lang?: string }) {
     { href: `/${lang}/east`, zh: '东方数术', en: 'East' },
     { href: `/${lang}/west`, zh: '西方塔罗', en: 'West' },
     { href: `/${lang}/blog`, zh: 'Blog', en: 'Blog' },
-    { href: `/${lang}/pricing`, zh: '会员', en: 'Membership' }
+    { href: `/${lang}/pricing`, zh: '会员', en: 'Membership' },
+    {
+      href: `/${lang}/privacy`,
+      zh: '隐私政策 Privacy Policy',
+      en: 'Privacy Policy · 隐私政策'
+    }
   ];
 
   return (
@@ -29,7 +34,7 @@ export function SiteFooter({ lang = 'zh' }: { lang?: string }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-[12.5px] text-soft transition-colors hover:text-ink"
+                className="whitespace-nowrap text-[12.5px] text-soft transition-colors hover:text-ink"
               >
                 {lang === 'en' ? link.en : link.zh}
               </Link>

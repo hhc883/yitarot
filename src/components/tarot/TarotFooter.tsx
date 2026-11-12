@@ -98,7 +98,9 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
                 </Link>
               </li>
               <li>
-                <span className="text-[#A59E92]">{f.privacy}</span>
+                <Link href={`/${lang}/privacy`} className="hover:text-[#1E1B18] transition-colors">
+                  {lang === 'en' ? 'Privacy Policy' : '隐私政策'}
+                </Link>
               </li>
               <li>
                 <span className="text-[#A59E92]">{f.terms}</span>

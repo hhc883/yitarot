@@ -126,6 +126,12 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
 
         {/* 语言 + 登录 */}
         <div className="hidden shrink-0 items-center gap-5 lg:flex">
+          <Link
+            href={`/${lang}/privacy`}
+            className="font-display text-[11px] tracking-[0.14em] text-whisper transition-colors hover:text-ink"
+          >
+            {lang === 'en' ? 'Privacy' : '隐私'}
+          </Link>
           <div className="flex items-center gap-1.5 font-display text-[11px] tracking-[0.14em]">
             <Link
               href={switchHref('zh')}
@@ -227,6 +233,17 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
             </Link>
           ))}
         </nav>
+
+        <Link
+          href={`/${lang}/privacy`}
+          onClick={() => setMenuOpen(false)}
+          className="mt-8 inline-flex items-baseline gap-2 text-[12.5px] text-soft transition-colors hover:text-ink"
+        >
+          <span>{lang === 'en' ? 'Privacy Policy' : '隐私政策'}</span>
+          <span className="font-display text-[10px] tracking-[0.18em] text-whisper">
+            {lang === 'en' ? '隐私政策' : 'PRIVACY POLICY'}
+          </span>
+        </Link>
 
         <div className="mt-8 flex items-center justify-between">
           <div className="flex items-center gap-2 font-display text-[12px] tracking-[0.14em]">

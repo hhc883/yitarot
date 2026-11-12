@@ -19,7 +19,8 @@ export function SiteChrome({ lang, children }: { lang: string; children: React.R
     `/${lang}/west`,
     `/${lang}/login`,
     `/${lang}/account`,
-    `/${lang}/pricing`
+    `/${lang}/pricing`,
+    `/${lang}/privacy`
   ].some(
     (path) => pathname === path || pathname === `${path}/`
   );
