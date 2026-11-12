@@ -6,6 +6,47 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** 验证码位数与重发冷却（秒） */
+const CODE_LENGTH = 8;
+const RESEND_COOLDOWN = 60;
+const RESEND_UNTIL_KEY = 'qicosmos:otp-resend-until';
+
+/** 读取剩余冷却秒数；sessionStorage 让刷新页面无法绕过倒计时 */
+function readResendSeconds(): number {
+  if (typeof window === 'undefined') return 0;
+  try {
+    const raw = window.sessionStorage.getItem(RESEND_UNTIL_KEY);
+    if (!raw) return 0;
+    const until = Number(raw);
+    if (!Number.isFinite(until)) return 0;
+    const left = Math.ceil((until - Date.now()) / 1000);
+    if (left <= 0) {
+      window.sessionStorage.removeItem(RESEND_UNTIL_KEY);
+      return 0;
+    }
+    return left;
+  } catch {
+    return 0;
+  }
+}
+
+function startResendCooldown(seconds: number): void {
+  try {
+    window.sessionStorage.setItem(RESEND_UNTIL_KEY, String(Date.now() + seconds * 1000));
+  } catch {
+    /* 隐私模式下 sessionStorage 不可用，退化为仅内存倒计时 */
+  }
+}
+
+/** GoTrue 429 的 message 可能自带秒数（"you can only request this after 30 seconds"） */
+function rateLimitSeconds(message: string): number {
+  const matched =
+    message.match(/(?:after|in|wait)\s+(\d+)\s*(?:seconds?|secs?|s\b)/i) ??
+    message.match(/(\d+)\s*seconds?/i);
+  const seconds = matched ? Number(matched[1]) : RESEND_COOLDOWN;
+  return Math.min(Math.max(seconds || RESEND_COOLDOWN, 1), 3600);
+}
+
 /** Google 品牌四色 G 标 */
 function GoogleMark({ size = 18 }: { size?: number }) {
   return (
@@ -40,8 +81,21 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
   const [codeSent, setCodeSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+  const [rateLimited, setRateLimited] = useState(false);
   const [error, setError] = useState('');
   const redirectingRef = useRef(false);
+
+  // 重发倒计时：每秒读取截止时间，刷新 / 重新挂载后仍延续
+  useEffect(() => {
+    const tick = () => setResendIn(readResendSeconds());
+    const init = window.setTimeout(tick, 0);
+    const timer = window.setInterval(tick, 1000);
+    return () => {
+      window.clearTimeout(init);
+      window.clearInterval(timer);
+    };
+  }, []);
 
   // 已登录用户直接进入账号页；展示回调失败标记
   useEffect(() => {
@@ -83,6 +137,8 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
   };
 
   const handleSendCode = async () => {
+    // 倒计时与「发送中」期间一律拒绝（Enter 键也走这里，不能只靠按钮 disabled）
+    if (sending || resendIn > 0) return;
     if (!EMAIL_RE.test(email.trim())) {
       setError(isEn ? 'Please enter a valid email address.' : '请输入有效的邮箱地址。');
       return;
@@ -97,9 +153,26 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
     });
     setSending(false);
     if (otpError) {
-      setError(isEn ? 'Could not send the code. Please try again.' : '验证码发送失败，请稍后再试。');
+      const isRateLimited =
+        otpError.status === 429 ||
+        otpError.code === 'over_email_send_rate_limit' ||
+        otpError.code === 'over_request_rate_limit' ||
+        /rate.?limit|too many requests/i.test(otpError.message ?? '');
+      if (isRateLimited) {
+        const wait = rateLimitSeconds(otpError.message ?? '');
+        startResendCooldown(wait);
+        setResendIn(wait);
+        setRateLimited(true);
+        setError('');
+      } else {
+        setRateLimited(false);
+        setError(isEn ? 'Could not send the code. Please try again.' : '验证码发送失败，请稍后再试。');
+      }
       return;
     }
+    startResendCooldown(RESEND_COOLDOWN);
+    setResendIn(RESEND_COOLDOWN);
+    setRateLimited(false);
     setCodeSent(true);
   };
 
@@ -172,10 +245,24 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
           <button
             type="button"
             onClick={handleSendCode}
-            disabled={sending}
-            className="h-11 shrink-0 rounded-[10px] border border-ink px-4 text-[13px] text-ink transition-colors duration-200 hover:bg-mist disabled:opacity-50"
+            disabled={sending || resendIn > 0}
+            className="h-11 shrink-0 rounded-[10px] border border-ink px-4 text-[13px] text-ink tabular-nums transition-colors duration-200 hover:bg-mist disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {sending ? (isEn ? 'Sending…' : '发送中…') : isEn ? 'Send code' : '发送验证码'}
+            {sending
+              ? isEn
+                ? 'Sending…'
+                : '发送中…'
+              : resendIn > 0
+                ? isEn
+                  ? `Resend in ${resendIn}s`
+                  : `${resendIn}s 后重发`
+                : codeSent
+                  ? isEn
+                    ? 'Resend code'
+                    : '重新发送'
+                  : isEn
+                    ? 'Send code'
+                    : '发送验证码'}
           </button>
         </div>
 
@@ -184,14 +271,14 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
           inputMode="numeric"
           autoComplete="one-time-code"
           value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, CODE_LENGTH))}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleVerify();
           }}
-          placeholder={isEn ? '6-digit code' : '6 位验证码'}
+          placeholder={isEn ? '8-digit code' : '8 位验证码'}
           className={`${inputClass} mt-3 tracking-[0.3em] ${codeSent ? '' : 'opacity-60'}`}
           aria-label={isEn ? 'Verification code' : '验证码'}
-          maxLength={6}
+          maxLength={CODE_LENGTH}
         />
 
         <button
@@ -203,7 +290,17 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
           {verifying ? (isEn ? 'Signing in…' : '登录中…') : isEn ? 'Sign in' : '登录'}
         </button>
 
-        {error ? (
+        {rateLimited && resendIn > 0 ? (
+          <p className="mt-4 text-center text-[12.5px] text-[#B84034]" role="alert">
+            {isEn
+              ? `Too many requests. Please wait ${resendIn} seconds before requesting another code.`
+              : `发送过于频繁，请等待 ${resendIn} 秒后再试。`}
+          </p>
+        ) : rateLimited ? (
+          <p className="mt-4 text-center text-[12.5px] text-soft" role="status">
+            {isEn ? 'You can request a new code now.' : '现在可以重新发送验证码了。'}
+          </p>
+        ) : error ? (
           <p className="mt-4 text-center text-[12.5px] text-[#B84034]" role="alert">
             {error}
           </p>
