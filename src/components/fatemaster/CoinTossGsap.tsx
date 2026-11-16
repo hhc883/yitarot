@@ -1,17 +1,15 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import {
   CoinTossLine,
   IChingReading,
   tossCoins,
-  getHexagramByBinary,
-  HexagramData
+  buildReadingFromLines
 } from '@/lib/metaphysics/iching';
-import { Sparkles, RotateCcw, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { YinYangFish } from '@/components/common/YinYangFish';
+import { Sparkles, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
 
 gsap.registerPlugin(useGSAP);
@@ -42,6 +40,42 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
   const [aiReport, setAiReport] = useState<string>('');
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
   const pointsGate = usePointsGate();
+
+  // 验收 / 复现入口：?lines=101011（6 位，自初爻至上爻，1=阳、0=阴）
+  // 不带参数时完全沿用原有的 3D 掷币流程，仅用于按指定爻线核对查表结果。
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get('lines');
+    if (!raw || !/^[01]{6}$/.test(raw)) return;
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      const presetLines: CoinTossLine[] = raw.split('').map((bit, i) => {
+        const isYang = bit === '1';
+        const coins: [number, number, number] = isYang ? [3, 2, 2] : [3, 3, 2];
+        return {
+          lineIndex: i + 1,
+          coins,
+          sum: isYang ? 7 : 8,
+          isYang,
+          isChanging: false,
+          changedYang: isYang
+        };
+      });
+
+      const presetReading = buildReadingFromLines(presetLines);
+      setLines(presetLines);
+      setDisplayCoins(presetLines[0].coins);
+      setCurrentLine(6);
+      setReading(presetReading);
+      onReadingReady?.(presetReading);
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [onReadingReady]);
 
   // GSAP 掷币抛掷物理时间轴
   const handleCastNextLine = useCallback(() => {
@@ -75,46 +109,9 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
         setCurrentLine(currentLine + 1);
         setIsFlipping(false);
 
-        // 如果已满 6 爻，完成定卦
+        // 如果已满 6 爻，按六爻阴阳标准查表定卦（不再由本地 / AI 推演卦名）
         if (currentLine + 1 === 6) {
-          let pBinary = '';
-          let tBinary = '';
-          const changingIndices: number[] = [];
-
-          updatedLines.forEach(l => {
-            pBinary += l.isYang ? '1' : '0';
-            tBinary += l.changedYang ? '1' : '0';
-            if (l.isChanging) changingIndices.push(l.lineIndex);
-          });
-
-          const pGua = getHexagramByBinary(pBinary) || {
-            number: 1,
-            binary: '111111',
-            symbol: '䷀',
-            nameZh: '乾为天',
-            pinyin: 'Qián',
-            nameEn: 'The Creative',
-            upperTrigram: '乾',
-            lowerTrigram: '乾',
-            judgmentZh: '元亨利贞。天行健，君子以自强不息。',
-            judgmentEn: 'Sublime success through perseverance.',
-            imageZh: '天行健，君子以自强不息。',
-            imageEn: 'Heaven moves with ceaseless power.',
-            careerAdviceZh: '大展宏图的巅峰机遇期，凡事依道而行。',
-            careerAdviceEn: 'A golden window for launching bold ventures.',
-            relationshipAdviceZh: '坦荡相待，以正道感化对方。',
-            relationshipAdviceEn: 'Honesty and mutual respect.'
-          };
-
-          const tGua = changingIndices.length > 0 ? getHexagramByBinary(tBinary) || null : null;
-
-          const completeReading: IChingReading = {
-            lines: updatedLines,
-            primaryHexagram: pGua,
-            transformedHexagram: tGua,
-            changingLineIndices: changingIndices
-          };
-
+          const completeReading: IChingReading = buildReadingFromLines(updatedLines);
           setReading(completeReading);
           if (onReadingReady) onReadingReady(completeReading);
         }
@@ -225,8 +222,8 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
 
 ---
 
-### ䷀ Primary Hexagram: 【${p.nameEn}】
-Hexagram **【${p.nameEn}】** (Upper Trigram ${p.upperTrigram} / Lower Trigram ${p.lowerTrigram}).
+### ${p.symbol} Primary Hexagram: 【${p.nameEn}】
+Hexagram **【${p.nameEn}】** ${p.symbol} (lower ${p.lowerTrigramEn} / upper ${p.upperTrigramEn}).
 > *“${p.judgmentEn}”*
 Image Commentary: *“${p.imageEn}”*
 Your situation reflects the energetic frequency of 【${p.nameEn}】. Internal momentum is consolidating and demanding rigorous strategic alignment.
@@ -250,13 +247,13 @@ This indicates that following the transitional turbulence, matters will resolve 
 ---
 
 ### ✨ I Ching Axiom
-> *“Heaven moves with ceaseless power; the noble navigator cultivates unflagging self-reliance. Harmonize with cosmic momentum, and auspicious progress will follow.”*`
+> *Act in accordance with ${p.nameEn}. The lookup table above is the sole authority on the name, symbol and judgment.*`
         : `针对你所叩问之事：**“${question}”**，铜钱六掷，神谕已成。
 
 ---
 
-### ䷀ 卦象全景与当下时势
-本卦得**【${p.nameZh}】**（${p.upperTrigram}上 / ${p.lowerTrigram}下）。
+### ${p.symbol} 卦象全景与当下时势
+本卦得**【${p.nameZh}】 ${p.symbol}**（下${p.lowerTrigram}上${p.upperTrigram}）。
 > *“${p.judgmentZh}”*
 大象传云：*“${p.imageZh}”*
 当前事情正处于【${p.nameZh}】的节律之中，整体气场反映出内在能量正在蓄势或面临方向上的重新校准。
@@ -266,8 +263,8 @@ This indicates that following the transitional turbulence, matters will resolve 
 ### 🔍 卦爻辞深层映射
 ${reading.lines.map(l => `- 第 ${l.lineIndex} 爻（${l.isYang ? '阳' : '阴'}${l.isChanging ? ' · 动爻 ⚡' : ''}）：得数 ${l.sum}，${l.isChanging ? '主此阶段发生核心转折' : '气象平稳'}。`).join('\n')}
 
-${t ? `### ⚡ 变卦走向：【${t.nameZh}】
-动爻引动气场流转，变卦显化为**【${t.nameZh}】**。
+${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
+动爻引动气场流转，变卦显化为**【${t.nameZh}】 ${t.symbol}**（下${t.lowerTrigram}上${t.upperTrigram}）。
 > *“${t.judgmentZh}”*
 这预示着经过初期的磨合与动荡后，事情将朝着${t.nameZh}所示的方向演进。` : '六爻安静，纯守本卦，宜稳扎稳打。'}
 
@@ -280,7 +277,7 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
 ---
 
 ### ✨ 易道天心箴言
-> *“天地感而万物化生，圣人感人心而天下和平。顺应大势所趋，吉无不利。”*`;
+> *大象传云：“${p.imageZh}”*`;
 
       let i = 0;
       const timer = setInterval(() => {
@@ -477,6 +474,11 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
               <span className="font-serif font-black text-base text-[#111111]">
                 {isEn ? reading.primaryHexagram.nameEn : reading.primaryHexagram.nameZh}
               </span>
+              <p className="mt-1 text-[11px] tracking-[0.08em] text-[#8C6D23]">
+                {isEn
+                  ? `No. ${reading.primaryHexagram.number} · lower ${reading.primaryHexagram.lowerTrigramEn} / upper ${reading.primaryHexagram.upperTrigramEn}`
+                  : `第 ${reading.primaryHexagram.number} 卦 · 下${reading.primaryHexagram.lowerTrigram}上${reading.primaryHexagram.upperTrigram}`}
+              </p>
               <p className="text-[11px] text-[#5C5549] mt-1 line-clamp-2">
                 {isEn ? reading.primaryHexagram.judgmentEn : reading.primaryHexagram.judgmentZh}
               </p>

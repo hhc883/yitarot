@@ -1,4 +1,4 @@
-import { calculateBaZi, BaZiCalculationResult } from './bazi';
+import { BaZiCalculationResult } from './bazi';
 import { IChingReading } from './iching';
 
 export interface BaziAiRequest {
@@ -75,24 +75,39 @@ ${data.fiveElements.map(e => `- ${e.elementZh}：${e.count}个 (${e.percentage}%
 /**
  * 构造六爻占卦的 System & User Prompt
  */
+export const LIUYAO_TABLE_RULE = `【铁律 · 六十四卦标准查表是唯一事实来源】
+下列卦名、卦符、卦辞、大象传、上下卦均由爻线（自初爻至上爻，阳=1、阴=0；下三爻为下卦、上三爻为上卦）查标准六十四卦表得出。
+1. 只能逐字引用；禁止自创、改写、音译或另起任何卦名（如「乾健生生卦」「坤厚柔化卦」等一切非标准名称）。
+2. 禁止自行更换卦符、卦辞、大象传，禁止依据阴阳多寡或凭记忆重新推演卦名。
+3. 若你记忆中的卦名与下表不一致，一律以下表为准。
+4. 解读只可围绕求问之事与下表卦象展开，不得生成表中不存在的卦名、卦符或卦辞。`;
+
+export const LIUYAO_TABLE_RULE_EN = `[HARD RULE · THE 64-HEXAGRAM LOOKUP TABLE IS THE SOLE SOURCE OF TRUTH]
+The names, symbols, judgments, images and trigrams below come from a standard 64-hexagram lookup driven by the six lines (bottom to top, yang=1 / yin=0; lower trigram = first three lines, upper trigram = last three).
+1. Quote them verbatim. Never invent, rename, or substitute any hexagram name (no made-up names such as "乾健生生卦").
+2. Never change the symbol, judgment or image, and never re-derive a name from yin/yang counts or from memory.
+3. If a name you remember disagrees with the table, the table always wins.
+4. Interpret only the inquiry and the hexagrams listed below; do not generate any name, symbol or judgment absent from the table.`;
+
 export function buildLiuYaoPrompt(req: LiuYaoAiRequest): string {
   const { question, reading, lang } = req;
   const p = reading.primaryHexagram;
   const t = reading.transformedHexagram;
 
   if (lang === 'en') {
-    return `You are a revered scholar of classical I Ching 64 Hexagrams, King Wen line casting, and contemporary strategic decision-making.
+    return `You are a revered scholar of the classical I Ching 64 Hexagrams and contemporary strategic decision-making.
+${LIUYAO_TABLE_RULE_EN}
 Inquiry: "${question}"
-Cast Result:
-- 【Primary Hexagram】: No. ${p.number} · ${p.nameEn} (Upper: ${p.upperTrigram} / Lower: ${p.lowerTrigram})
-- Judgment: ${p.judgmentEn}
-- Image: ${p.imageEn}
-${t ? `- 【Transformed Hexagram】: No. ${t.number} · ${t.nameEn} (Upper: ${t.upperTrigram} / Lower: ${t.lowerTrigram})
-- Transformed Judgment: ${t.judgmentEn}
+Cast Result (from lookup table):
+- 【Primary Hexagram】: King Wen No. ${p.number} · ${p.nameZh} / ${p.nameEn} ${p.symbol} (lower ${p.lowerTrigramEn} / upper ${p.upperTrigramEn})
+- Canonical judgment (Chinese, from table): ${p.judgmentZh}
+- Canonical image (Chinese, from table): ${p.imageZh}
+${t ? `- 【Transformed Hexagram】: King Wen No. ${t.number} · ${t.nameZh} / ${t.nameEn} ${t.symbol} (lower ${t.lowerTrigramEn} / upper ${t.upperTrigramEn})
+- Transformed judgment: ${t.judgmentZh}
 - Moving Line Indices: ${reading.changingLineIndices.map(i => `Line ${i}`).join(', ')}` : '- No changing lines; primary hexagram governs fully.'}
 
-Please generate an elegant, rigorous, and insightful I Ching oracle in English:
-# ䷀ Hexagram Overview & Present Timing
+Please generate an elegant, rigorous, and insightful I Ching oracle in English, quoting only the table data above:
+# ${p.symbol} Hexagram Overview & Present Timing
 # 🔍 Line Text Deep Reflection
 # ⚖️ Dynamics of Progression & Transformation
 # 🧭 Strategic Action Principles (DO & DON\'T)
@@ -100,17 +115,18 @@ Please generate an elegant, rigorous, and insightful I Ching oracle in English:
   }
 
   return `你是一位精通周易六十四卦、纳甲六爻与时代决断的易学智者。
+${LIUYAO_TABLE_RULE}
 求问者所决之事：“${question}”
-起卦结果：
-- 【本卦】：第 ${p.number} 卦 · ${p.nameZh}（${p.upperTrigram}上 / ${p.lowerTrigram}下）
-- 卦辞断语：${p.judgmentZh}
+起卦结果（标准六十四卦查表）：
+- 【本卦】：第 ${p.number} 卦 · ${p.nameZh} ${p.symbol}（下${p.lowerTrigram}上${p.upperTrigram}）
+- 卦辞：${p.judgmentZh}
 - 大象传：${p.imageZh}
-${t ? `- 【变卦】：第 ${t.number} 卦 · ${t.nameZh}（${t.upperTrigram}上 / ${t.lowerTrigram}下）
-- 变卦断语：${t.judgmentZh}
+${t ? `- 【变卦】：第 ${t.number} 卦 · ${t.nameZh} ${t.symbol}（下${t.lowerTrigram}上${t.upperTrigram}）
+- 变卦卦辞：${t.judgmentZh}
 - 变动爻位：${reading.changingLineIndices.map(i => `第 ${i} 爻`).join('、')}` : '- 无变爻，纯取本卦体用'}
 
-请为求问者生成结构严谨、辞章典雅的六爻神谕解析：
-# ䷀ 卦象全景与当下时势
+请为求问者生成结构严谨、辞章典雅的六爻神谕解析，且只引用上表：
+# ${p.symbol} 卦象全景与当下时势
 # 🔍 卦爻辞深层映射
 # ⚖️ 本卦与变卦的转机因果
 # 🧭 破局行动指南（应为之事 Do & 当避之戒 Don't）
@@ -209,8 +225,8 @@ export function generateLocalLiuYaoReport(req: LiuYaoAiRequest): string {
 
 ---
 
-### ䷀ Primary Hexagram: 【${p.nameEn}】
-Hexagram **【${p.nameEn}】** (${p.upperTrigram} Upper / ${p.lowerTrigram} Lower).
+### ${p.symbol} Primary Hexagram: 【${p.nameEn}】
+Hexagram **【${p.nameEn}】** ${p.symbol} (lower ${p.lowerTrigramEn} / upper ${p.upperTrigramEn}).
 > *“${p.judgmentEn}”*
 Image Commentary: *“${p.imageEn}”*
 Your situation vibrates with the rhythm of 【${p.nameEn}】. Internal energy is consolidating, prompting deliberate calibration.
@@ -234,15 +250,15 @@ Following initial friction, matters will mature in the direction governed by ${t
 ---
 
 ### ✨ Universal Wisdom
-> *“Heaven moves with ceaseless power; the noble navigator cultivates unflagging self-reliance. Harmonize with cosmic momentum, and auspicious progress will follow.”*`;
+> *Act in accordance with ${p.nameEn}. The lookup table above is the sole authority on the name, symbol and judgment.*`;
   }
 
   return `针对你所叩问之事：**“${question}”**，铜钱六掷，神谕已成。
 
 ---
 
-### ䷀ 卦象全景与当下时势
-本卦得**【${p.nameZh}】**（${p.upperTrigram}上 / ${p.lowerTrigram}下）。
+### ${p.symbol} 卦象全景与当下时势
+本卦得**【${p.nameZh}】 ${p.symbol}**（下${p.lowerTrigram}上${p.upperTrigram}）。
 > *“${p.judgmentZh}”*
 大象传云：*“${p.imageZh}”*
 当前事情正处于【${p.nameZh}】的节律之中，整体气场反映出内在能量正在蓄势或面临方向上的重新校准。
@@ -252,8 +268,8 @@ Following initial friction, matters will mature in the direction governed by ${t
 ### 🔍 卦爻辞深层映射
 ${reading.lines.map(l => `- 第 ${l.lineIndex} 爻（${l.isYang ? '阳' : '阴'}${l.isChanging ? ' · 动爻 ⚡' : ''}）：得数 ${l.sum}，${l.isChanging ? '主此阶段发生核心转折' : '气象平稳'}。`).join('\n')}
 
-${t ? `### ⚡ 变卦走向：【${t.nameZh}】
-动爻引动气场流转，变卦显化为**【${t.nameZh}】**。
+${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
+动爻引动气场流转，变卦显化为**【${t.nameZh}】 ${t.symbol}**（下${t.lowerTrigram}上${t.upperTrigram}）。
 > *“${t.judgmentZh}”*
 这预示着经过初期的磨合与动荡后，事情将朝着${t.nameZh}所示的方向演进。` : '六爻安静，纯守本卦，宜稳扎稳打。'}
 
@@ -266,7 +282,7 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】
 ---
 
 ### ✨ 易道天心箴言
-> *“天地感而万物化生，圣人感人心而天下和平。顺应大势所趋，吉无不利。”*`;
+> *大象传云：“${p.imageZh}”*`;
 }
 
 /**
@@ -284,6 +300,16 @@ export async function* streamLiuYaoReading(req: LiuYaoAiRequest): AsyncGenerator
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            systemInstruction: {
+              parts: [
+                {
+                  text:
+                    req.lang === 'en'
+                      ? LIUYAO_TABLE_RULE_EN
+                      : LIUYAO_TABLE_RULE
+                }
+              ]
+            },
             contents: [{ role: 'user', parts: [{ text: userPrompt }] }]
           })
         }

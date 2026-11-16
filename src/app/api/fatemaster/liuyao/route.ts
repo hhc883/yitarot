@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { streamLiuYaoReading, LiuYaoAiRequest } from '@/lib/metaphysics/fatemaster-ai';
+import { normalizeIChingReading } from '@/lib/metaphysics/iching';
 import { verifyReadingSpend, pointsErrorResponse } from '@/lib/points/server';
 
 export async function POST(req: NextRequest) {
@@ -17,11 +18,22 @@ export async function POST(req: NextRequest) {
     const spend = await verifyReadingSpend(body.points_ref);
     if (!spend.ok) return pointsErrorResponse(spend.status);
 
+    // 以爻线查表结果为准：客户端传来的卦名 / 卦符 / 卦辞一律丢弃，按 6 条爻线重建
+    let request: LiuYaoAiRequest;
+    try {
+      request = { ...body, reading: normalizeIChingReading(body.reading) };
+    } catch {
+      return new Response(JSON.stringify({ error: '卦象爻线数据无效' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of streamLiuYaoReading(body)) {
+          for await (const chunk of streamLiuYaoReading(request)) {
             const data = JSON.stringify({ text: chunk });
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           }
