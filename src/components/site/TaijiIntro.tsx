@@ -2,11 +2,12 @@
 
 import React, { useCallback, useRef } from 'react';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { TaijiMark } from './TaijiMark';
 import { IconArrowUp } from './SiteIcons';
 
-gsap.registerPlugin(useGSAP);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const STORAGE_KEY = 'qicosmos:taiji-opened';
 
@@ -68,6 +69,43 @@ export function TaijiIntro({ lang = 'zh' }: { lang?: string }) {
     { scope: rootRef }
   );
 
+  /**
+   * 上滑：整屏（太极 + 标题 + 提示）以中心为准向外放大并淡出。
+   * 与入场动画分开注册：刷新后入场不重播，但这个滚动动效仍必须存在。
+   * scrub 跟随滚动进度，松手即停、下滑可反向恢复；减弱动效时完全不注册，恢复普通滚动。
+   */
+  useGSAP(
+    () => {
+      const section = rootRef.current;
+      if (!section) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      gsap.fromTo(
+        section,
+        { scale: 1, opacity: 1 },
+        {
+          scale: 1.5,
+          opacity: 0,
+          ease: 'none',
+          transformOrigin: '50% 50%',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top top',
+            end: '+=100%',
+            pin: true,
+            // 不插入额外一屏空白：pin 期间第二屏随文档滚上来，
+            // 滑完约一屏即看到东 / 西入口，点击跳转也不会被多出的间距推偏
+            pinSpacing: false,
+            scrub: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true
+          }
+        }
+      );
+    },
+    { scope: rootRef }
+  );
+
   // 一点即跳过：播放中立刻收束；已结束后再次轻触则进入入口区
   const handleInteraction = useCallback(() => {
     const tl = timelineRef.current;
@@ -101,7 +139,10 @@ export function TaijiIntro({ lang = 'zh' }: { lang?: string }) {
             height: 'min(55vh, 78vw, 600px)'
           }}
         >
-          <TaijiMark size="100%" className="h-full w-full" />
+          {/* 旋转加在内层：外层 markRef 的 transform 由 GSAP 入场动画控制，互不冲突 */}
+          <div className="taiji-spin h-full w-full">
+            <TaijiMark size="100%" className="h-full w-full" />
+          </div>
         </div>
 
         <h1

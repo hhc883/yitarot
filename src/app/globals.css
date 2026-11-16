@@ -332,6 +332,22 @@ body {
   animation: mkt-hint 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
+/* 首页首屏太极：整枚 SVG（含鱼眼）60 秒一圈匀速慢转，入场结束后仍继续 */
+@keyframes taiji-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.taiji-spin {
+  animation: taiji-spin 60s linear infinite;
+  transform-origin: center center;
+  will-change: transform;
+}
+
 /* 尊重系统减弱动效设置：太极静态展示、滚动动效停用 */
 @media (prefers-reduced-motion: reduce) {
   .mkt *,
@@ -342,5 +358,10 @@ body {
     animation-delay: 0ms !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .taiji-spin {
+    animation: none !important;
+    transform: none !important;
   }
 }
