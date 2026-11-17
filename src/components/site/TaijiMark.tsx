@@ -21,7 +21,7 @@ interface TaijiMarkProps {
 export function TaijiMark({
   size = 120,
   className = '',
-  ink = '#0A0A0A',
+  ink = '#171717',
   paper = '#FFFFFF',
   strokeWidth = 1.6
 }: TaijiMarkProps) {

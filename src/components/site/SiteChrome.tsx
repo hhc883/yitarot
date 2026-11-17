@@ -13,7 +13,9 @@ import { SiteFooter } from './SiteFooter';
  */
 export function SiteChrome({ lang, children }: { lang: string; children: React.ReactNode }) {
   const pathname = usePathname() || '';
-  const isMarketing = [
+  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+
+  const exactMarketingPaths = [
     `/${lang}`,
     `/${lang}/east`,
     `/${lang}/west`,
@@ -21,9 +23,12 @@ export function SiteChrome({ lang, children }: { lang: string; children: React.R
     `/${lang}/account`,
     `/${lang}/pricing`,
     `/${lang}/privacy`
-  ].some(
-    (path) => pathname === path || pathname === `${path}/`
-  );
+  ];
+
+  const isMarketing =
+    exactMarketingPaths.includes(normalizedPath) ||
+    normalizedPath === `/${lang}/blog` ||
+    normalizedPath.startsWith(`/${lang}/blog/`);
 
   if (isMarketing) {
     return (

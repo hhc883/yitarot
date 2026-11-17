@@ -10,11 +10,11 @@
 
   /* ⬛️⬜️ 首页 / 东·西 Landing 黑白中性设计令牌 (Marketing System) */
   --font-display: 'Cinzel', 'Noto Serif SC', Georgia, serif;
-  --color-ink: #0A0A0A;      /* 纯黑：主标题、主按钮、主行动 */
-  --color-mist: #F5F5F5;     /* 浅灰卡片底 */
-  --color-line: #ECECEC;     /* 细浅灰边框 */
-  --color-soft: #6B6B6B;     /* 辅助正文 */
-  --color-whisper: #9E9E9E;  /* 次级注释小字 */
+  --color-ink: #171717;      /* 近黑：字标、标题、正文、主按钮、太极深色 */
+  --color-mist: #F5F5F6;     /* 浅灰底：轻微选中底色、结构占位 */
+  --color-line: #E4E4E7;     /* 浅灰：分隔线、装饰边框 */
+  --color-soft: #52525B;     /* 深灰：说明、辅助文字 */
+  --color-whisper: #8A8A91;  /* 灰色：次级辅助、表单控件边界 */
 }
 
 :root {
@@ -332,20 +332,10 @@ body {
   animation: mkt-hint 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
-/* 首页首屏太极：整枚 SVG（含鱼眼）60 秒一圈匀速慢转，入场结束后仍继续 */
-@keyframes taiji-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
+/* 首页首屏太极：A1 静态化，关闭持续自转 */
 .taiji-spin {
-  animation: taiji-spin 60s linear infinite;
-  transform-origin: center center;
-  will-change: transform;
+  animation: none;
+  transform: none;
 }
 
 /* 尊重系统减弱动效设置：太极静态展示、滚动动效停用 */

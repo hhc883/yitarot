@@ -18,7 +18,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const lang = rawLang === 'en' ? 'en' : 'zh';
 
   return (
-    <div className="w-full overflow-x-clip">
+    <div className="w-full overflow-x-clip bg-white">
       <TaijiIntro lang={lang} />
       <PortalEntry lang={lang} />
       <LegacyShowcase lang={lang} />

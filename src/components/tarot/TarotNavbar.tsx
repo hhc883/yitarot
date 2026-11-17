@@ -287,7 +287,7 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
         {/* 左侧品牌区：纯净自然字标，无图标、无标语 */}
         <Link href={`/${lang}`} className="flex items-center gap-2 group shrink-0">
           <span className="font-serif font-black text-xl tracking-tight text-[#111111] group-hover:opacity-80 transition-opacity">
-            QiCosmos
+            YiTatro
           </span>
         </Link>
 
