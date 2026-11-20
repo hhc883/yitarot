@@ -164,8 +164,28 @@ export function FreeDrawConsole({
 
       {/* 卡牌阵列展示 */}
       {!hasMounted ? (
-        <div className="w-full py-16 text-center text-xs font-serif text-[#52525B] animate-pulse">
-          {isEn ? 'Drawing cards from the deck...' : '正在洗牌与抽取中...'}
+        <div
+          className={`w-full ${validInitialCount === 1 ? 'flex justify-center' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3'} gap-6 mb-10 justify-items-center`}
+          aria-label={isEn ? 'Preparing cards...' : '洗牌准备中...'}
+        >
+          {Array.from({ length: validInitialCount }).map((_, i) => (
+            <div
+              key={i}
+              className="w-full max-w-[260px] min-h-[440px] p-4 rounded-xl bg-[#FFFDF9] border border-[#111111]/10 flex flex-col items-center justify-between"
+            >
+              <div className="w-full flex flex-col items-center mb-3">
+                <span className="w-14 h-2.5 rounded bg-[#E4E4E7] animate-pulse block mb-1.5" />
+                <span className="w-20 h-3.5 rounded bg-[#E4E4E7] animate-pulse block" />
+              </div>
+              <div className="relative w-28 h-48 sm:w-32 sm:h-56 rounded-2xl border border-[#C8A858]/30 bg-[#FAF6ED] flex items-center justify-center shadow-xs">
+                <div className="w-10 h-10 rounded-full border border-[#C8A858]/30 border-t-[#111111] animate-spin" />
+              </div>
+              <div className="w-full mt-3 pt-3 border-t border-[#111111]/10 flex flex-col items-center gap-1.5">
+                <span className="w-full h-3 rounded bg-[#E4E4E7] animate-pulse" />
+                <span className="w-3/4 h-2.5 rounded bg-[#E4E4E7] animate-pulse" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className={`w-full ${drawnCards.length === 1 ? 'flex justify-center' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3'} gap-6 mb-10 justify-items-center`}>

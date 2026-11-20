@@ -1,8 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { HeroFloatingCards } from '@/components/tarot/HeroFloatingCards';
-import { DailyDrawWidget } from '@/components/tarot/DailyDrawWidget';
+import { LazyTarotShowcase } from '@/components/tarot/LazyTarotShowcase';
 import { IconScrollBaZi, IconCoinLiuYao, IconZodiacDragon } from '@/components/icons/QiIcons';
 import { CONTAINER } from './constants';
 
@@ -104,10 +103,7 @@ export function LegacyShowcase({ lang = 'zh' }: { lang?: string }) {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
-            <HeroFloatingCards />
-            <DailyDrawWidget lang={lang} />
-          </div>
+          <LazyTarotShowcase lang={lang} />
         </div>
       </section>
 

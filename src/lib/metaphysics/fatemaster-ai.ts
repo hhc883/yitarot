@@ -1,3 +1,4 @@
+import { GoogleGenAI } from '@google/genai';
 import { BaZiCalculationResult } from './bazi';
 import { IChingReading } from './iching';
 
@@ -293,56 +294,24 @@ export async function* streamLiuYaoReading(req: LiuYaoAiRequest): AsyncGenerator
 
   if (apiKey) {
     try {
+      const ai = new GoogleGenAI({ apiKey });
+      const systemInstruction = req.lang === 'en' ? LIUYAO_TABLE_RULE_EN : LIUYAO_TABLE_RULE;
       const userPrompt = buildLiuYaoPrompt(req);
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}&alt=sse`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [
-                {
-                  text:
-                    req.lang === 'en'
-                      ? LIUYAO_TABLE_RULE_EN
-                      : LIUYAO_TABLE_RULE
-                }
-              ]
-            },
-            contents: [{ role: 'user', parts: [{ text: userPrompt }] }]
-          })
+      const stream = await ai.interactions.create({
+        model: 'gemini-4-hydrogen',
+        system_instruction: systemInstruction,
+        input: userPrompt,
+        stream: true
+      });
+
+      for await (const event of stream) {
+        if (event.event_type === 'step.delta' && event.delta?.type === 'text') {
+          yield event.delta.text ?? '';
         }
-      );
-
-      if (response.ok && response.body) {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const json = JSON.parse(line.slice(6));
-                const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) yield text;
-              } catch {
-                // ignore
-              }
-            }
-          }
-        }
-        return;
       }
+      return;
     } catch (err) {
-      console.warn('Gemini 调用受限，平滑切换至内置易经专家引擎:', err);
+      console.warn('Gemini 4 Hydrogen 调用受限，平滑切换至内置易经专家引擎:', err);
     }
   }
 
@@ -363,46 +332,22 @@ export async function* streamBaziReading(data: BaZiCalculationResult, req: BaziA
 
   if (apiKey) {
     try {
+      const ai = new GoogleGenAI({ apiKey });
       const userPrompt = buildBaziPrompt(data, req);
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${apiKey}&alt=sse`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: userPrompt }] }]
-          })
+      const stream = await ai.interactions.create({
+        model: 'gemini-4-hydrogen',
+        input: userPrompt,
+        stream: true
+      });
+
+      for await (const event of stream) {
+        if (event.event_type === 'step.delta' && event.delta?.type === 'text') {
+          yield event.delta.text ?? '';
         }
-      );
-
-      if (response.ok && response.body) {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const json = JSON.parse(line.slice(6));
-                const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) yield text;
-              } catch {
-                // ignore
-              }
-            }
-          }
-        }
-        return;
       }
+      return;
     } catch (err) {
-      console.warn('Gemini 调用受限，平滑切换至内置八字命理引擎:', err);
+      console.warn('Gemini 4 Hydrogen 调用受限，平滑切换至内置八字命理引擎:', err);
     }
   }
 

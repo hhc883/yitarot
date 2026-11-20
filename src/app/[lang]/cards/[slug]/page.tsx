@@ -3,18 +3,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { getAllCards, getCardBySlug } from '@/lib/tarot/deck';
-import { CARD_DETAIL_EN, LocalizedCardDetail } from '@/lib/tarot/card-detail-en';
-import { CARD_DETAIL_MAJOR_EN_A } from '@/lib/tarot/card-detail-major-en-a';
-import { CARD_DETAIL_MAJOR_EN_B } from '@/lib/tarot/card-detail-major-en-b';
+import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { IconLove, IconCareer } from '@/components/icons/QiIcons';
-
-const ALL_CARD_DETAIL_EN: Record<string, LocalizedCardDetail> = {
-  ...CARD_DETAIL_EN,
-  ...CARD_DETAIL_MAJOR_EN_A,
-  ...CARD_DETAIL_MAJOR_EN_B
-};
 
 export async function generateStaticParams() {
   const cards = getAllCards();

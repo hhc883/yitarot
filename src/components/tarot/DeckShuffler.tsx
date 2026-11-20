@@ -140,13 +140,18 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
   const [drawnCards, setDrawnCards] = useState<DrawnCard[]>([]);
   const [flippedStates, setFlippedStates] = useState<boolean[]>([]);
 
+  const prevSpreadIdRef = useRef(spread.id);
+
   // 当牌阵规格改变时，重置抽牌状态
   useEffect(() => {
-    setFanDeck(generateShuffledFanDeck());
-    setDrawnIndices([]);
-    setDrawnCards([]);
-    setFlippedStates([]);
-  }, [spread.id, spread.cardCount]);
+    if (prevSpreadIdRef.current !== spread.id) {
+      prevSpreadIdRef.current = spread.id;
+      setFanDeck(generateShuffledFanDeck());
+      setDrawnIndices([]);
+      setDrawnCards([]);
+      setFlippedStates([]);
+    }
+  }, [spread.id]);
 
   // 使用 GSAP quickSetter 极速更新旋转，开销比常规 setState/gsap.set 低 250%
   const syncRotationFromProxy = useCallback(() => {
@@ -294,91 +299,99 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
   }, [drawnCards.length, drawnIndices, fanDeck, isEn, shuffling, spread.cardCount, spread.positions]);
 
   // 宇宙随缘盲抽：一键按节奏从扇面中抽取剩余卡牌
-  const handleAutoDraw = contextSafe(() => {
-    if (drawnCards.length >= spread.cardCount || shuffling) return;
+  const handleAutoDraw = () => {
+    contextSafe(() => {
+      if (drawnCards.length >= spread.cardCount || shuffling) return;
 
-    const needed = spread.cardCount - drawnCards.length;
-    const availableIndices = fanDeck
-      .map((_, idx) => (!drawnIndices.includes(idx) ? idx : -1))
-      .filter(idx => idx !== -1);
+      const needed = spread.cardCount - drawnCards.length;
+      const availableIndices = fanDeck
+        .map((_, idx) => (!drawnIndices.includes(idx) ? idx : -1))
+        .filter(idx => idx !== -1);
 
-    if (availableIndices.length < needed) return;
+      if (availableIndices.length < needed) return;
 
-    const shuffledAvailable = [...availableIndices].sort(() => Math.random() - 0.5);
-    const chosenIndices = shuffledAvailable.slice(0, needed);
+      const shuffledAvailable = [...availableIndices].sort(() => Math.random() - 0.5);
+      const chosenIndices = shuffledAvailable.slice(0, needed);
 
-    chosenIndices.forEach((fanIdx, i) => {
-      setTimeout(() => {
-        handleCardSelect(fanIdx);
-      }, i * 220);
-    });
-  });
+      chosenIndices.forEach((fanIdx, i) => {
+        setTimeout(() => {
+          handleCardSelect(fanIdx);
+        }, i * 220);
+      });
+    })();
+  };
 
   // 重新洗牌：扇面收拢与重组
-  const handleReshuffle = contextSafe(() => {
-    if (shuffling) return;
-    setShuffling(true);
+  const handleReshuffle = () => {
+    contextSafe(() => {
+      if (shuffling) return;
+      setShuffling(true);
 
-    if (fanPivotRef.current) {
-      gsap.to(fanPivotRef.current, {
-        scale: 0.7,
-        autoAlpha: 0,
-        duration: 0.35,
-        ease: 'power2.in',
-        onComplete: () => {
-          setFanDeck(generateShuffledFanDeck());
-          setDrawnIndices([]);
-          setDrawnCards([]);
-          setFlippedStates([]);
-          if (proxyRef.current) gsap.set(proxyRef.current, { x: 0 });
-          setRotationRef.current?.(0);
-          gsap.set(fanPivotRef.current, { scale: 1, autoAlpha: 1 });
-          setTimeout(() => {
-            setShuffling(false);
-          }, 350);
-        }
-      });
-    } else {
-      setFanDeck(generateShuffledFanDeck());
-      setDrawnIndices([]);
-      setDrawnCards([]);
-      setFlippedStates([]);
-      setTimeout(() => {
-        setShuffling(false);
-      }, 350);
-    }
-  });
+      if (fanPivotRef.current) {
+        gsap.to(fanPivotRef.current, {
+          scale: 0.7,
+          autoAlpha: 0,
+          duration: 0.35,
+          ease: 'power2.in',
+          onComplete: () => {
+            setFanDeck(generateShuffledFanDeck());
+            setDrawnIndices([]);
+            setDrawnCards([]);
+            setFlippedStates([]);
+            if (proxyRef.current) gsap.set(proxyRef.current, { x: 0 });
+            setRotationRef.current?.(0);
+            gsap.set(fanPivotRef.current, { scale: 1, autoAlpha: 1 });
+            setTimeout(() => {
+              setShuffling(false);
+            }, 350);
+          }
+        });
+      } else {
+        setFanDeck(generateShuffledFanDeck());
+        setDrawnIndices([]);
+        setDrawnCards([]);
+        setFlippedStates([]);
+        setTimeout(() => {
+          setShuffling(false);
+        }, 350);
+      }
+    })();
+  };
 
   // 翻开单张卡牌
-  const handleToggleFlip = contextSafe((index: number) => {
-    setFlippedStates(prev => {
-      const next = [...prev];
-      next[index] = !next[index];
-      return next;
-    });
+  const handleToggleFlip = (index: number) => {
+    contextSafe(() => {
+      setFlippedStates(prev => {
+        const next = [...prev];
+        next[index] = !next[index];
+        return next;
+      });
 
-    if (slotsGridRef.current) {
-      const slots = slotsGridRef.current.querySelectorAll('.card-slot');
-      const targetSlot = slots[index];
-      if (targetSlot) {
-        gsap.timeline()
-          .to(targetSlot, { y: -10, scale: 1.03, duration: 0.2, ease: 'power2.out' })
-          .to(targetSlot, { y: 0, scale: 1, duration: 0.35, ease: 'back.out(1.8)', clearProps: 'transform' });
+      if (slotsGridRef.current) {
+        const slots = slotsGridRef.current.querySelectorAll('.card-slot');
+        const targetSlot = slots[index];
+        if (targetSlot) {
+          gsap.timeline()
+            .to(targetSlot, { y: -10, scale: 1.03, duration: 0.2, ease: 'power2.out' })
+            .to(targetSlot, { y: 0, scale: 1, duration: 0.35, ease: 'back.out(1.8)', clearProps: 'transform' });
+        }
       }
-    }
-  });
+    })();
+  };
 
   // 一键翻开所有牌
-  const handleRevealAll = contextSafe(() => {
-    setFlippedStates(new Array(spread.cardCount).fill(true));
+  const handleRevealAll = () => {
+    contextSafe(() => {
+      setFlippedStates(new Array(spread.cardCount).fill(true));
 
-    if (slotsGridRef.current) {
-      const slots = slotsGridRef.current.querySelectorAll('.card-slot');
-      gsap.timeline()
-        .to(slots, { y: -10, scale: 1.025, duration: 0.2, stagger: 0.12, ease: 'power2.out' })
-        .to(slots, { y: 0, scale: 1, duration: 0.4, stagger: 0.12, ease: 'back.out(1.6)', clearProps: 'transform' }, '<0.08');
-    }
-  });
+      if (slotsGridRef.current) {
+        const slots = slotsGridRef.current.querySelectorAll('.card-slot');
+        gsap.timeline()
+          .to(slots, { y: -10, scale: 1.025, duration: 0.2, stagger: 0.12, ease: 'power2.out' })
+          .to(slots, { y: 0, scale: 1, duration: 0.4, stagger: 0.12, ease: 'back.out(1.6)', clearProps: 'transform' }, '<0.08');
+      }
+    })();
+  };
 
   const allDrawn = drawnCards.length === spread.cardCount;
   const allFlipped = allDrawn && flippedStates.length === spread.cardCount && flippedStates.every(Boolean);

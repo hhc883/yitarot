@@ -231,7 +231,7 @@ function getBureau(yearStem: string, lifePalaceBranchIndex: number): { nameZh: s
 // 求紫微星宫位
 function getZiweiIndex(bureauNumber: number, lunarDay: number): number {
   let day = lunarDay;
-  let remainder = day % bureauNumber;
+  const remainder = day % bureauNumber;
   let addCount = 0;
 
   if (remainder !== 0) {

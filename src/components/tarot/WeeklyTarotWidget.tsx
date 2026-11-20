@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
-import { CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
+import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 
 interface WeeklyAspect {
   titleZh: string;
@@ -44,7 +44,7 @@ export function WeeklyTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
   const selected = cards[selectedIndex];
   const aspect = ASPECTS[selectedIndex];
   const aspectTitle = isEn ? aspect.titleEn : aspect.titleZh;
-  const detail = selected && isEn ? CARD_DETAIL_EN[selected.card.slug] : undefined;
+  const detail = selected && isEn ? ALL_CARD_DETAIL_EN[selected.card.slug] : undefined;
   const selectedName = selected ? (isEn ? selected.card.nameEn : selected.card.nameZh) : '';
   const selectedOrientation = selected ? getOrientation(isEn, selected.isReversed) : '';
 

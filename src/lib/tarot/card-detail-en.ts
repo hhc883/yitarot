@@ -1,3 +1,10 @@
+import { CARD_DETAIL_MAJOR_EN_A } from './card-detail-major-en-a';
+import { CARD_DETAIL_MAJOR_EN_B } from './card-detail-major-en-b';
+import { CARD_DETAIL_MINOR_WANDS_EN } from './card-detail-minor-wands-en';
+import { CARD_DETAIL_MINOR_CUPS_EN } from './card-detail-minor-cups-en';
+import { CARD_DETAIL_MINOR_SWORDS_EN } from './card-detail-minor-swords-en';
+import { CARD_DETAIL_MINOR_PENTACLES_EN } from './card-detail-minor-pentacles-en';
+
 export interface LocalizedCardDetail {
   keywords: string[];
   uprightKeywords: string[];
@@ -63,3 +70,17 @@ export const CARD_DETAIL_EN: Record<string, LocalizedCardDetail> = {
       'Open your heart completely to the bounty of the present, and generously share your inner warmth and radiance with everyone around you.'
   }
 };
+
+export const ALL_CARD_DETAIL_EN: Record<string, LocalizedCardDetail> = {
+  ...CARD_DETAIL_EN,
+  ...CARD_DETAIL_MAJOR_EN_A,
+  ...CARD_DETAIL_MAJOR_EN_B,
+  ...CARD_DETAIL_MINOR_WANDS_EN,
+  ...CARD_DETAIL_MINOR_CUPS_EN,
+  ...CARD_DETAIL_MINOR_SWORDS_EN,
+  ...CARD_DETAIL_MINOR_PENTACLES_EN
+};
+
+export function getLocalizedCardDetailEn(slug: string): LocalizedCardDetail | undefined {
+  return ALL_CARD_DETAIL_EN[slug];
+}

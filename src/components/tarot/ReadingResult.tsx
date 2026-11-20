@@ -48,33 +48,90 @@ export function ReadingResult({
     if (!followUpInput.trim() || isAskingFollowUp) return;
 
     const userText = followUpInput.trim();
-    setChatHistory(prev => [...prev, { role: 'user', text: userText }]);
+    const currentHistory = [...chatHistory];
+    setChatHistory(prev => [
+      ...prev,
+      { role: 'user', text: userText },
+      { role: 'assistant', text: '' }
+    ]);
     setFollowUpInput('');
     setIsAskingFollowUp(true);
 
     try {
-      setTimeout(() => {
-        let reply = '';
-        const firstCardName = drawnCards[0]
-          ? (isEn ? drawnCards[0].card.nameEn : drawnCards[0].card.nameZh)
-          : '';
-        if (reader.id === 'luna') {
-          reply = isEn
-            ? `Regarding your follow-up "${userText}", looking at ${firstCardName ? `[${firstCardName}]` : 'the cards'}, this addresses your deep emotional grounding. Give yourself permission to pause and process before deciding.`
-            : `关于你追问的“${userText}”，从牌面来看，这触动了你内心最深沉的安全感需求。牌阵中的【${drawnCards[0]?.card.nameZh || '主牌'}】再次提醒你：不要强迫自己立刻得出所有答案，允许事情有一个缓冲和沉淀的周期。温柔地抱抱现在的自己，你的力量正在悄然汇聚。`;
-        } else if (reader.id === 'sophia') {
-          reply = isEn
-            ? `Regarding "${userText}", logically the core priority relates to what you control. Anchoring on ${firstCardName ? `[${firstCardName}]` : 'the spread'}, delineate non-negotiable boundaries first.`
-            : `针对追问：“${userText}”，逻辑层面上核心矛盾在于权衡的优先级。参考牌面的【${drawnCards[0]?.card.nameZh || '主牌'}】，建议你将关注点从“对方怎么看”转移至“我能掌控的实际行动”。先列出你当下最不可退让的底线，决策自然会变得明朗。`;
-        } else {
-          reply = isEn
-            ? `Regarding "${userText}", like mist dispersing with the wind, ${firstCardName ? `[${firstCardName}]` : 'the cards'} counsel flowing with current timing rather than forcing an immediate breakthrough.`
-            : `你所问的“${userText}”，正如山间迷雾遇风而散。牌面【${drawnCards[0]?.card.nameZh || '主牌'}】所暗示的，正是顺应此时的机缘，不与当下的阻滞硬碰。静心等待三至七日，新的转机便会浮现。`;
+      const response = await fetch('/api/tarot/follow-up', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question,
+          reader,
+          drawnCards,
+          initialInterpretation: interpretationText,
+          followUpHistory: currentHistory.map(m => ({
+            role: m.role,
+            content: m.text
+          })),
+          followUpQuestion: userText,
+          lang
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('追问网络请求失败');
+      }
+
+      const streamReader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (streamReader) {
+        let accumulated = '';
+        while (true) {
+          const { done, value } = await streamReader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6).trim();
+              if (dataStr === '[DONE]') {
+                break;
+              }
+              try {
+                const parsed = JSON.parse(dataStr);
+                if (parsed.text) {
+                  accumulated += parsed.text;
+                  setChatHistory(prev => {
+                    const next = [...prev];
+                    const lastIdx = next.length - 1;
+                    if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
+                      next[lastIdx] = { ...next[lastIdx], text: accumulated };
+                    }
+                    return next;
+                  });
+                }
+              } catch {
+                // Ignore SSE parsing chunk errors
+              }
+            }
+          }
         }
-        setChatHistory(prev => [...prev, { role: 'assistant', text: reply }]);
-        setIsAskingFollowUp(false);
-      }, 1000);
+      }
     } catch {
+      setChatHistory(prev => {
+        const next = [...prev];
+        const lastIdx = next.length - 1;
+        if (lastIdx >= 0 && next[lastIdx].role === 'assistant') {
+          next[lastIdx] = {
+            ...next[lastIdx],
+            text: isEn
+              ? 'Encountered a momentary connection issue. Please feel free to re-ask your question.'
+              : '解答生成遇到了短暂网络波动，请再次尝试发送追问。'
+          };
+        }
+        return next;
+      });
+    } finally {
       setIsAskingFollowUp(false);
     }
   };
@@ -256,7 +313,14 @@ export function ReadingResult({
                         : 'bg-[#F5F5F6] text-[#171717] border border-[#E4E4E7]'
                     }`}
                   >
-                    {msg.text}
+                    {msg.text ? (
+                      msg.text
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-[#52525B] animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#8A8A91] inline-block" />
+                        {isEn ? 'Connecting with the cards...' : '正在静心感应牌意...'}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}

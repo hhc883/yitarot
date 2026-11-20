@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { getAllCards, DrawnCard } from '@/lib/tarot/deck';
-import { CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
+import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
@@ -133,7 +133,7 @@ export function DailyTarotWidget({ lang = 'zh' }: { lang?: string }) {
   const cardName = isEn ? card.nameEn : card.nameZh;
 
   // 英文版牌义检查：优先选用已校正的英文牌义，若仅有中文牌义则标记 lang="zh-CN" 并给出明确中英文提示
-  const enDetail = isEn ? CARD_DETAIL_EN[card.slug] : null;
+  const enDetail = isEn ? ALL_CARD_DETAIL_EN[card.slug] : null;
   const hasEnMeaning = Boolean(enDetail);
   const meaning = isEn
     ? (hasEnMeaning

@@ -5,7 +5,7 @@ import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
-import { CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
+import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 
 function calculateLoveHarmony(cards: DrawnCard[], isEn: boolean): {
   score: number;
@@ -151,7 +151,7 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
           const orientation = isEn
             ? (drawn.isReversed ? 'Reversed' : 'Upright')
             : (drawn.isReversed ? '逆位' : '正位');
-          const translated = isEn ? CARD_DETAIL_EN[drawn.card.slug]?.loveMeaning : undefined;
+          const translated = isEn ? ALL_CARD_DETAIL_EN[drawn.card.slug]?.loveMeaning : undefined;
           const meaning = isEn
             ? (translated ?? drawn.card.loveMeaning)
             : (drawn.isReversed ? drawn.card.reversedMeaning : drawn.card.uprightMeaning);
