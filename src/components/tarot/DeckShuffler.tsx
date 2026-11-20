@@ -26,6 +26,7 @@ if (typeof window !== 'undefined') {
 interface DeckShufflerProps {
   spread: TarotSpread;
   onCardsReady: (drawn: DrawnCard[]) => void;
+  lang?: 'zh' | 'en';
 }
 
 interface FanCardItem {
@@ -122,7 +123,8 @@ const FanCardLeaf = React.memo(function FanCardLeaf({
   );
 });
 
-export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
+export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShufflerProps) {
+  const isEn = lang === 'en';
   const containerRef = useRef<HTMLDivElement>(null);
   const fanContainerRef = useRef<HTMLDivElement>(null);
   const fanPivotRef = useRef<HTMLDivElement>(null);
@@ -261,11 +263,15 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
     setDrawnIndices(prev => [...prev, fanIdx]);
 
     // 2. 存入已抽取牌阵
+    const targetPos = spread.positions[currentSlotIdx];
+    const defaultPosName = isEn ? `Card ${currentSlotIdx + 1}` : `第 ${currentSlotIdx + 1} 张牌`;
+    const resolvedPosName = targetPos ? (isEn && targetPos.enName ? targetPos.enName : targetPos.name) : defaultPosName;
+
     const newCard: DrawnCard = {
       card: targetCard.card,
       isReversed: targetCard.isReversed,
-      positionName: spread.positions[currentSlotIdx]?.name || `第 ${currentSlotIdx + 1} 张牌`,
-      positionDesc: spread.positions[currentSlotIdx]?.description || ''
+      positionName: resolvedPosName,
+      positionDesc: targetPos?.description || ''
     };
 
     setDrawnCards(prev => [...prev, newCard]);
@@ -285,7 +291,7 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
         }
       }, 50);
     }
-  }, [drawnCards.length, drawnIndices, fanDeck, shuffling, spread.cardCount, spread.positions]);
+  }, [drawnCards.length, drawnIndices, fanDeck, isEn, shuffling, spread.cardCount, spread.positions]);
 
   // 宇宙随缘盲抽：一键按节奏从扇面中抽取剩余卡牌
   const handleAutoDraw = contextSafe(() => {
@@ -393,13 +399,21 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
       <div ref={proxyRef} className="hidden pointer-events-none" />
 
       {/* 顶部控制栏与进度条 */}
-      <div className="w-full max-w-4xl flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 rounded-2xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 shadow-xs mb-8">
+      <div className="w-full max-w-4xl flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 rounded-2xl bg-white border border-neutral-200 shadow-sm mb-8">
         <div className="flex items-center gap-2.5">
-          <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FFE59A]/40 text-[#8C6D23] border border-[#E8CF86]/50">
-            {spread.nameZh}
+          <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-900 border border-neutral-300">
+            {isEn ? spread.nameEn || spread.nameZh : spread.nameZh}
           </span>
-          <span className="text-xs text-[#736B5E]">
-            已抽选 <strong className="text-[#1E1B18] font-bold">{drawnCards.length}</strong> / {spread.cardCount} 张牌
+          <span className="text-xs text-neutral-600">
+            {isEn ? (
+              <>
+                Selected <strong className="text-neutral-900 font-bold">{drawnCards.length}</strong> / {spread.cardCount} cards
+              </>
+            ) : (
+              <>
+                已抽选 <strong className="text-neutral-900 font-bold">{drawnCards.length}</strong> / {spread.cardCount} 张牌
+              </>
+            )}
           </span>
         </div>
 
@@ -407,29 +421,29 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
           <button
             onClick={handleReshuffle}
             disabled={shuffling}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#111111] transition-colors ring-1 ring-[#111111]/10 cursor-pointer disabled:opacity-40"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-neutral-100 hover:bg-neutral-200 text-neutral-900 transition-colors border border-neutral-300 cursor-pointer disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${shuffling ? 'animate-spin' : ''}`} />
-            重新洗牌
+            {isEn ? 'Reshuffle' : '重新洗牌'}
           </button>
 
           {!allDrawn ? (
             <button
               onClick={handleAutoDraw}
               disabled={shuffling}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#FFE59A]/50 hover:bg-[#FFE59A]/80 text-[#8C6D23] border border-[#E8CF86]/60 transition-all cursor-pointer hover:scale-102"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-neutral-900 text-white hover:bg-neutral-800 border border-neutral-900 transition-all cursor-pointer hover:scale-102 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
             >
               <Wand2 className="w-3.5 h-3.5" />
-              宇宙随缘盲抽
+              {isEn ? 'Auto Draw' : '自动抽牌'}
             </button>
           ) : (
             !allFlipped && (
               <button
                 onClick={handleRevealAll}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-medium bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] transition-all shadow-sm cursor-pointer hover:scale-102"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-all shadow-sm cursor-pointer hover:scale-102 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
               >
                 <Eye className="w-3.5 h-3.5" />
-                一键翻开所有牌
+                {isEn ? 'Reveal All' : '一键翻开所有牌'}
               </button>
             )
           )}
@@ -453,16 +467,17 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
             const drawnItem = drawnCards[idx];
             const isFlipped = flippedStates[idx] ?? false;
             const isCurrentTarget = idx === drawnCards.length;
+            const posTitle = isEn && pos.enName ? pos.enName : pos.name;
 
             return (
               <div
                 key={idx}
                 className={`card-slot flex flex-col items-center p-3.5 rounded-3xl transition-[border-color,box-shadow] shadow-xs ${
                   drawnItem
-                    ? 'bg-[#FFFDF9]/95 ring-1 ring-[#111111]/10 hover:ring-[#E8CF86]'
+                    ? 'bg-white/95 border border-neutral-200 hover:border-neutral-400'
                     : isCurrentTarget
-                    ? 'bg-[#FFFDF9] ring-2 ring-[#C29026] shadow-md animate-pulse'
-                    : 'bg-[#FFFDF9]/60 ring-1 ring-dashed ring-[#111111]/15 opacity-70'
+                    ? 'bg-white border-2 border-neutral-900 shadow-md animate-pulse'
+                    : 'bg-white/60 border border-dashed border-neutral-300 opacity-70'
                 }`}
               >
                 {/* 站位标题与说明 */}
@@ -470,13 +485,13 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
                   <span
                     className={`inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full mb-1 ${
                       isCurrentTarget
-                        ? 'bg-[#FFE59A] text-[#8C6D23] font-bold shadow-xs'
-                        : 'bg-[#FFE59A]/30 text-[#8C6D23]'
+                        ? 'bg-neutral-900 text-white font-bold shadow-xs'
+                        : 'bg-neutral-100 text-neutral-800 border border-neutral-200'
                     }`}
                   >
-                    {idx + 1}. {pos.name}
+                    {idx + 1}. {posTitle}
                   </span>
-                  <p className="text-[10px] text-[#736B5E] max-w-[160px] line-clamp-1">
+                  <p className="text-[10px] text-neutral-500 max-w-[160px] line-clamp-1">
                     {pos.description}
                   </p>
                 </div>
@@ -489,19 +504,20 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
                       isReversed={drawnItem.isReversed}
                       isFlipped={isFlipped}
                       size="md"
+                      lang={lang}
                       onFlip={() => handleToggleFlip(idx)}
                     />
                     <div className="mt-3 text-center">
                       {!isFlipped ? (
                         <button
                           onClick={() => handleToggleFlip(idx)}
-                          className="text-xs text-[#8C6D23] font-medium hover:underline flex items-center gap-1 cursor-pointer"
+                          className="text-xs text-neutral-900 font-medium hover:underline flex items-center gap-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 rounded-md px-1"
                         >
-                          <Eye className="w-3.5 h-3.5" /> 点击翻开
+                          <Eye className="w-3.5 h-3.5" /> {isEn ? 'Click to reveal' : '点击翻开'}
                         </button>
                       ) : (
-                        <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1 justify-center">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> 已揭示
+                        <span className="text-[11px] text-neutral-900 font-medium flex items-center gap-1 justify-center">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> {isEn ? 'Revealed' : '已揭示'}
                         </span>
                       )}
                     </div>
@@ -511,26 +527,32 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
                     onClick={isCurrentTarget ? handleAutoDraw : undefined}
                     className={`w-36 h-58 rounded-2xl flex flex-col items-center justify-center p-3 text-center select-none ${
                       isCurrentTarget
-                        ? 'border-2 border-dashed border-[#C29026] bg-[#FAF6ED]/80 cursor-pointer hover:bg-[#FAF6ED]'
-                        : 'border border-dashed border-[#111111]/20 bg-[#FAF6ED]/40'
+                        ? 'border-2 border-dashed border-neutral-900 bg-neutral-50 cursor-pointer hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900'
+                        : 'border border-dashed border-neutral-300 bg-neutral-50/50'
                     }`}
+                    tabIndex={isCurrentTarget ? 0 : -1}
+                    onKeyDown={isCurrentTarget ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleAutoDraw(); } } : undefined}
                   >
                     {isCurrentTarget ? (
                       <div className="flex flex-col items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-[#FFE59A]/40 border border-[#E8CF86] flex items-center justify-center text-[#8C6D23] shadow-xs">
+                        <div className="w-10 h-10 rounded-full bg-neutral-100 border border-neutral-300 flex items-center justify-center text-neutral-900 shadow-xs">
                           <Sparkles className="w-5 h-5 animate-spin" />
                         </div>
-                        <span className="text-xs font-serif font-bold text-[#8C6D23]">
-                          待感应抽取
+                        <span className="text-xs font-serif font-bold text-neutral-900">
+                          {isEn ? 'Ready to Draw' : '待感应抽取'}
                         </span>
-                        <p className="text-[10px] text-[#736B5E] leading-tight">
-                          请在下方扇形牌阵中<br />点选任意一张
+                        <p className="text-[10px] text-neutral-500 leading-tight">
+                          {isEn ? (
+                            <>Click any card<br />in the fan below</>
+                          ) : (
+                            <>请在下方扇形牌阵中<br />点选任意一张</>
+                          )}
                         </p>
                       </div>
                     ) : (
-                      <div className="text-center text-[#736B5E]/60 text-xs">
+                      <div className="text-center text-neutral-400 text-xs">
                         <span className="block font-serif text-base mb-1 opacity-50">✦</span>
-                        <span>待抽第 {idx + 1} 牌</span>
+                        <span>{isEn ? `Waiting for card #${idx + 1}` : `待抽第 ${idx + 1} 牌`}</span>
                       </div>
                     )}
                   </div>
@@ -548,20 +570,20 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
                 <button
                   type="button"
                   onClick={handleRevealAll}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] shadow-md text-xs sm:text-sm font-serif font-medium transition-all hover:scale-103 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-black text-white hover:bg-neutral-800 border border-black shadow-md text-xs sm:text-sm font-serif font-medium transition-all hover:scale-103 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
                 >
-                  <Eye className="w-4 h-4 text-[#FFE59A]" />
-                  <span>已选定所有牌 · 点击一键全部翻开</span>
+                  <Eye className="w-4 h-4" />
+                  <span>{isEn ? 'All cards picked · Click to reveal all' : '已选定所有牌 · 点击一键全部翻开'}</span>
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => onCardsReady(drawnCards)}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] shadow-xl border border-[#E8CF86]/40 text-xs sm:text-sm font-serif font-medium transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-black text-white hover:bg-neutral-800 border border-black shadow-xl text-xs sm:text-sm font-serif font-medium transition-all hover:scale-105 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
               >
-                <Sparkles className="w-4 h-4 text-[#FFE59A] animate-spin" />
-                <span>牌阵全部揭晓 · 正在推演解牌中...</span>
+                <Sparkles className="w-4 h-4 animate-spin" />
+                <span>{isEn ? 'All cards revealed · Interpreting spread...' : '牌阵全部揭晓 · 正在推演解牌中...'}</span>
               </button>
             )}
           </div>
@@ -569,36 +591,38 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
       </div>
 
       {/* 下方 78 张纯正圆弧孔雀扇形牌库 (真正的扇形拱曲排开，硬件加速 60 FPS) */}
-      <div className="w-full max-w-5xl rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-5 sm:p-7 shadow-sm overflow-hidden relative">
+      <div className="w-full max-w-5xl rounded-3xl bg-white border border-neutral-200 p-5 sm:p-7 shadow-sm overflow-hidden relative">
         {/* 标题说明条与滑动控制器 */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-2 px-1">
           <div className="flex items-center gap-2">
-            <Hand className="w-4 h-4 text-[#8C6D23]" />
-            <h3 className="font-serif font-bold text-sm sm:text-base text-[#111111]">
-              78 张神谕圣阵 · 孔雀扇形开牌
+            <Hand className="w-4 h-4 text-neutral-900" />
+            <h3 className="font-serif font-bold text-sm sm:text-base text-neutral-900">
+              {isEn ? '78 Tarot Cards · Peacock Fan Spread' : '78 张神谕圣阵 · 孔雀扇形开牌'}
             </h3>
-            <span className="text-[11px] text-[#736B5E] hidden sm:inline">
+            <span className="text-[11px] text-neutral-500 hidden sm:inline">
               {!allDrawn
-                ? `（请抽取第 ${drawnCards.length + 1} 张：${spread.positions[drawnCards.length]?.name}）`
-                : '（全部牌位已选定）'}
+                ? (isEn
+                    ? `(Draw #${drawnCards.length + 1}: ${spread.positions[drawnCards.length]?.enName || spread.positions[drawnCards.length]?.name || `Card ${drawnCards.length + 1}`})`
+                    : `（请抽取第 ${drawnCards.length + 1} 张：${spread.positions[drawnCards.length]?.name}）`)
+                : (isEn ? '(All cards selected)' : '（全部牌位已选定）')}
             </span>
           </div>
 
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => handleSlide('left')}
-              className="p-1.5 rounded-xl bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#111111] transition-colors ring-1 ring-[#111111]/10 cursor-pointer text-xs flex items-center gap-0.5"
-              title="往左旋转牌扇"
+              className="p-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-900 transition-colors border border-neutral-300 cursor-pointer text-xs flex items-center gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+              title={isEn ? 'Rotate fan left' : '往左旋转牌扇'}
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="text-[11px] hidden sm:inline">左旋</span>
+              <span className="text-[11px] hidden sm:inline">{isEn ? 'Left' : '左旋'}</span>
             </button>
             <button
               onClick={() => handleSlide('right')}
-              className="p-1.5 rounded-xl bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#111111] transition-colors ring-1 ring-[#111111]/10 cursor-pointer text-xs flex items-center gap-0.5"
-              title="往右旋转牌扇"
+              className="p-1.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-900 transition-colors border border-neutral-300 cursor-pointer text-xs flex items-center gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+              title={isEn ? 'Rotate fan right' : '往右旋转牌扇'}
             >
-              <span className="text-[11px] hidden sm:inline">右旋</span>
+              <span className="text-[11px] hidden sm:inline">{isEn ? 'Right' : '右旋'}</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -611,11 +635,11 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
           className="relative w-full h-[320px] sm:h-[350px] overflow-hidden select-none cursor-grab active:cursor-grabbing"
         >
           {/* 两侧光晕遮罩 */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-[#FFFDF9] via-[#FFFDF9]/80 to-transparent z-20 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-l from-[#FFFDF9] via-[#FFFDF9]/80 to-transparent z-20 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-white via-white/80 to-transparent z-20 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-l from-white via-white/80 to-transparent z-20 pointer-events-none" />
 
-          {/* 扇面底部发光星辉底座 */}
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-[-140px] w-[500px] h-[300px] rounded-full bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.18)_0%,_transparent_70%)] pointer-events-none blur-xl" />
+          {/* 扇面底部柔和底座 (黑白中性) */}
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[-140px] w-[500px] h-[300px] rounded-full bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0.06)_0%,_transparent_70%)] pointer-events-none blur-xl" />
 
           {/* 扇形旋转中心轴 (所有 78 张卡牌沿 (50%, 460px) 轴心放射扇形排布) */}
           <div
@@ -643,9 +667,13 @@ export function DeckShuffler({ spread, onCardsReady }: DeckShufflerProps) {
         </div>
 
         {/* 底部拖动与交互指引 */}
-        <div className="mt-2 text-center text-xs text-[#736B5E] flex flex-wrap items-center justify-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-[#E8CF86]" />
-          <span>左右拖拽或在扇面滚动滚轮旋转浏览 78 张神谕孔雀扇，凭第一瞬直觉点选抽卡。</span>
+        <div className="mt-2 text-center text-xs text-neutral-500 flex flex-wrap items-center justify-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-neutral-400" />
+          <span>
+            {isEn
+              ? 'Drag horizontally or scroll wheel over fan to browse 78 cards. Pick by intuition.'
+              : '左右拖拽或在扇面滚动滚轮旋转浏览 78 张神谕孔雀扇，凭第一瞬直觉点选抽卡。'}
+          </span>
         </div>
       </div>
     </div>

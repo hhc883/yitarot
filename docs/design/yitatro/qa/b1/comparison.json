@@ -1,0 +1,124 @@
+{
+  "durationUnit": "ms",
+  "format": "paired group medians, three cold loads per group and variant",
+  "jsUnit": "bytes encoded",
+  "data": [
+    {
+      "lang": "zh",
+      "width": 390,
+      "route": "/",
+      "coldJs": "293743 → 294190",
+      "coldLcp": "3116 → 3304",
+      "coldLong": "6 → 7",
+      "cls": "0 → 0",
+      "coldMotion": false,
+      "scroll": {
+        "first": "56 → 105",
+        "p95Frame": "35.8 → 40.5",
+        "long": "0 → 1",
+        "js": "1890 → 17665"
+      }
+    },
+    {
+      "lang": "zh",
+      "width": 768,
+      "route": "/",
+      "coldJs": "293743 → 294190",
+      "coldLcp": "3172 → 5504",
+      "coldLong": "5 → 4",
+      "cls": "0 → 0",
+      "coldMotion": false,
+      "scroll": {
+        "first": "78.2 → 190.3",
+        "p95Frame": "20.9 → 63.5",
+        "long": "3 → 4",
+        "js": "0 → 17665"
+      }
+    },
+    {
+      "lang": "zh",
+      "width": 1440,
+      "route": "/",
+      "coldJs": "311134 → 294190",
+      "coldLcp": "1596 → 3288",
+      "coldLong": "3 → 5",
+      "cls": "0 → 0",
+      "coldMotion": false,
+      "scroll": {
+        "first": "41.3 → 352.4",
+        "p95Frame": "17.4 → 30",
+        "long": "0 → 1",
+        "js": "0 → 20996"
+      }
+    },
+    {
+      "lang": "en",
+      "width": 390,
+      "route": "/",
+      "coldJs": "293743 → 294190",
+      "coldLcp": "4524 → 2604",
+      "coldLong": "9 → 4",
+      "cls": "0 → 0",
+      "coldMotion": false,
+      "scroll": {
+        "first": "351.8 → 323.3",
+        "p95Frame": "42.1 → 38.5",
+        "long": "3 → 0",
+        "js": "0 → 17665"
+      }
+    },
+    {
+      "lang": "en",
+      "width": 768,
+      "route": "/",
+      "coldJs": "293743 → 294190",
+      "coldLcp": "5252 → 2244",
+      "coldLong": "5 → 5",
+      "cls": "0 → 0",
+      "coldMotion": false,
+      "scroll": {
+        "first": "155.6 → 151.7",
+        "p95Frame": "42 → 48.5",
+        "long": "2 → 4",
+        "js": "0 → 17665"
+      }
+    },
+    {
+      "lang": "en",
+      "width": 1440,
+      "route": "/",
+      "coldJs": "311134 → 311581",
+      "coldLcp": "1920 → 1936",
+      "coldLong": "5 → 4",
+      "cls": "0 → 0",
+      "coldMotion": false,
+      "scroll": {
+        "first": "83.7 → 74.2",
+        "p95Frame": "32.1 → 68.5",
+        "long": "0 → 1",
+        "js": "0 → 17665"
+      }
+    },
+    {
+      "lang": "zh",
+      "width": 390,
+      "route": "/fatemaster/liuyao",
+      "coldJs": "306442 → 307446",
+      "coldLcp": "2208 → 2628",
+      "coldLong": "6 → 4",
+      "cls": "0 → 0",
+      "coldMotion": false
+    },
+    {
+      "lang": "en",
+      "width": 390,
+      "route": "/draw",
+      "coldJs": "264858 → 303492",
+      "coldLcp": "4444 → 2128",
+      "coldLong": "8 → 5",
+      "cls": "0.7258 → 0.7258",
+      "coldMotion": false
+    }
+  ],
+  "commitBase": "8152af5"
+}

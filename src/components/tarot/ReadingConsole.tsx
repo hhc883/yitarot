@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { TAROT_SPREADS, TarotSpread, getSpreadById } from '@/lib/tarot/spreads';
 import { TAROT_READERS, TarotReader } from '@/lib/tarot/readers';
 import { DrawnCard } from '@/lib/tarot/deck';
 import { DeckShuffler } from './DeckShuffler';
 import { ReadingResult } from './ReadingResult';
 import { ShareCardModal } from './ShareCardModal';
-import { Sparkles, HelpCircle, ArrowRight, Wand2, Compass } from 'lucide-react';
-import { CategoryIcon, ReaderAvatarIcon } from '@/components/icons/QiIcons';
+import { ArrowRight } from 'lucide-react';
+import { ReaderAvatarIcon } from '@/components/icons/QiIcons';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
+import { READING_COST } from '@/lib/points/constants';
 
 interface CategoryItem {
   id: string;
@@ -109,19 +111,29 @@ function sSummary(s: TarotSpread): string {
   return enSummaries[s.id] || s.summary;
 }
 
-export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defaultCategory?: string; lang?: string }) {
+function ReadingConsoleInner({
+  defaultCategory = 'love',
+  lang = 'zh',
+  initialSpread
+}: {
+  defaultCategory?: string;
+  lang?: string;
+  initialSpread: TarotSpread;
+}) {
   const isEn = lang === 'en';
+
   // 步骤：'input' -> 'shuffle' -> 'result'
   const [step, setStep] = useState<'input' | 'shuffle' | 'result'>('input');
   const [category, setCategory] = useState(defaultCategory);
   const [question, setQuestion] = useState('');
-  const [selectedSpread, setSelectedSpread] = useState<TarotSpread>(TAROT_SPREADS[2]); // 默认圣三角
+  const [selectedSpread, setSelectedSpread] = useState<TarotSpread>(initialSpread);
   const [selectedReader, setSelectedReader] = useState<TarotReader>(TAROT_READERS[0]); // 默认露娜
   const [drawnCards, setDrawnCards] = useState<DrawnCard[]>([]);
   const [interpretationText, setInterpretationText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const pointsGate = usePointsGate();
+  const hasConsumedRef = useRef(false);
 
   // 点击预设问题
   const handleSelectPreset = (q: string) => {
@@ -132,11 +144,15 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
   const handleStartDraw = (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim()) return;
+    hasConsumedRef.current = false;
     setStep('shuffle');
   };
 
-  // 抽牌完毕：先扣 10 积分（失败弹「积分不足」），成功后调用 API 解牌
+  // 抽牌完毕：先扣积分（失败弹「积分不足」），成功后调用 API 解牌
   const handleCardsReady = useCallback(async (cards: DrawnCard[]) => {
+    if (hasConsumedRef.current) return;
+    hasConsumedRef.current = true;
+
     setDrawnCards(cards);
     setStep('result');
     setIsStreaming(true);
@@ -219,45 +235,55 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
       {/* 步骤一：意图输入与配置 */}
       {step === 'input' && (
         <div className="w-full max-w-3xl flex flex-col items-center">
-          {/* 标头 */}
-          <div className="text-center mb-6">
-            <h1 className="font-serif font-black text-2xl sm:text-3xl text-[#1E1B18] tracking-tight">
-              {isEn ? 'AI Tarot Divination' : '塔罗占卜'}
+          {/* 标头与指引 */}
+          <header className="text-center mb-8">
+            <h1 className="font-serif font-bold text-2xl sm:text-3xl lg:text-4xl text-[#171717] tracking-tight">
+              {isEn ? 'Tarot Reading' : '塔罗完整解读'}
             </h1>
-            <p className="text-xs text-[#736B5E] mt-1.5 max-w-sm mx-auto">
+            <p className="text-xs sm:text-sm text-[#52525B] mt-2 max-w-lg mx-auto">
               {isEn
-                ? 'Focus your intention to consult the archetypes of the Rider-Waite deck.'
-                : '凝聚意念，向韦特塔罗叩问当下课题与启示。'}
+                ? 'Clarify your inquiry, pick a spread, and draw the cards for structured insight.'
+                : '凝练心中困惑，选定牌阵与视角，抽牌获取结构化启示。'}
             </p>
-          </div>
+          </header>
 
           {/* 分类选项胶囊 */}
-          <div className="w-full flex flex-wrap justify-center gap-1.5 mb-6">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => setCategory(cat.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-serif transition-all cursor-pointer ${
-                  category === cat.id
-                    ? 'bg-[#1E1B18] text-[#FFFDF9]'
-                    : 'bg-[#FFFDF9] text-[#736B5E] hover:bg-[#F5EFE6] border border-[#1E1B18]/10'
-                }`}
-              >
-                <span>{isEn ? cat.nameEn : cat.nameZh}</span>
-              </button>
-            ))}
+          <div className="w-full flex flex-wrap justify-center gap-2 mb-6">
+            {CATEGORIES.map(cat => {
+              const active = category === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setCategory(cat.id)}
+                  aria-pressed={active}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs transition-colors cursor-pointer border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                    active
+                      ? 'bg-[#171717] text-white border-[#171717]'
+                      : 'bg-white text-[#52525B] border-[#E4E4E7] hover:border-[#8A8A91] hover:text-[#171717]'
+                  }`}
+                >
+                  <span>{isEn ? cat.nameEn : cat.nameZh}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* 提问输入卡片 */}
-          <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#1E1B18]/10 p-5 sm:p-7 shadow-2xs mb-6">
-            <form onSubmit={handleStartDraw} className="flex flex-col gap-4">
+          <div className="w-full rounded-2xl bg-white border border-[#E4E4E7] p-5 sm:p-7 shadow-xs mb-6">
+            <form onSubmit={handleStartDraw} className="flex flex-col gap-5">
               <div>
-                <label className="block text-xs font-serif font-semibold text-[#1E1B18] mb-2">
-                  {isEn ? 'Your Inquiry' : '问题与困惑'}
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="tarot-question-input" className="block text-xs sm:text-sm font-semibold text-[#171717]">
+                    {isEn ? 'Your Question' : '明确你的问题'}
+                  </label>
+                  <span className="text-[11px] text-[#52525B]">
+                    {isEn ? 'Step 1 of 2' : '第 1 步：立意'}
+                  </span>
+                </div>
                 <div className="relative">
                   <textarea
+                    id="tarot-question-input"
                     rows={3}
                     value={question}
                     onChange={e => setQuestion(e.target.value)}
@@ -266,42 +292,48 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
                         ? 'Enter your question, e.g. What are the key catalysts and obstacles in my career right now?'
                         : '输入心中所求之事，如：近期事业发展的转机与阻碍是什么？'
                     }
-                    className="w-full px-3.5 py-3 rounded-xl bg-[#FAF6ED] border border-[#1E1B18]/10 text-xs sm:text-sm text-[#1E1B18] placeholder-[#736B5E]/50 focus:outline-hidden focus:border-[#1E1B18] resize-none"
+                    className="w-full px-3.5 py-3 rounded-xl bg-white border border-[#8A8A91] text-xs sm:text-sm text-[#171717] placeholder-[#52525B]/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] focus:border-[#171717] resize-none"
                   />
                 </div>
               </div>
 
               {/* 常见提问 */}
-              <div className="flex flex-wrap gap-1.5">
-                {(isEn
-                  ? (PRESET_QUESTIONS_EN[category] || PRESET_QUESTIONS_EN.love)
-                  : (PRESET_QUESTIONS_ZH[category] || PRESET_QUESTIONS_ZH.love)
-                ).map((q, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleSelectPreset(q)}
-                    className="text-left text-xs px-2.5 py-1 rounded-lg bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#5C5549] transition-colors border border-[#1E1B18]/5 cursor-pointer font-serif"
-                  >
-                    {q}
-                  </button>
-                ))}
+              <div>
+                <span className="block text-[11px] text-[#52525B] mb-2">
+                  {isEn ? 'Recommended inquiries:' : '参考常见提问：'}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {(isEn
+                    ? (PRESET_QUESTIONS_EN[category] || PRESET_QUESTIONS_EN.love)
+                    : (PRESET_QUESTIONS_ZH[category] || PRESET_QUESTIONS_ZH.love)
+                  ).map((q, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectPreset(q)}
+                      className="text-left text-xs px-2.5 py-1.5 rounded-lg bg-[#F5F5F6] hover:bg-[#E4E4E7] text-[#171717] transition-colors border border-[#E4E4E7] hover:border-[#8A8A91] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* 牌阵与塔罗师选择 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#1E1B18]/8 mt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-5 border-t border-[#E4E4E7]">
                 {/* 牌阵选择 */}
                 <div>
-                  <label className="block text-xs font-serif font-semibold text-[#1E1B18] mb-1.5">
-                    {isEn ? 'Spread' : '牌阵'}
+                  <label htmlFor="tarot-spread-select" className="block text-xs sm:text-sm font-semibold text-[#171717] mb-1.5">
+                    {isEn ? 'Tarot Spread' : '解读牌阵'}
                   </label>
                   <select
+                    id="tarot-spread-select"
                     value={selectedSpread.id}
                     onChange={e => {
                       const sp = getSpreadById(e.target.value);
                       if (sp) setSelectedSpread(sp);
                     }}
-                    className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#1E1B18]/10 text-xs text-[#1E1B18] focus:outline-hidden focus:border-[#1E1B18]"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-[#8A8A91] text-xs sm:text-sm text-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] focus:border-[#171717]"
                   >
                     {TAROT_SPREADS.map(s => (
                       <option key={s.id} value={s.id}>
@@ -309,82 +341,109 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11px] font-serif text-[#736B5E] mt-1">
+                  <p className="text-[11px] text-[#52525B] mt-1.5 leading-relaxed">
                     {isEn ? sSummary(selectedSpread) : selectedSpread.summary}
                   </p>
                 </div>
 
                 {/* 塔罗师人设选择 */}
                 <div>
-                  <label className="block text-xs font-serif font-semibold text-[#1E1B18] mb-1.5">
-                    {isEn ? 'Reader Perspective' : '解牌视角'}
-                  </label>
+                  <span className="block text-xs sm:text-sm font-semibold text-[#171717] mb-1.5">
+                    {isEn ? 'Interpretation Perspective' : '解读视角'}
+                  </span>
                   <div className="flex gap-2">
-                    {TAROT_READERS.map(r => (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setSelectedReader(r)}
-                        className={`flex-1 flex flex-col items-center p-2 rounded-xl text-center border transition-all cursor-pointer ${
-                          selectedReader.id === r.id
-                            ? 'bg-[#FAF6ED] border-[#111111] text-[#1E1B18]'
-                            : 'bg-white border-[#1E1B18]/10 text-[#736B5E] hover:bg-[#FAF6ED]/50'
-                        }`}
-                      >
-                        <ReaderAvatarIcon
-                          id={r.id}
-                          size={20}
-                          className={`mb-1 transition-colors ${
-                            selectedReader.id === r.id ? 'text-[#8C6D23]' : 'text-[#736B5E]'
+                    {TAROT_READERS.map(r => {
+                      const selected = selectedReader.id === r.id;
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => setSelectedReader(r)}
+                          aria-pressed={selected}
+                          className={`flex-1 flex flex-col items-center p-2.5 rounded-xl text-center border transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                            selected
+                              ? 'bg-[#171717] text-white border-[#171717]'
+                              : 'bg-white text-[#52525B] border-[#E4E4E7] hover:border-[#8A8A91] hover:text-[#171717]'
                           }`}
-                        />
-                        <span className="text-xs font-serif font-semibold">
-                          {isEn ? r.id.toUpperCase() : r.name.split('·')[0]}
-                        </span>
-                        <span className="text-[10px] text-[#8C6D23] font-serif">
-                          {isEn ? r.titleEn : r.titleZh}
-                        </span>
-                      </button>
-                    ))}
+                        >
+                          <ReaderAvatarIcon
+                            id={r.id}
+                            size={20}
+                            className={`mb-1 transition-colors ${
+                              selected ? 'text-white' : 'text-[#52525B]'
+                            }`}
+                          />
+                          <span className="text-xs font-semibold">
+                            {isEn ? r.id.toUpperCase() : r.name.split('·')[0]}
+                          </span>
+                          <span className={`text-[10px] mt-0.5 ${selected ? 'text-zinc-300' : 'text-[#52525B]'}`}>
+                            {isEn ? r.titleEn : r.titleZh}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
 
               {/* 提交按钮 */}
-              <div className="pt-3 mt-1">
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={!question.trim()}
-                  className="w-full py-3 rounded-xl bg-[#1E1B18] hover:bg-[#38332D] text-[#FFFDF9] font-serif text-xs tracking-wider flex items-center justify-center gap-2 disabled:opacity-40 transition-all cursor-pointer"
+                  className="w-full py-3 px-4 rounded-xl bg-[#171717] hover:bg-black text-white text-xs sm:text-sm font-medium tracking-wide flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer border border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                 >
-                  <span>{isEn ? 'Begin Draw' : '开始抽牌'}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <span>{isEn ? 'Proceed to Draw' : '进入抽牌'}</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
+                <p className="text-center text-[11px] text-[#52525B] mt-2">
+                  {isEn
+                    ? `Sign-in required · Costs ${READING_COST} points · Next: shuffle and pick cards`
+                    : `需登录 · 每次消耗 ${READING_COST} 积分 · 下一步：洗牌与逐一选牌`}
+                </p>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* 步骤二：洗牌与 3D 抽牌 */}
+      {/* 步骤二：洗牌与 3D 抽牌 (中性舞台包裹层) */}
       {step === 'shuffle' && (
-        <div className="w-full flex flex-col items-center animate-in fade-in duration-500">
-          <div className="text-center mb-6">
-            <h2 className="font-serif font-bold text-xl text-[#1E1B18]">
+        <div className="w-full flex flex-col items-center animate-in fade-in duration-300">
+          <header className="text-center mb-6 max-w-xl px-4">
+            <span className="inline-block text-[11px] uppercase tracking-wider font-semibold text-[#52525B] bg-[#F5F5F6] border border-[#E4E4E7] px-2.5 py-0.5 rounded-full mb-2">
+              {isEn ? 'Step 2: Card Drawing' : '第 2 步：抽取牌面'}
+            </span>
+            <h2 className="font-serif font-bold text-lg sm:text-xl text-[#171717] break-words">
               “{question}”
             </h2>
-            <p className="text-xs font-serif text-[#736B5E] mt-1">
-              {isEn ? 'Reveal the cards one by one' : '逐一揭开卡牌'}
+            <p className="text-xs text-[#52525B] mt-1.5">
+              {isEn
+                ? `Spread: ${selectedSpread.nameEn} · Select ${selectedSpread.cardCount} cards in sequence`
+                : `所选牌阵：${selectedSpread.nameZh} · 请依序抽取 ${selectedSpread.cardCount} 张牌`}
             </p>
+          </header>
+
+          {/* 纯净中性舞台容器 */}
+          <div className="w-full rounded-2xl bg-white border border-[#E4E4E7] p-4 sm:p-6 shadow-xs flex flex-col items-center">
+            <DeckShuffler spread={selectedSpread} onCardsReady={handleCardsReady} lang={isEn ? 'en' : 'zh'} />
           </div>
 
-          <DeckShuffler spread={selectedSpread} onCardsReady={handleCardsReady} />
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-xs text-[#52525B] hover:text-[#171717] underline underline-offset-4 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+            >
+              {isEn ? 'Cancel and return to edit question' : '放弃并返回修改问题'}
+            </button>
+          </div>
         </div>
       )}
 
       {/* 步骤三：AI 解读报告呈现 */}
       {step === 'result' && (
-        <div className="w-full animate-in fade-in duration-700">
+        <div className="w-full animate-in fade-in duration-500">
           <ReadingResult
             question={question}
             reader={selectedReader}
@@ -393,6 +452,7 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
             isStreaming={isStreaming}
             onReset={handleReset}
             onOpenShareModal={() => setIsShareModalOpen(true)}
+            lang={lang}
           />
         </div>
       )}
@@ -406,5 +466,20 @@ export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defa
         drawnCards={drawnCards}
       />
     </div>
+  );
+}
+
+export function ReadingConsole({ defaultCategory = 'love', lang = 'zh' }: { defaultCategory?: string; lang?: string }) {
+  const searchParams = useSearchParams();
+  const spreadParam = searchParams.get('spread');
+  const validatedSpread = (spreadParam && getSpreadById(spreadParam)) || TAROT_SPREADS[2];
+
+  return (
+    <ReadingConsoleInner
+      key={validatedSpread.id}
+      defaultCategory={defaultCategory}
+      lang={lang}
+      initialSpread={validatedSpread}
+    />
   );
 }

@@ -1,18 +1,61 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import { RefreshCw } from 'lucide-react';
 
-export function FreeDrawConsole({ lang = 'zh' }: { lang?: string }) {
+export function FreeDrawConsole({
+  lang = 'zh',
+  initialCount = 3,
+}: {
+  lang?: string;
+  initialCount?: number;
+}) {
   const isEn = lang === 'en';
-  const [cardCount, setCardCount] = useState<number>(3);
-  const [drawnCards, setDrawnCards] = useState<DrawnCard[]>(() => drawRandomCards(3));
-  const [flippedCards, setFlippedCards] = useState<Record<number, boolean>>({ 0: true, 1: true, 2: true });
+  const validInitialCount = initialCount === 1 ? 1 : 3;
+
+  const [cardCount, setCardCount] = useState<number>(validInitialCount);
+  const [drawnCards, setDrawnCards] = useState<DrawnCard[]>([]);
+  const [flippedCards, setFlippedCards] = useState<Record<number, boolean>>({});
   const [isShuffling, setIsShuffling] = useState<boolean>(false);
+  const [hasMounted, setHasMounted] = useState<boolean>(false);
+
+  const shuffleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef<boolean>(true);
+  const cardCountRef = useRef<number>(validInitialCount);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (shuffleTimeoutRef.current) {
+        clearTimeout(shuffleTimeoutRef.current);
+        shuffleTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => {
+      if (!isMountedRef.current) return;
+      const cards = drawRandomCards(validInitialCount);
+      setDrawnCards(cards);
+      const flipped: Record<number, boolean> = {};
+      for (let i = 0; i < validInitialCount; i++) flipped[i] = true;
+      setFlippedCards(flipped);
+      setHasMounted(true);
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [validInitialCount]);
 
   const handleCardCountChange = (count: number) => {
+    if (shuffleTimeoutRef.current) {
+      clearTimeout(shuffleTimeoutRef.current);
+      shuffleTimeoutRef.current = null;
+    }
+    setIsShuffling(false);
+    cardCountRef.current = count;
     setCardCount(count);
     const newCards = drawRandomCards(count);
     setDrawnCards(newCards);
@@ -22,12 +65,19 @@ export function FreeDrawConsole({ lang = 'zh' }: { lang?: string }) {
   };
 
   const handleShuffle = () => {
+    if (shuffleTimeoutRef.current) {
+      clearTimeout(shuffleTimeoutRef.current);
+      shuffleTimeoutRef.current = null;
+    }
     setIsShuffling(true);
-    setTimeout(() => {
-      const newCards = drawRandomCards(cardCount);
+    shuffleTimeoutRef.current = setTimeout(() => {
+      shuffleTimeoutRef.current = null;
+      if (!isMountedRef.current) return;
+      const currentCount = cardCountRef.current;
+      const newCards = drawRandomCards(currentCount);
       setDrawnCards(newCards);
       const flipped: Record<number, boolean> = {};
-      for (let i = 0; i < cardCount; i++) flipped[i] = false;
+      for (let i = 0; i < currentCount; i++) flipped[i] = false;
       setFlippedCards(flipped);
       setIsShuffling(false);
     }, 400);
@@ -41,8 +91,9 @@ export function FreeDrawConsole({ lang = 'zh' }: { lang?: string }) {
   };
 
   const flipAll = () => {
+    const currentCount = cardCountRef.current;
     const flipped: Record<number, boolean> = {};
-    for (let i = 0; i < cardCount; i++) flipped[i] = true;
+    for (let i = 0; i < currentCount; i++) flipped[i] = true;
     setFlippedCards(flipped);
   };
 
@@ -53,7 +104,7 @@ export function FreeDrawConsole({ lang = 'zh' }: { lang?: string }) {
         <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
           {isEn ? 'Free Tarot Draw' : '自由抽牌'}
         </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-1.5 max-w-md mx-auto">
+        <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-1.5 max-w-md mx-auto">
           {isEn
             ? 'Free from fixed spread boundaries. Select 1 to 6 cards to mirror your present subconscious state.'
             : '无需固定牌阵束缚。自由设定抽取 1 至 6 张卡牌，探寻当下潜意识的真实镜像。'}
@@ -61,27 +112,32 @@ export function FreeDrawConsole({ lang = 'zh' }: { lang?: string }) {
       </div>
 
       {/* 控制工具条 (Linear 极简风) */}
-      <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-4 shadow-2xs mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="w-full rounded-xl bg-white border border-[#111111]/10 p-4 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* 卡牌数量切换 */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-serif text-[#736B5E]">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+          <span className="text-xs font-serif text-[#52525B]">
             {isEn ? 'Cards to draw:' : '抽取数量：'}
           </span>
-          <div className="flex gap-1">
-            {[1, 2, 3, 4, 5, 6].map(num => (
-              <button
-                key={num}
-                type="button"
-                onClick={() => handleCardCountChange(num)}
-                className={`w-8 h-8 rounded-lg text-xs font-serif transition-all cursor-pointer ${
-                  cardCount === num
-                    ? 'bg-[#111111] text-[#FFFDF9]'
-                    : 'bg-[#FAF6ED] text-[#736B5E] hover:bg-[#F2ECE1]'
-                }`}
-              >
-                {num}
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-1 justify-center" role="group" aria-label={isEn ? 'Number of cards to draw' : '抽牌数量选择'}>
+            {[1, 2, 3, 4, 5, 6].map(num => {
+              const isSelected = cardCount === num;
+              return (
+                <button
+                  key={num}
+                  type="button"
+                  aria-pressed={isSelected}
+                  aria-label={isEn ? `Draw ${num} card${num > 1 ? 's' : ''}` : `抽取 ${num} 张牌`}
+                  onClick={() => handleCardCountChange(num)}
+                  className={`w-8 h-8 rounded-lg text-xs font-serif transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#111111] text-white'
+                      : 'bg-[#F5F5F6] text-[#52525B] hover:bg-[#E4E4E7]'
+                  }`}
+                >
+                  {num}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -90,7 +146,7 @@ export function FreeDrawConsole({ lang = 'zh' }: { lang?: string }) {
           <button
             type="button"
             onClick={flipAll}
-            className="px-3.5 py-1.5 rounded-lg bg-[#FAF6ED] hover:bg-[#F2ECE1] text-xs font-serif text-[#111111] border border-[#111111]/10 transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-[#F5F5F6] hover:bg-[#E4E4E7] text-xs font-serif text-[#111111] border border-[#111111]/10 transition-colors cursor-pointer"
           >
             {isEn ? 'Flip All' : '全部翻开'}
           </button>
@@ -98,7 +154,7 @@ export function FreeDrawConsole({ lang = 'zh' }: { lang?: string }) {
             type="button"
             onClick={handleShuffle}
             disabled={isShuffling}
-            className="px-4 py-1.5 rounded-lg bg-[#111111] hover:bg-[#333333] text-xs font-serif text-[#FFFDF9] tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+            className="px-4 py-1.5 rounded-lg bg-[#111111] hover:bg-[#333333] text-xs font-serif text-white tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
           >
             <RefreshCw className={`w-3 h-3 ${isShuffling ? 'animate-spin' : ''}`} />
             <span>{isEn ? 'Reshuffle' : '重新洗牌'}</span>
@@ -107,56 +163,62 @@ export function FreeDrawConsole({ lang = 'zh' }: { lang?: string }) {
       </div>
 
       {/* 卡牌阵列展示 */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-10 justify-items-center">
-        {drawnCards.map((drawn, index) => {
-          const isFlipped = flippedCards[index] ?? false;
-          const cardName = isEn ? drawn.card.nameEn : drawn.card.nameZh;
-          const orientationStr = isEn
-            ? (drawn.isReversed ? 'Reversed' : 'Upright')
-            : (drawn.isReversed ? '逆位' : '正位');
-          const meaning = drawn.isReversed
-            ? drawn.card.reversedMeaning
-            : drawn.card.uprightMeaning;
+      {!hasMounted ? (
+        <div className="w-full py-16 text-center text-xs font-serif text-[#52525B] animate-pulse">
+          {isEn ? 'Drawing cards from the deck...' : '正在洗牌与抽取中...'}
+        </div>
+      ) : (
+        <div className={`w-full ${drawnCards.length === 1 ? 'flex justify-center' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3'} gap-6 mb-10 justify-items-center`}>
+          {drawnCards.map((drawn, index) => {
+            const isFlipped = flippedCards[index] ?? false;
+            const cardName = isEn ? drawn.card.nameEn : drawn.card.nameZh;
+            const orientationStr = isEn
+              ? (drawn.isReversed ? 'Reversed' : 'Upright')
+              : (drawn.isReversed ? '逆位' : '正位');
+            const meaning = drawn.isReversed
+              ? drawn.card.reversedMeaning
+              : drawn.card.uprightMeaning;
 
-          return (
-            <div
-              key={index}
-              className="w-full max-w-[260px] p-4 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 flex flex-col items-center justify-between shadow-2xs hover:border-[#111111]/25 transition-all"
-            >
-              <div className="w-full text-center mb-3">
-                <span className="text-[10px] font-mono tracking-widest text-[#736B5E] uppercase block">
-                  CARD {index + 1}
-                </span>
-                <span className="text-xs font-serif font-bold text-[#111111]">
-                  {cardName}
-                </span>
-                <span className="text-[10px] font-serif text-[#736B5E] block">
-                  ({orientationStr})
-                </span>
-              </div>
+            return (
+              <div
+                key={index}
+                className="w-full max-w-[260px] p-4 rounded-xl bg-white border border-[#111111]/10 flex flex-col items-center justify-between hover:border-[#111111]/25 transition-all"
+              >
+                <div className="w-full text-center mb-3">
+                  <span className="text-[10px] font-mono tracking-widest text-[#52525B] uppercase block">
+                    CARD {index + 1}
+                  </span>
+                  <span className="text-xs font-serif font-bold text-[#111111]">
+                    {cardName}
+                  </span>
+                  <span className="text-[10px] font-serif text-[#52525B] block">
+                    ({orientationStr})
+                  </span>
+                </div>
 
-              <div className="my-2">
-                <TarotCardView
-                  card={drawn.card}
-                  isReversed={drawn.isReversed}
-                  isFlipped={isFlipped}
-                  size="sm"
-                  onFlip={() => toggleFlip(index)}
-                />
-              </div>
+                <div className="my-2">
+                  <TarotCardView
+                    card={drawn.card}
+                    isReversed={drawn.isReversed}
+                    isFlipped={isFlipped}
+                    size="sm"
+                    onFlip={() => toggleFlip(index)}
+                  />
+                </div>
 
-              <div className="w-full mt-3 pt-3 border-t border-[#111111]/8 text-left">
-                <p className="text-[11px] font-serif leading-relaxed text-[#444444] line-clamp-3">
-                  {meaning}
-                </p>
+                <div className="w-full mt-3 pt-3 border-t border-[#111111]/8 text-left">
+                  <p className="text-[11px] font-serif leading-relaxed text-[#444444] line-clamp-3">
+                    {meaning}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* 综合启示 */}
-      <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 sm:p-8 shadow-2xs text-xs font-serif leading-relaxed text-[#111111] space-y-3">
+      <div className="w-full rounded-xl bg-white border border-[#111111]/10 p-6 sm:p-8 text-xs font-serif leading-relaxed text-[#111111] space-y-3">
         <h3 className="font-serif font-black text-base text-[#111111] pb-2 border-b border-[#111111]/8">
           {isEn ? 'Subconscious Mirror & Synthesis' : '潜意识能量投射与综合启示'}
         </h3>

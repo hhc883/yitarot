@@ -20,11 +20,11 @@ export default async function MeihuaPage({
   const lang = rawLang === 'en' ? 'en' : 'zh';
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-12 sm:py-16">
+    <div className="w-full max-w-5xl mx-auto px-4 py-8 sm:py-12">
       <Suspense
         fallback={
-          <div className="py-20 text-center text-xs font-serif text-[#736B5E] animate-pulse">
-            正在感应时空心易气场...
+          <div className="py-20 text-center text-xs text-zinc-500 animate-pulse">
+            {lang === 'en' ? 'Synchronizing divination state...' : '正在排定卦象气场...'}
           </div>
         }
       >

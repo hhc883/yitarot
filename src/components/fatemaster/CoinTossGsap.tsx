@@ -295,8 +295,8 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
   return (
     <div ref={containerRef} className="w-full max-w-4xl mx-auto flex flex-col items-center">
       {/* 提问框 */}
-      <div className="w-full max-w-2xl mb-8 p-4 sm:p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-2xs">
-        <label className="block text-xs font-serif font-semibold text-[#736B5E] mb-2">
+      <div className="w-full max-w-2xl mb-8 p-4 sm:p-5 rounded-2xl bg-white border border-[#E4E4E7] shadow-2xs">
+        <label className="block text-xs font-serif font-semibold text-[#52525B] mb-2">
           {isEn ? 'Inquiry Focus' : '所求之事'}
         </label>
         <input
@@ -304,18 +304,18 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
           value={question}
           onChange={e => setQuestion(e.target.value)}
           placeholder={isEn ? 'State your question, pending decision, or venture...' : '输入心中所问之事或决策困惑...'}
-          className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-sm text-[#111111] placeholder-[#736B5E]/50 focus:outline-hidden focus:border-[#111111]"
+          className="w-full px-3.5 py-2.5 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] text-sm text-[#171717] placeholder-[#52525B]/50 focus:outline-hidden focus:border-[#171717]"
         />
       </div>
 
       <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         {/* 左侧：3D 铜钱抛掷台 */}
-        <div className="md:col-span-7 flex flex-col items-center p-6 sm:p-8 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-2xs text-center">
+        <div className="md:col-span-7 flex flex-col items-center p-6 sm:p-8 rounded-2xl bg-white border border-[#E4E4E7] shadow-2xs text-center">
           <div className="flex items-center justify-between w-full mb-6">
-            <span className="text-xs font-serif font-bold text-[#111111]">
+            <span className="text-xs font-serif font-bold text-[#171717]">
               {isEn ? 'I Ching Coin Toss' : '金钱起卦'}
             </span>
-            <span className="text-xs font-serif text-[#736B5E]">
+            <span className="text-xs font-serif text-[#52525B]">
               {currentLine === 6 ? (isEn ? 'Complete' : '六爻已成') : (isEn ? `Line ${currentLine + 1} / 6` : `第 ${currentLine + 1} 爻 / 共 6 爻`)}
             </span>
           </div>
@@ -323,7 +323,7 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
           {/* 铜钱展示区 (3D 抛掷台) */}
           <div className="relative w-full h-44 sm:h-52 flex items-center justify-center gap-4 sm:gap-6 my-2 perspective-1000">
             {/* 铜钱阴影台面 */}
-            <div className="absolute bottom-4 inset-x-8 h-8 rounded-full bg-[#111111]/5 blur-md pointer-events-none" />
+            <div className="absolute bottom-4 inset-x-8 h-8 rounded-full bg-black/5 blur-md pointer-events-none" />
 
             {/* 三枚乾隆通宝铜钱 */}
             {[
@@ -341,7 +341,7 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
                   {/* 外圆内方铜钱纹样 */}
                   <div className="w-full h-full rounded-full border border-[#8B6508]/60 flex items-center justify-center relative bg-[#C59B27]/90 shadow-inner">
                     {/* 方孔 */}
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-[#FFFDF9] border border-[#8B6508] shadow-inner" />
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white border border-[#8B6508] shadow-inner" />
 
                     {/* 乾隆通宝四字 */}
                     <span className="absolute top-1 text-[9px] sm:text-[10px] font-serif font-black text-[#4A3B18]">
@@ -368,7 +368,7 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
               <button
                 onClick={handleCastNextLine}
                 disabled={isFlipping}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] font-serif text-xs tracking-wider transition-all cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#171717] hover:bg-[#333333] text-white font-serif text-xs tracking-wider transition-all cursor-pointer"
               >
                 <span>
                   {isFlipping
@@ -378,12 +378,12 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
               </button>
             ) : (
               <div className="flex items-center gap-3">
-                <span className="text-xs font-serif text-[#111111] flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#8C6D23]" /> {isEn ? 'Hexagram Complete' : '六爻已成'}
+                <span className="text-xs font-serif text-[#171717] flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#171717]" /> {isEn ? 'Hexagram Complete' : '六爻已成'}
                 </span>
                 <button
                   onClick={handleReset}
-                  className="px-3 py-1.5 rounded-lg text-xs font-serif bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#111111] transition-colors border border-[#111111]/10 flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg text-xs font-serif bg-[#F5F5F6] hover:bg-[#E4E4E7] text-[#171717] transition-colors border border-[#E4E4E7] flex items-center gap-1 cursor-pointer"
                 >
                   <RotateCcw className="w-3 h-3" /> {isEn ? 'Reset' : '重起'}
                 </button>
@@ -395,10 +395,10 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
         {/* 右侧：六爻逐层筑构面板 */}
         <div
           ref={linesBoardRef}
-          className="md:col-span-5 flex flex-col p-6 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-2xs"
+          className="md:col-span-5 flex flex-col p-4 sm:p-6 rounded-2xl bg-white border border-[#E4E4E7] shadow-2xs"
         >
-          <div className="flex items-center justify-between mb-4 border-b border-[#111111]/8 pb-2">
-            <h4 className="font-serif font-bold text-xs text-[#111111]">
+          <div className="flex items-center justify-between mb-4 border-b border-[#E4E4E7] pb-2">
+            <h4 className="font-serif font-bold text-xs text-[#171717]">
               {isEn ? 'Hexagram Lines' : '卦爻'}
             </h4>
           </div>
@@ -410,9 +410,9 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
               return (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-2 rounded-xl bg-[#FAF6ED] ring-1 ring-[#111111]/5 text-xs"
+                  className="flex items-center justify-between p-2 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] text-xs gap-1 sm:gap-2"
                 >
-                  <span className="font-serif text-[11px] text-[#736B5E] w-14">
+                  <span className="font-serif text-[11px] text-[#52525B] w-12 sm:w-14 shrink-0">
                     {idx === 1
                       ? (isEn ? 'Line 1' : '初爻')
                       : idx === 6
@@ -421,37 +421,37 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
                   </span>
 
                   {/* 爻线图形 (阳爻、阴爻、动爻统一严格等长 112px，左右对齐) */}
-                  <div className="flex-1 flex justify-center px-2">
-                    <div className="relative w-28 h-2 flex items-center justify-between">
+                  <div className="flex-1 flex justify-center px-1 sm:px-2 min-w-0">
+                    <div className="relative w-24 sm:w-28 h-2 flex items-center justify-between">
                       {lineData ? (
                         lineData.isYang ? (
-                          /* 阳爻 ⚊ (实线全通 112px) */
+                          /* 阳爻 ⚊ (实线全通) */
                           <>
-                            <div className="w-full h-full bg-[#111111] rounded-xs shadow-xs" />
+                            <div className="w-full h-full bg-[#171717] rounded-xs shadow-xs" />
                             {lineData.isChanging && (
-                              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#B84034] ring-2 ring-[#FAF6ED] shadow-xs" />
+                              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#B84034] ring-2 ring-[#F5F5F6] shadow-xs" />
                             )}
                           </>
                         ) : (
-                          /* 阴爻 ⚋ (两段各 48px + 中间 16px 空档，总长严格为 112px) */
+                          /* 阴爻 ⚋ (两段各占比例 + 中间空档) */
                           <>
-                            <div className="w-[calc(50%-8px)] h-full bg-[#111111] rounded-xs shadow-xs" />
+                            <div className="w-[calc(50%-8px)] h-full bg-[#171717] rounded-xs shadow-xs" />
                             {lineData.isChanging && (
                               <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[11px] text-[#B84034] font-bold leading-none select-none">
                                 ✕
                               </span>
                             )}
-                            <div className="w-[calc(50%-8px)] h-full bg-[#111111] rounded-xs shadow-xs" />
+                            <div className="w-[calc(50%-8px)] h-full bg-[#171717] rounded-xs shadow-xs" />
                           </>
                         )
                       ) : (
-                        /* 未掷爻占位虚线 (等长 112px) */
-                        <div className="w-full h-full border-b-2 border-dashed border-[#111111]/25" />
+                        /* 未掷爻占位虚线 */
+                        <div className="w-full h-full border-b-2 border-dashed border-[#171717]/25" />
                       )}
                     </div>
                   </div>
 
-                  <span className="text-[10px] text-[#8C6D23] font-medium w-16 text-right">
+                  <span className="text-[10px] text-[#52525B] font-medium w-14 sm:w-16 text-right shrink-0">
                     {lineData
                       ? lineData.sum === 9
                         ? (isEn ? 'Old Yang ⚡' : '老阳 ⚡')
@@ -469,22 +469,22 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
 
           {/* 卦象结果精要提示 */}
           {reading && (
-            <div className="mt-4 pt-3 border-t border-[#111111]/8 text-center animate-in fade-in">
-              <div className="text-3xl my-1">{reading.primaryHexagram.symbol}</div>
-              <span className="font-serif font-black text-base text-[#111111]">
+            <div className="mt-4 pt-3 border-t border-[#E4E4E7] text-center animate-in fade-in">
+              <div className="text-3xl my-1 text-[#171717]">{reading.primaryHexagram.symbol}</div>
+              <span className="font-serif font-black text-base text-[#171717]">
                 {isEn ? reading.primaryHexagram.nameEn : reading.primaryHexagram.nameZh}
               </span>
-              <p className="mt-1 text-[11px] tracking-[0.08em] text-[#8C6D23]">
+              <p className="mt-1 text-[11px] tracking-[0.08em] text-[#52525B]">
                 {isEn
                   ? `No. ${reading.primaryHexagram.number} · lower ${reading.primaryHexagram.lowerTrigramEn} / upper ${reading.primaryHexagram.upperTrigramEn}`
                   : `第 ${reading.primaryHexagram.number} 卦 · 下${reading.primaryHexagram.lowerTrigram}上${reading.primaryHexagram.upperTrigram}`}
               </p>
-              <p className="text-[11px] text-[#5C5549] mt-1 line-clamp-2">
+              <p className="text-[11px] text-[#52525B] mt-1 line-clamp-2">
                 {isEn ? reading.primaryHexagram.judgmentEn : reading.primaryHexagram.judgmentZh}
               </p>
 
               {reading.transformedHexagram && (
-                <div className="mt-2 text-xs text-rose-700 bg-rose-50 p-2 rounded-xl">
+                <div className="mt-2 text-xs text-[#171717] bg-[#F5F5F6] border border-[#E4E4E7] p-2 rounded-xl">
                   {isEn ? (
                     <>Transformed Hexagram: <strong>{reading.transformedHexagram.nameEn}</strong></>
                   ) : (
@@ -499,13 +499,13 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
 
       {/* AI 六爻全息神谕报告 */}
       {reading && (
-        <div className="w-full mt-8 rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-6 sm:p-8 shadow-xs text-left animate-in fade-in slide-in-from-bottom-4">
+        <div className="w-full mt-8 rounded-3xl bg-white border border-[#E4E4E7] p-6 sm:p-8 shadow-2xs text-left animate-in fade-in slide-in-from-bottom-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F5F5F6] text-[#52525B] border border-[#E4E4E7]">
                 {isEn ? 'I Ching · AI Oracle' : '周易六爻 · AI 神谕解卦'}
               </span>
-              <h4 className="font-serif font-black text-xl text-[#111111] mt-1">
+              <h4 className="font-serif font-black text-xl text-[#171717] mt-1">
                 {isEn
                   ? `【${reading.primaryHexagram.nameEn}】Oracle Insight`
                   : `【${reading.primaryHexagram.nameZh}】神谕全息洞察`}
@@ -515,9 +515,9 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
             <button
               onClick={handleGenerateAiReport}
               disabled={isGeneratingAi}
-              className="px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-full bg-[#171717] hover:bg-[#333333] text-white text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#FFE59A]" />
+              <Sparkles className="w-3.5 h-3.5 text-white/80" />
               <span>
                 {isEn
                   ? (isGeneratingAi ? 'Consulting Hexagram Line Text...' : 'Generate AI Interpretation')
@@ -527,11 +527,11 @@ ${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
           </div>
 
           {aiReport ? (
-            <div className="prose prose-stone max-w-none text-[#111111] text-xs sm:text-sm leading-relaxed space-y-4 whitespace-pre-line border-t border-[#111111]/8 pt-6 animate-in fade-in">
+            <div className="prose prose-stone max-w-none text-[#171717] text-xs sm:text-sm leading-relaxed space-y-4 whitespace-pre-line border-t border-[#E4E4E7] pt-6 animate-in fade-in">
               {aiReport}
             </div>
           ) : (
-            <div className="p-8 text-center text-xs text-[#736B5E] border-t border-[#111111]/8">
+            <div className="p-8 text-center text-xs text-[#52525B] border-t border-[#E4E4E7]">
               {isEn
                 ? 'Hexagram lines cast. Click the button above to generate a deep strategic reading with AI.'
                 : '铜钱六爻已排定。点击上方按钮，让 AI 依据你叩问之事，结合本卦、动爻与变卦提供深层决策建议。'}

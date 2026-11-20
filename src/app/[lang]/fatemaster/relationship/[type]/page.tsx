@@ -32,12 +32,12 @@ export default async function SpecificRelationshipPage({
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 sm:py-12">
+    <div className="w-full max-w-5xl mx-auto px-4 pt-8 pb-16 sm:pt-10 sm:pb-20 text-[#171717]">
       {/* 返回全系中心导航 */}
       <div className="mb-6">
         <Link
           href={`/${lang}/fatemaster/relationship`}
-          className="inline-flex items-center gap-1.5 text-xs font-serif text-[#736B5E] hover:text-[#111111] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-[#737373] hover:text-[#171717] transition-colors rounded-sm focus:outline-none focus:ring-2 focus:ring-[#171717] focus:ring-offset-2"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>{lang === 'en' ? 'All Relationships' : '返回关系合盘中心'}</span>

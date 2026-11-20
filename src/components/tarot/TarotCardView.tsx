@@ -12,6 +12,7 @@ interface TarotCardViewProps {
   onFlip?: () => void;
   className?: string;
   showDetails?: boolean;
+  lang?: 'zh' | 'en';
 }
 
 export function TarotCardView({
@@ -21,8 +22,10 @@ export function TarotCardView({
   size = 'md',
   onFlip,
   className = '',
-  showDetails = true
+  showDetails = true,
+  lang = 'zh'
 }: TarotCardViewProps) {
+  const isEn = lang === 'en';
   // 尺寸映射 (保持 2:3 黄金比例)
   const sizeClasses = {
     sm: 'w-24 h-38 text-xs',
@@ -73,7 +76,7 @@ export function TarotCardView({
             <div className="relative z-10 pt-1.5 px-1 text-center bg-[#FFFDF9]/95 backdrop-blur-xs rounded-b-xl border-t border-[#C29026]/20 mt-1">
               <div className="flex items-center justify-between gap-1 mb-0.5">
                 <span className="font-serif font-black text-[#1E1B18] text-[11px] sm:text-xs truncate">
-                  {card.nameZh}
+                  {isEn ? card.nameEn : card.nameZh}
                 </span>
                 <span
                   className={`inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-semibold tracking-wider ${
@@ -82,14 +85,16 @@ export function TarotCardView({
                       : 'bg-[#FFE59A]/40 text-[#8C6D23] border border-[#E8CF86]/50'
                   }`}
                 >
-                  {isReversed ? '逆' : '正'}
+                  {isReversed ? (isEn ? 'Rev' : '逆') : (isEn ? 'Up' : '正')}
                 </span>
               </div>
-              <p className="text-[9px] text-[#736B5E] truncate">
-                {isReversed
-                  ? card.reversedKeywords.slice(0, 2).join(' · ')
-                  : card.uprightKeywords.slice(0, 2).join(' · ')}
-              </p>
+              {!isEn && (
+                <p className="text-[9px] text-[#736B5E] truncate">
+                  {isReversed
+                    ? card.reversedKeywords.slice(0, 2).join(' · ')
+                    : card.uprightKeywords.slice(0, 2).join(' · ')}
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -106,7 +111,7 @@ export function TarotCardView({
 
             {/* 顶部经典铭文 */}
             <span className="text-[8px] font-serif uppercase tracking-[0.2em] text-[#D4AF37]/60">
-              QICOSMOS ORACLE
+              YITATRO
             </span>
 
             {/* 中心日月星辉神圣图腾 */}

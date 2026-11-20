@@ -1,6 +1,5 @@
 import React from 'react';
 import { CoinTossGsap } from '@/components/fatemaster/CoinTossGsap';
-import { Sparkles } from 'lucide-react';
 
 export const instant = false;
 
@@ -18,21 +17,15 @@ export default async function FateMasterLiuYaoPage({
   const isEn = lang === 'en';
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-10 sm:py-16">
-      <div className="text-center mb-10">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold mb-3">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-          <span>{isEn ? 'I Ching Coin Oracle' : '周易六爻神谕'}</span>
-        </span>
-        <h1 className="font-serif font-black text-3xl sm:text-4xl text-[#111111]">
-          {isEn
-            ? '3D Coin Toss · 64 I Ching Hexagrams Oracle'
-            : '乾隆通宝 3D 铜钱起卦 · 周易六十四卦'}
+    <div className="w-full max-w-5xl mx-auto px-4 pt-10 pb-16 sm:pt-14 sm:pb-20">
+      <div className="text-center mb-8 sm:mb-10">
+        <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl font-normal tracking-tight text-[#171717]">
+          {isEn ? 'I Ching Coin Toss' : '六爻起卦'}
         </h1>
-        <p className="text-xs sm:text-sm text-[#736B5E] mt-2 max-w-lg mx-auto">
+        <p className="mt-2.5 text-sm sm:text-[15px] leading-relaxed text-[#52525B] max-w-xl mx-auto">
           {isEn
-            ? 'Cast three ancient coins six times to construct lines from bottom to top. Sense energetic shifts and receive strategic counsel powered by AI.'
-            : '铜钱六掷，自下而上筑就卦爻。感应初爻至上爻之变动，由 AI 依据卦爻辞给出客观长远的行动策略。'}
+            ? 'Cast three ancient coins six times from bottom to top to reveal hexagram lines, changing lines, and timely guidance.'
+            : '静心凝神，掷币六次自下而上筑爻，感应动爻与卦变转机，获取客观长远的行动策略。'}
         </p>
       </div>
 

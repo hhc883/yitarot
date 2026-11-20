@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { CONTAINER } from './constants';
 import { useUser } from '@/lib/auth/use-user';
 import { UserAvatar } from './UserAvatar';
@@ -109,23 +109,38 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
     }
   ];
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
 
-  const switchHref = (target: 'zh' | 'en') => {
-    const segments = pathname.split('/').filter(Boolean);
-    if (segments.length === 0) return `/${target}`;
-    if (segments[0] === 'zh' || segments[0] === 'en') {
-      segments[0] = target;
-    } else {
-      segments.unshift(target);
+  const isSectionActive = (key: string, href: string) => {
+    // 1. 直达栏目落地页或其子路径
+    if (normalizedPath === href || normalizedPath.startsWith(`${href}/`)) {
+      return true;
     }
-    return `/${segments.join('/')}`;
+    // 2. 深度工具路由映射（东：/fatemaster；西：/draw, /reading, /cards, /spreads, /fortune, /yes-no, /love；指南：/blog）
+    if (key === 'east') {
+      const eastPrefix = `/${lang}/fatemaster`;
+      return normalizedPath === eastPrefix || normalizedPath.startsWith(`${eastPrefix}/`);
+    }
+    if (key === 'west') {
+      const westRoutes = ['draw', 'reading', 'cards', 'spreads', 'fortune', 'yes-no', 'love'];
+      return westRoutes.some((route) => {
+        const prefix = `/${lang}/${route}`;
+        return normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`);
+      });
+    }
+    if (key === 'blog') {
+      const blogPrefix = `/${lang}/blog`;
+      return normalizedPath === blogPrefix || normalizedPath.startsWith(`${blogPrefix}/`);
+    }
+    return false;
   };
 
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 border-b border-[#E4E4E7] bg-white/90 backdrop-blur-md transition-transform duration-300 ease-out ${
+        className={`${
+          isHome ? 'fixed inset-x-0' : 'sticky'
+        } top-0 z-50 border-b border-[#E4E4E7] bg-white/90 backdrop-blur-md transition-transform duration-300 ease-out ${
           visible ? 'translate-y-0' : '-translate-y-full pointer-events-none'
         }`}
         inert={!visible ? true : undefined}
@@ -142,12 +157,13 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
           {/* 中间桌面导航：「易经与八字 / 塔罗 / 指南」 */}
           <nav className="hidden flex-1 items-center justify-center gap-8 lg:flex lg:gap-10" aria-label={isEn ? 'Main navigation' : '主导航'}>
             {items.map((item) => {
-              const active = isActive(item.href);
+              const active = isSectionActive(item.key, item.href);
               const label = isEn ? item.labelEn : item.labelZh;
               return (
                 <Link
                   key={item.key}
                   href={item.href}
+                  aria-current={active ? (normalizedPath === item.href ? 'page' : 'location') : undefined}
                   className={`group relative py-2 text-[13.5px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
                     active ? 'font-medium text-[#171717]' : 'text-[#52525B] hover:text-[#171717]'
                   }`}
@@ -180,24 +196,9 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
 
               {langMenuOpen && (
                 <div className="absolute right-0 top-full mt-1 w-28 rounded border border-[#E4E4E7] bg-white py-1 shadow-xs z-50">
-                  <Link
-                    href={switchHref('zh')}
-                    onClick={() => setLangMenuOpen(false)}
-                    className={`block min-h-[40px] px-3 py-2 text-[13px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
-                      !isEn ? 'font-semibold text-[#171717]' : 'text-[#52525B] hover:text-[#171717]'
-                    }`}
-                  >
-                    简体中文
-                  </Link>
-                  <Link
-                    href={switchHref('en')}
-                    onClick={() => setLangMenuOpen(false)}
-                    className={`block min-h-[40px] px-3 py-2 text-[13px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
-                      isEn ? 'font-semibold text-[#171717]' : 'text-[#52525B] hover:text-[#171717]'
-                    }`}
-                  >
-                    English
-                  </Link>
+                  <Suspense fallback={<DesktopLangMenuLinksFallback pathname={pathname} isEn={isEn} onSelect={() => setLangMenuOpen(false)} />}>
+                    <DesktopLangMenuLinks pathname={pathname} isEn={isEn} onSelect={() => setLangMenuOpen(false)} />
+                  </Suspense>
                 </div>
               )}
             </div>
@@ -265,44 +266,30 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
         }`}
       >
         <nav className="flex flex-col" aria-label={isEn ? 'Mobile navigation links' : '移动端导航链接'}>
-          {items.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              onClick={() => setMenuOpen(false)}
-              className="flex min-h-[44px] items-center justify-between border-b border-[#E4E4E7] py-3.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-            >
-              <span className={`text-[16px] ${isActive(item.href) ? 'font-medium text-[#171717]' : 'text-[#52525B]'}`}>
-                {isEn ? item.labelEn : item.labelZh}
-              </span>
-            </Link>
-          ))}
+          {items.map((item) => {
+            const active = isSectionActive(item.key, item.href);
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                aria-current={active ? (normalizedPath === item.href ? 'page' : 'location') : undefined}
+                className="flex min-h-[44px] items-center justify-between border-b border-[#E4E4E7] py-3.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+              >
+                <span className={`text-[16px] ${active ? 'font-medium text-[#171717]' : 'text-[#52525B]'}`}>
+                  {isEn ? item.labelEn : item.labelZh}
+                </span>
+              </Link>
+            );
+          })}
         </nav>
 
         {/* 语言切换：English / 简体中文 */}
         <div className="mt-8 flex items-center justify-between border-b border-[#E4E4E7] pb-6">
           <span className="text-[13px] text-[#52525B]">{isEn ? 'Language' : '语言'}</span>
-          <div className="flex items-center gap-1 text-[13px]">
-            <Link
-              href={switchHref('en')}
-              onClick={() => setMenuOpen(false)}
-              className={`inline-flex min-h-[44px] items-center px-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
-                isEn ? 'font-semibold text-[#171717]' : 'text-[#52525B] hover:text-[#171717]'
-              }`}
-            >
-              English
-            </Link>
-            <span className="text-[#E4E4E7]" aria-hidden="true">/</span>
-            <Link
-              href={switchHref('zh')}
-              onClick={() => setMenuOpen(false)}
-              className={`inline-flex min-h-[44px] items-center px-2.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
-                !isEn ? 'font-semibold text-[#171717]' : 'text-[#52525B] hover:text-[#171717]'
-              }`}
-            >
-              简体中文
-            </Link>
-          </div>
+          <Suspense fallback={<MobileLangLinksFallback pathname={pathname} isEn={isEn} onSelect={() => setMenuOpen(false)} />}>
+            <MobileLangLinks pathname={pathname} isEn={isEn} onSelect={() => setMenuOpen(false)} />
+          </Suspense>
         </div>
 
         {/* 用户登录 / 账户 */}
@@ -335,4 +322,105 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
       </div>
     </>
   );
+}
+
+function buildTargetHref(pathname: string, targetLang: 'zh' | 'en', search: string): string {
+  const segments = (pathname || '').split('/').filter(Boolean);
+  if (segments.length === 0) {
+    const base = `/${targetLang}`;
+    return search ? `${base}?${search}` : base;
+  }
+
+  if (segments[0] === 'zh' || segments[0] === 'en') {
+    segments[0] = targetLang;
+  } else {
+    segments.unshift(targetLang);
+  }
+
+  const base = `/${segments.join('/')}`;
+  return search ? `${base}?${search}` : base;
+}
+
+interface LangLinksProps {
+  pathname: string;
+  isEn: boolean;
+  onSelect: () => void;
+  search?: string;
+}
+
+function DesktopLangMenuLinksContent({ pathname, isEn, onSelect, search = '' }: LangLinksProps) {
+  const zhHref = buildTargetHref(pathname, 'zh', search);
+  const enHref = buildTargetHref(pathname, 'en', search);
+
+  return (
+    <>
+      <Link
+        href={zhHref}
+        onClick={onSelect}
+        className={`block px-3 py-1.5 text-[13px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+          !isEn ? 'font-medium text-[#171717]' : 'text-[#52525B] hover:bg-[#F4F4F5] hover:text-[#171717]'
+        }`}
+      >
+        简体中文
+      </Link>
+      <Link
+        href={enHref}
+        onClick={onSelect}
+        className={`block px-3 py-1.5 text-[13px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+          isEn ? 'font-medium text-[#171717]' : 'text-[#52525B] hover:bg-[#F4F4F5] hover:text-[#171717]'
+        }`}
+      >
+        English
+      </Link>
+    </>
+  );
+}
+
+function DesktopLangMenuLinksFallback({ pathname, isEn, onSelect }: Omit<LangLinksProps, 'search'>) {
+  return <DesktopLangMenuLinksContent pathname={pathname} isEn={isEn} onSelect={onSelect} search="" />;
+}
+
+function DesktopLangMenuLinks({ pathname, isEn, onSelect }: Omit<LangLinksProps, 'search'>) {
+  const searchParams = useSearchParams();
+  const search = searchParams?.toString() || '';
+  return <DesktopLangMenuLinksContent pathname={pathname} isEn={isEn} onSelect={onSelect} search={search} />;
+}
+
+function MobileLangLinksContent({ pathname, isEn, onSelect, search = '' }: LangLinksProps) {
+  const zhHref = buildTargetHref(pathname, 'zh', search);
+  const enHref = buildTargetHref(pathname, 'en', search);
+
+  return (
+    <div className="flex items-center gap-3 text-[14px]">
+      <Link
+        href={zhHref}
+        onClick={onSelect}
+        className={`min-h-[44px] inline-flex items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+          !isEn ? 'font-medium text-[#171717]' : 'text-[#52525B]'
+        }`}
+      >
+        简体中文
+      </Link>
+      <span className="text-[#E4E4E7]" aria-hidden="true">|</span>
+      <Link
+        href={enHref}
+        onClick={onSelect}
+        className={`min-h-[44px] inline-flex items-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+          isEn ? 'font-medium text-[#171717]' : 'text-[#52525B]'
+        }`}
+      >
+        English
+      </Link>
+    </div>
+  );
+}
+
+function MobileLangLinksFallback({ pathname, isEn, onSelect }: Omit<LangLinksProps, 'search'>) {
+  return <MobileLangLinksContent pathname={pathname} isEn={isEn} onSelect={onSelect} search="" />;
+}
+
+function MobileLangLinks({ pathname, isEn, onSelect }: Omit<LangLinksProps, 'search'>) {
+  const searchParams = useSearchParams();
+  const search = searchParams?.toString() || '';
+  return <MobileLangLinksContent pathname={pathname} isEn={isEn} onSelect={onSelect} search={search} />;
 }

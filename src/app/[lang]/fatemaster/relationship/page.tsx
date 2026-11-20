@@ -22,47 +22,47 @@ export default async function RelationshipHubPage({
   const typesList = Object.keys(RELATIONSHIP_CONFIGS) as RelationshipType[];
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-12 sm:py-16">
+    <div className="w-full max-w-5xl mx-auto px-4 pt-10 pb-16 sm:pt-14 sm:pb-20 text-[#171717]">
       {/* 核心交互推演台 */}
-      <RelationshipSynastryWidget lang={lang} />
+      <RelationshipSynastryWidget lang={lang} isHub={true} />
 
       {/* 9 种关系合盘矩阵 */}
-      <section className="w-full mt-20 pt-12 border-t border-[#111111]/8">
-        <div className="mb-8">
-          <h2 className="font-serif font-black text-xl sm:text-2xl text-[#111111]">
+      <section className="w-full mt-16 sm:mt-20 pt-10 sm:pt-12 border-t border-[#E5E5E5]">
+        <div className="mb-6 sm:mb-8 text-center sm:text-left">
+          <h2 className="font-serif text-xl sm:text-2xl font-normal text-[#171717] tracking-tight">
             {isEn ? 'All Relationship Types' : '全系关系合盘专厅'}
           </h2>
-          <p className="text-xs font-serif text-[#736B5E] mt-1">
+          <p className="text-xs sm:text-sm text-[#737373] mt-1.5 max-w-2xl">
             {isEn
               ? 'Comprehensive metaphysical synastry across marriage, emotion, commerce, family, and workplace dynamics.'
               : '涵盖婚姻、情感、商道、家族与职场全谱系深度命理契合度测算'}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
           {typesList.map(t => {
             const cfg = RELATIONSHIP_CONFIGS[t];
             return (
               <Link
                 key={t}
                 href={`/${lang}/fatemaster/relationship/${t}`}
-                className="group p-5 rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 hover:border-[#111111]/25 transition-all shadow-2xs hover:shadow-xs flex flex-col justify-between"
+                className="group p-5 rounded-xl bg-[#FFFFFF] border border-[#E5E5E5] hover:border-[#171717] transition-colors shadow-none flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-[#171717] focus:ring-offset-2"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-serif font-bold text-base text-[#111111] group-hover:text-[#8C6D23] transition-colors">
+                    <h3 className="font-serif font-medium text-base text-[#171717] group-hover:text-black transition-colors">
                       {isEn ? cfg.titleEn : cfg.titleZh}
                     </h3>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#736B5E] group-hover:translate-x-0.5 group-hover:text-[#111111] transition-all" />
+                    <ArrowRight className="w-4 h-4 text-[#737373] group-hover:translate-x-0.5 group-hover:text-[#171717] transition-all" />
                   </div>
-                  <p className="text-xs font-serif text-[#524B40] leading-relaxed line-clamp-2">
+                  <p className="text-xs text-[#52525B] leading-relaxed line-clamp-2">
                     {isEn ? (cfg.summaryEn || cfg.summaryZh) : cfg.summaryZh}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-[#111111]/6 flex justify-between items-center text-[11px] font-serif text-[#8C6D23]">
+                <div className="mt-4 pt-3 border-t border-[#E5E5E5] flex justify-between items-center text-[11px] text-[#737373]">
                   <span>{isEn ? (cfg.focusEn?.split('·')[0] || cfg.focusZh.split('·')[0]) : cfg.focusZh.split('·')[0]}</span>
-                  <span className="text-[#736B5E] group-hover:text-[#111111] transition-colors">
+                  <span className="font-medium text-[#171717] group-hover:underline">
                     {isEn ? 'Calculate →' : '测算 →'}
                   </span>
                 </div>

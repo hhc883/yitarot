@@ -1,6 +1,5 @@
 import React from 'react';
 import { BaziChartGsap } from '@/components/fatemaster/BaziChartGsap';
-import { Compass } from 'lucide-react';
 
 export const instant = false;
 
@@ -18,21 +17,18 @@ export default async function FateMasterBaziPage({
   const isEn = lang === 'en';
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-10 sm:py-16">
-      <div className="text-center mb-10">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE59A]/40 text-[#8C6D23] border border-[#E8CF86]/50 text-xs font-semibold mb-3">
-          <Compass className="w-3.5 h-3.5" />
-          <span>{isEn ? 'Four Pillars BaZi Chart' : '四柱八字排盘'}</span>
+    <div className="w-full max-w-5xl mx-auto px-4 py-8 sm:py-12 md:py-16 text-[#171717]">
+      <div className="text-center mb-8 sm:mb-10">
+        <span className="text-[12px] font-medium tracking-[0.2em] text-[#52525B] uppercase block mb-2">
+          {isEn ? 'Eastern Metaphysics' : '东方数术'}
         </span>
-        <h1 className="font-serif font-black text-3xl sm:text-4xl text-[#111111]">
-          {isEn
-            ? 'BaZi · Four Pillars Natal Chart & Five Elements Balance'
-            : '四柱八字 · 天赋原局与五行全息图谱'}
+        <h1 className="font-serif text-[28px] sm:text-[36px] md:text-[40px] font-normal leading-tight tracking-tight text-[#171717]">
+          {isEn ? 'BaZi Birth Chart' : '八字排盘'}
         </h1>
-        <p className="text-xs sm:text-sm text-[#736B5E] mt-2 max-w-lg mx-auto">
+        <p className="mt-3 text-[14px] sm:text-[15px] leading-relaxed text-[#52525B] max-w-xl mx-auto">
           {isEn
             ? 'Calculated precisely by Chinese astronomical calendar and solar terms. Analyzes Heavenly Stems, Earthly Branches, Ten Gods, and Day Master essence.'
-            : '严格依据农历/公历二十四节气换月柱，推演天干地支、十神生克、五行能量雷达及日主元神特质。'}
+            : '严格依据农历与二十四节气换月柱，推演天干地支、十神生克、五行能量及日主元神特质。'}
         </p>
       </div>
 

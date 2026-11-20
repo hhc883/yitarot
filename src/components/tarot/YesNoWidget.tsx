@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
@@ -128,180 +128,142 @@ function evaluateYesNo(drawn: DrawnCard, isEn: boolean): YesNoAnalysis {
   return { verdict, score, title, energy, blockage, guidance };
 }
 
-export function YesNoWidget({ lang = 'zh' }: { lang?: string }) {
+export function YesNoWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
   const isEn = lang === 'en';
-  const d = getDictionary(lang);
-  const t = d.yesNo;
+  const t = getDictionary(lang).yesNo;
 
   const [question, setQuestion] = useState('');
-  const [drawn, setDrawn] = useState<DrawnCard | null>(null);
-  const [analysis, setAnalysis] = useState<YesNoAnalysis | null>(null);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [result, setResult] = useState<{ drawn: DrawnCard; analysis: YesNoAnalysis } | null>(null);
+  const [isFaceUp, setIsFaceUp] = useState(true);
+  const focusAfterAction = useRef(false);
+  const questionRef = useRef<HTMLInputElement>(null);
+  const resultHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (!focusAfterAction.current) return;
+    focusAfterAction.current = false;
+    (result ? resultHeadingRef.current : questionRef.current)?.focus();
+  }, [result]);
 
   const handleDraw = () => {
-    const card = drawRandomCards(1)[0];
-    const evaluated = evaluateYesNo(card, isEn);
-    setDrawn(card);
-    setAnalysis(evaluated);
-    setIsFlipped(false);
-    setTimeout(() => {
-      setIsFlipped(true);
-    }, 200);
+    const drawn = drawRandomCards(1)[0];
+    focusAfterAction.current = true;
+    setIsFaceUp(true);
+    setResult({ drawn, analysis: evaluateYesNo(drawn, isEn) });
   };
 
   const handleReset = () => {
-    setDrawn(null);
-    setAnalysis(null);
-    setIsFlipped(false);
+    focusAfterAction.current = true;
+    setResult(null);
   };
 
+  if (!result) {
+    return (
+      <form
+        className="max-w-3xl space-y-6 border-t border-neutral-200 pt-6 sm:pt-8"
+        onSubmit={(event) => {
+          event.preventDefault();
+          handleDraw();
+        }}
+      >
+        <div>
+          <label className="block text-base font-medium" htmlFor="yes-no-question">
+            {isEn ? 'Your question (optional)' : '你的问题（选填）'}
+          </label>
+          <input
+            ref={questionRef}
+            id="yes-no-question"
+            type="text"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value)}
+            placeholder={t.inputPlaceholder}
+            className="mt-2 min-h-12 w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-base placeholder:text-neutral-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+          />
+        </div>
+
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium text-neutral-600">
+            {isEn ? 'Try an example' : '试试这些问题'}
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {t.presets.map((preset) => (
+              <button key={preset} type="button" onClick={() => setQuestion(preset)} className="min-h-11 rounded-lg border border-neutral-200 px-3 py-2 text-left text-sm leading-6 hover:border-neutral-400 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900">
+                {preset}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <button type="submit" className="min-h-12 w-full rounded-md bg-neutral-900 px-6 py-3 text-base font-medium text-white hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900 sm:w-auto">
+          {isEn ? 'Draw one card' : '抽一张牌'}
+        </button>
+      </form>
+    );
+  }
+
+  const { drawn, analysis } = result;
+  const cardName = isEn ? drawn.card.nameEn : drawn.card.nameZh;
+  const orientation = isEn
+    ? (drawn.isReversed ? 'Reversed' : 'Upright')
+    : (drawn.isReversed ? '逆位' : '正位');
+  const breakdown = [
+    { label: isEn ? 'What the card suggests' : '牌面提示', detail: analysis.energy },
+    { label: isEn ? 'What could get in the way' : '可能的阻碍', detail: analysis.blockage },
+    { label: isEn ? 'A next step' : '可以尝试的下一步', detail: analysis.guidance }
+  ];
+
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      {/* 极简标题 */}
-      <div className="text-center mb-8">
-        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          {t.title}
-        </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-2">
-          {t.subtitle}
-        </p>
-      </div>
-
-      {/* 核心卡片容器 */}
-      <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 sm:p-8 shadow-2xs">
-        {!drawn ? (
-          <div className="space-y-6">
-            {/* 提问输入框 */}
-            <div>
-              <label className="block text-xs font-serif text-[#736B5E] mb-2">
-                {t.inputLabel}
-              </label>
-              <input
-                type="text"
-                value={question}
-                onChange={e => setQuestion(e.target.value)}
-                placeholder={t.inputPlaceholder}
-                className="w-full px-4 py-3 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-sm font-serif text-[#111111] placeholder-[#736B5E]/50 focus:outline-none focus:border-[#111111]/30 transition-colors"
-              />
-            </div>
-
-            {/* 预设灵感 */}
-            <div>
-              <span className="text-[11px] font-serif text-[#736B5E] block mb-2">
-                {t.quickLabel}
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {t.presets.map((q, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setQuestion(q)}
-                    className="text-xs font-serif px-3 py-1.5 rounded-lg bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#111111]/80 border border-[#111111]/8 transition-colors cursor-pointer text-left"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 抽牌操作按钮 */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={handleDraw}
-                className="w-full py-3.5 rounded-xl bg-[#111111] hover:bg-[#2A2A2A] text-xs font-serif tracking-widest text-[#FFFDF9] transition-all cursor-pointer shadow-xs active:scale-[0.99]"
-              >
-                {t.drawBtn}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* 问题回显 */}
-            {question && (
-              <div className="text-center pb-4 border-b border-[#111111]/8">
-                <span className="text-[11px] font-serif text-[#736B5E] block">{t.questionEcho}</span>
-                <p className="text-sm font-serif font-bold text-[#111111] mt-1">“{question}”</p>
-              </div>
-            )}
-
-            {/* 卡牌与结论展示 */}
-            <div className="flex flex-col sm:flex-row items-center gap-8">
-              {/* 卡牌 */}
-              <div className="shrink-0 flex justify-center">
-                <TarotCardView
-                  card={drawn.card}
-                  isReversed={drawn.isReversed}
-                  isFlipped={isFlipped}
-                  size="md"
-                  onFlip={() => setIsFlipped(!isFlipped)}
-                />
-              </div>
-
-              {/* 决断分析结果 */}
-              {analysis && (
-                <div className="flex-1 space-y-4">
-                  {/* 核心结论横幅 */}
-                  <div className="p-4 rounded-xl bg-[#FAF6ED] border border-[#111111]/10">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-serif font-bold tracking-wide text-[#111111]">
-                        {analysis.title}
-                      </span>
-                      <span className="text-xs font-mono font-bold text-[#111111]/70">
-                        {analysis.score}%
-                      </span>
-                    </div>
-
-                    {/* 进度条 */}
-                    <div className="w-full h-1.5 rounded-full bg-[#111111]/10 overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-700 ${
-                          analysis.verdict === 'YES'
-                            ? 'bg-emerald-600'
-                            : analysis.verdict === 'NO'
-                            ? 'bg-stone-700'
-                            : 'bg-amber-600'
-                        }`}
-                        style={{ width: `${analysis.score}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* 关键解析三要素 */}
-                  <div className="space-y-3 text-xs font-serif leading-relaxed text-[#111111]">
-                    <div>
-                      <span className="font-bold text-[#736B5E] block mb-0.5">{t.dynamics}</span>
-                      <p className="text-[#333333]">{analysis.energy}</p>
-                    </div>
-
-                    <div>
-                      <span className="font-bold text-[#736B5E] block mb-0.5">{t.blockage}</span>
-                      <p className="text-[#333333]">{analysis.blockage}</p>
-                    </div>
-
-                    <div>
-                      <span className="font-bold text-[#736B5E] block mb-0.5">{t.guidance}</span>
-                      <p className="text-[#333333]">{analysis.guidance}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 底部重置按钮 */}
-            <div className="pt-4 border-t border-[#111111]/8 flex justify-center">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="px-5 py-2.5 rounded-xl bg-[#FAF6ED] hover:bg-[#F2ECE1] text-xs font-serif text-[#111111] border border-[#111111]/10 transition-colors cursor-pointer flex items-center gap-2"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-[#736B5E]" />
-                <span>{t.resetBtn}</span>
-              </button>
-            </div>
-          </div>
+    <section aria-labelledby="yes-no-result" className="max-w-4xl space-y-7 border-t border-neutral-200 pt-6 sm:space-y-8 sm:pt-8">
+      <div>
+        <h2 id="yes-no-result" ref={resultHeadingRef} tabIndex={-1} className="scroll-mt-24 font-serif text-2xl font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-3xl">
+          {isEn ? 'Your result' : '抽牌结果'}
+        </h2>
+        {question.trim() && (
+          <p className="mt-2 [overflow-wrap:anywhere] text-base leading-relaxed text-neutral-600">
+            {t.questionEcho} · “{question}”
+          </p>
         )}
       </div>
-    </div>
+
+      <div className="grid items-start gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8">
+        <figure className="mx-auto text-center">
+          <div className="relative w-fit">
+            <div aria-hidden="true">
+              <TarotCardView card={drawn.card} isReversed={drawn.isReversed} isFlipped={isFaceUp} size="md" showDetails={false} lang={lang} className="motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:animate-none" />
+            </div>
+            <button type="button" onClick={() => setIsFaceUp(!isFaceUp)} aria-label={isFaceUp ? (isEn ? 'Show card back' : '查看牌背') : (isEn ? 'Show card face' : '查看牌面')} className="absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900" />
+          </div>
+          <figcaption className="mt-3 max-w-36 text-sm leading-6">
+            <span className="block font-medium">{cardName}</span>
+            <span className="text-neutral-600">{orientation}</span>
+          </figcaption>
+        </figure>
+
+        <div className="min-w-0 space-y-5">
+          <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
+            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+              <h3 className="font-serif text-xl font-semibold">{analysis.title}</h3>
+              <span className="font-mono text-sm tabular-nums text-neutral-700">{analysis.score}%</span>
+            </div>
+            <div aria-hidden="true" className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-200">
+              <div className="h-full bg-neutral-800" style={{ width: `${analysis.score}%` }} />
+            </div>
+          </div>
+          <dl className="divide-y divide-neutral-200">
+            {breakdown.map(({ label, detail }) => (
+              <div key={label} className="py-3 first:pt-0 last:pb-0">
+                <dt className="text-base font-semibold">{label}</dt>
+                <dd className="mt-1 text-base leading-relaxed text-neutral-600">{detail}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+
+      <button type="button" onClick={handleReset} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-800 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900">
+        <RotateCcw aria-hidden="true" className="size-4" />
+        {isEn ? t.resetBtn : '重新提问'}
+      </button>
+    </section>
   );
 }

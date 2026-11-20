@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
+import { CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 
 function calculateLoveHarmony(cards: DrawnCard[], isEn: boolean): {
   score: number;
@@ -69,210 +70,147 @@ function calculateLoveHarmony(cards: DrawnCard[], isEn: boolean): {
   return { score, level, dynamicSummary };
 }
 
-export function LoveTarotWidget({ lang = 'zh' }: { lang?: string }) {
+export function LoveTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
   const isEn = lang === 'en';
-  const d = getDictionary(lang);
-  const t = d.love;
-
-  const [selectedScenario, setSelectedScenario] = useState<string>('ambiguous');
+  const t = getDictionary(lang).love;
+  const [selectedScenario, setSelectedScenario] = useState('ambiguous');
   const [drawnCards, setDrawnCards] = useState<DrawnCard[] | null>(null);
-  const [flippedMap, setFlippedMap] = useState<Record<number, boolean>>({ 0: false, 1: false, 2: false });
-  const [isDealing, setIsDealing] = useState(false);
+  const [faceDown, setFaceDown] = useState<Record<number, boolean>>({});
+  const focusAfterAction = useRef(false);
+  const scenarioRef = useRef<HTMLInputElement>(null);
+  const resultHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (!focusAfterAction.current) return;
+    focusAfterAction.current = false;
+    (drawnCards ? resultHeadingRef.current : scenarioRef.current)?.focus();
+  }, [drawnCards]);
 
   const handleDraw = () => {
-    setIsDealing(true);
-    const cards = drawRandomCards(3);
-    setDrawnCards(cards);
-    setFlippedMap({ 0: false, 1: false, 2: false });
-
-    setTimeout(() => {
-      setFlippedMap(prev => ({ ...prev, 0: true }));
-    }, 400);
-    setTimeout(() => {
-      setFlippedMap(prev => ({ ...prev, 1: true }));
-    }, 800);
-    setTimeout(() => {
-      setFlippedMap(prev => ({ ...prev, 2: true }));
-      setIsDealing(false);
-    }, 1200);
+    focusAfterAction.current = true;
+    setFaceDown({});
+    setDrawnCards(drawRandomCards(3));
   };
 
   const handleReset = () => {
+    focusAfterAction.current = true;
     setDrawnCards(null);
-    setFlippedMap({ 0: false, 1: false, 2: false });
   };
 
-  const currentScenarioObj = t.scenarios.find(s => s.id === selectedScenario) || t.scenarios[0];
-  const harmony = drawnCards ? calculateLoveHarmony(drawnCards, isEn) : null;
+  if (!drawnCards) {
+    return (
+      <form onSubmit={(event) => {
+        event.preventDefault();
+        handleDraw();
+      }} className="space-y-5 border-t border-neutral-200 pt-6 sm:pt-8">
+        <fieldset>
+          <legend className="mb-4 font-medium">{isEn ? 'What is your relationship situation?' : '你目前处于哪种情境？'}</legend>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {t.scenarios.map((scenario) => (
+              <label key={scenario.id} className="flex min-h-12 cursor-pointer items-start gap-3 rounded-lg border border-neutral-200 p-3 leading-snug hover:border-neutral-400 has-[:checked]:border-neutral-900 has-[:checked]:bg-neutral-50 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-neutral-900 sm:p-4">
+                <input
+                  ref={selectedScenario === scenario.id ? scenarioRef : undefined}
+                  type="radio"
+                  name="relationship-situation"
+                  value={scenario.id}
+                  checked={selectedScenario === scenario.id}
+                  onChange={() => setSelectedScenario(scenario.id)}
+                  className="mt-0.5 size-4 shrink-0 accent-neutral-900"
+                />
+                <span>
+                  <span className="block font-medium">{scenario.label}</span>
+                  <span className="mt-1 block text-sm text-neutral-600">{scenario.desc}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <button type="submit" className="min-h-12 w-full rounded-md bg-neutral-900 px-6 py-3 text-base font-medium text-white hover:bg-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900 sm:w-auto">
+          {isEn ? 'Draw three cards' : '抽三张牌'}
+        </button>
+      </form>
+    );
+  }
+
+  const scenario = t.scenarios.find((item) => item.id === selectedScenario) ?? t.scenarios[0];
+  const harmony = calculateLoveHarmony(drawnCards, isEn);
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      {/* 极简标题 */}
-      <div className="text-center mb-8">
-        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          {t.title}
-        </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-2">
-          {t.subtitle}
-        </p>
+    <section aria-labelledby="love-result" className="space-y-7 border-t border-neutral-200 pt-6 sm:space-y-8 sm:pt-8">
+      <div>
+        <h2 id="love-result" ref={resultHeadingRef} tabIndex={-1} className="scroll-mt-24 font-serif text-2xl font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 sm:text-3xl">
+          {isEn ? 'Your three-card spread' : '你的三张牌'}
+        </h2>
+        <p className="mt-2 text-neutral-600">{isEn ? 'Situation' : '当前情境'} · {scenario.label}</p>
       </div>
 
-      {/* 核心卡片容器 */}
-      <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 sm:p-8 shadow-2xs">
-        {!drawnCards ? (
-          <div className="space-y-6">
-            {/* 场景选择器 */}
-            <div>
-              <span className="block text-xs font-serif text-[#736B5E] mb-3">
-                {t.stateLabel}
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                {t.scenarios.map(item => {
-                  const isSelected = selectedScenario === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setSelectedScenario(item.id)}
-                      className={`text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-[#111111] text-[#FFFDF9] border-[#111111]'
-                          : 'bg-[#FAF6ED] text-[#111111] border-[#111111]/10 hover:bg-[#F2ECE1]'
-                      }`}
-                    >
-                      <div className="text-xs font-serif font-bold">{item.label}</div>
-                      <div
-                        className={`text-[11px] font-serif mt-1 ${
-                          isSelected ? 'text-[#FFFDF9]/70' : 'text-[#736B5E]'
-                        }`}
-                      >
-                        {item.desc}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+      <ol className="grid gap-3 md:grid-cols-3">
+        {drawnCards.map((drawn, index) => {
+          const position = t.positions[index];
+          const cardName = isEn ? drawn.card.nameEn : drawn.card.nameZh;
+          const orientation = isEn
+            ? (drawn.isReversed ? 'Reversed' : 'Upright')
+            : (drawn.isReversed ? '逆位' : '正位');
+          const translated = isEn ? CARD_DETAIL_EN[drawn.card.slug]?.loveMeaning : undefined;
+          const meaning = isEn
+            ? (translated ?? drawn.card.loveMeaning)
+            : (drawn.isReversed ? drawn.card.reversedMeaning : drawn.card.uprightMeaning);
 
-            {/* 抽牌按钮 */}
-            <div className="pt-4">
-              <button
-                type="button"
-                onClick={handleDraw}
-                disabled={isDealing}
-                className="w-full py-3.5 rounded-xl bg-[#111111] hover:bg-[#2A2A2A] text-xs font-serif tracking-widest text-[#FFFDF9] transition-all cursor-pointer shadow-xs active:scale-[0.99]"
-              >
-                {t.drawBtn}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* 当前情境回显 */}
-            <div className="flex items-center justify-between pb-4 border-b border-[#111111]/8">
-              <div>
-                <span className="text-[11px] font-serif text-[#736B5E]">{t.currentContext}</span>
-                <span className="ml-2 text-xs font-serif font-bold text-[#111111]">
-                  {currentScenarioObj.label}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="text-xs font-serif text-[#736B5E] hover:text-[#111111] transition-colors flex items-center gap-1 cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>{t.switchScenario}</span>
-              </button>
-            </div>
+          return (
+            <li key={drawn.card.id} className="min-w-0 rounded-lg border border-neutral-200 p-4 sm:p-5">
+              <p aria-hidden="true" className="font-mono text-sm leading-6 text-neutral-500">0{index + 1}</p>
+              <h3 className="font-serif text-xl font-semibold leading-tight">{position.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-neutral-600">{position.role}</p>
 
-            {/* 3 张卡牌横向排布 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {drawnCards.map((drawn, index) => {
-                const pos = t.positions[index];
-                const isFlipped = flippedMap[index] ?? false;
-                const cardName = isEn ? drawn.card.nameEn : drawn.card.nameZh;
-                const orientationStr = isEn
-                  ? (drawn.isReversed ? 'Reversed' : 'Upright')
-                  : (drawn.isReversed ? '逆位' : '正位');
-
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center p-4 rounded-xl bg-[#FAF6ED] border border-[#111111]/10"
-                  >
-                    <span className="text-[11px] font-serif font-bold text-[#736B5E] mb-1">
-                      {pos.title}
-                    </span>
-                    <span className="text-[10px] font-serif text-[#736B5E]/80 mb-3 text-center h-7 flex items-center">
-                      {pos.role}
-                    </span>
-
-                    <div className="my-2">
-                      <TarotCardView
-                        card={drawn.card}
-                        isReversed={drawn.isReversed}
-                        isFlipped={isFlipped}
-                        size="sm"
-                        onFlip={() =>
-                          setFlippedMap(prev => ({ ...prev, [index]: !prev[index] }))
-                        }
-                      />
-                    </div>
-
-                    <div className="text-center mt-3 w-full">
-                      <div className="text-xs font-serif font-bold text-[#111111]">
-                        {cardName}
-                        <span className="ml-1 text-[11px] font-normal text-[#736B5E]">
-                          ({orientationStr})
-                        </span>
-                      </div>
-                      <p className="text-[11px] font-serif text-[#555555] mt-1.5 line-clamp-3 leading-relaxed text-left">
-                        {isEn
-                          ? drawn.card.loveMeaning
-                          : (drawn.isReversed ? drawn.card.reversedMeaning : drawn.card.uprightMeaning)}
-                      </p>
-                    </div>
+              <figure className="mt-4 flex flex-wrap items-start gap-4 md:block">
+                <div className="relative w-fit">
+                  <div aria-hidden="true">
+                    <TarotCardView card={drawn.card} isReversed={drawn.isReversed} isFlipped={!faceDown[index]} size="sm" showDetails={false} lang={lang} className="motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:animate-none" />
                   </div>
-                );
-              })}
-            </div>
-
-            {/* 综合合盘洞见 */}
-            {harmony && (
-              <div className="p-5 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#111111]/8">
-                  <div>
-                    <span className="text-xs font-serif font-bold text-[#111111]">
-                      {t.harmonyLabel}：{harmony.score}%
-                    </span>
-                    <span className="ml-2 text-xs font-serif text-[#736B5E]">
-                      （{harmony.level}）
-                    </span>
-                  </div>
-                  <div className="w-full sm:w-48 h-1.5 rounded-full bg-[#111111]/10 overflow-hidden">
-                    <div
-                      className="h-full bg-[#111111] transition-all duration-700"
-                      style={{ width: `${harmony.score}%` }}
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    aria-label={faceDown[index] ? (isEn ? 'Show card face' : '查看牌面') : (isEn ? 'Show card back' : '查看牌背')}
+                    onClick={() => setFaceDown((previous) => ({ ...previous, [index]: !previous[index] }))}
+                    className="absolute inset-0 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900"
+                  />
                 </div>
+                <figcaption className="min-w-0 flex-1 md:mt-3">
+                  <span className="block break-words font-medium">{cardName}</span>
+                  <span className="text-sm text-neutral-600">{orientation}</span>
+                </figcaption>
+              </figure>
 
-                <div className="space-y-3 text-xs font-serif leading-relaxed text-[#111111]">
-                  <div>
-                    <span className="font-bold text-[#736B5E] block mb-0.5">{t.energyTitle}</span>
-                    <p className="text-[#333333]">{harmony.dynamicSummary}</p>
-                  </div>
-                  <div>
-                    <span className="font-bold text-[#736B5E] block mb-0.5">{t.bridgeTitle}</span>
-                    <p className="text-[#333333]">{t.bridgeText}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+              {isEn && !translated ? (
+                <details className="mt-4 text-sm text-neutral-600">
+                  <summary className="min-h-11 cursor-pointer py-2 leading-6 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-neutral-900">Card notes (Chinese only)</summary>
+                  <p lang="zh-CN" className="leading-relaxed">{meaning}</p>
+                </details>
+              ) : (
+                <p className="mt-4 text-base leading-relaxed text-neutral-700">{meaning}</p>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+
+      <section aria-labelledby="love-reflection" className="rounded-lg border border-neutral-200 bg-neutral-50 p-5 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-2">
+          <h3 id="love-reflection" className="font-serif text-xl font-semibold">{t.harmonyLabel}</h3>
+          <span className="font-mono tabular-nums text-neutral-700">{harmony.score}%</span>
+        </div>
+        <p className="mt-1 font-medium">{harmony.level}</p>
+        <div aria-hidden="true" className="my-4 h-1.5 overflow-hidden rounded-full bg-neutral-200">
+          <div className="h-full bg-neutral-800" style={{ width: `${harmony.score}%` }} />
+        </div>
+        <p className="text-base leading-relaxed text-neutral-700">{harmony.dynamicSummary}</p>
+        <h4 className="mt-4 font-semibold">{isEn ? 'A next step' : '可以尝试的下一步'}</h4>
+        <p className="mt-1 text-base leading-relaxed text-neutral-700">{t.bridgeText}</p>
+      </section>
+
+      <button type="button" onClick={handleReset} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-800 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900">
+        <RotateCcw aria-hidden="true" className="size-4" />
+        {isEn ? t.switchScenario : '重新选择情境'}
+      </button>
+    </section>
   );
 }

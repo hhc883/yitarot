@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { divineMeihua, MeihuaDivinationResult } from '@/lib/metaphysics/meihua';
-import { ArrowRight, RotateCcw } from 'lucide-react';
 
 const PRESET_DECISIONS_ZH = [
   '当前这笔重要的商业合作，是否应当果断推进？',
@@ -24,317 +24,503 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
   const isEn = lang === 'en';
   const presetList = isEn ? PRESET_DECISIONS_EN : PRESET_DECISIONS_ZH;
 
-  const [question, setQuestion] = useState(
-    isEn
-      ? 'Should I aggressively push forward with this key commercial deal?'
-      : '当前这笔重要的商业合作，是否应当果断推进？'
-  );
+  const [question, setQuestion] = useState('');
   const [mode, setMode] = useState<'time' | 'numbers'>('time');
   const [numA, setNumA] = useState(3);
   const [numB, setNumB] = useState(7);
   const [numMoving, setNumMoving] = useState(2);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [result, setResult] = useState<MeihuaDivinationResult>(() =>
-    divineMeihua(
-      isEn
-        ? 'Should I aggressively push forward with this key commercial deal?'
-        : '当前这笔重要的商业合作，是否应当果断推进？',
-      'time'
-    )
-  );
+  const [result, setResult] = useState<MeihuaDivinationResult | null>(null);
 
   const handleCast = (e: React.FormEvent) => {
     e.preventDefault();
-    const res = divineMeihua(
-      question,
-      mode,
-      mode === 'numbers' ? [numA, numB, numMoving] : undefined
-    );
-    setResult(res);
+    const trimmedQuestion = question.trim();
+
+    if (!trimmedQuestion) {
+      setErrorMessage(
+        isEn
+          ? 'Please enter your inquiry question before casting.'
+          : '请输入或选择需要推演的决策问题。'
+      );
+      return;
+    }
+
+    if (
+      mode === 'numbers' &&
+      (Number.isNaN(numA) ||
+        Number.isNaN(numB) ||
+        Number.isNaN(numMoving) ||
+        numA <= 0 ||
+        numB <= 0 ||
+        numMoving <= 0)
+    ) {
+      setErrorMessage(
+        isEn
+          ? 'Please enter positive integers for all three numbers.'
+          : '请为上卦、下卦和动爻输入有效的正整数。'
+      );
+      return;
+    }
+
+    try {
+      setErrorMessage(null);
+      const res = divineMeihua(
+        trimmedQuestion,
+        mode,
+        mode === 'numbers' ? [numA, numB, numMoving] : undefined
+      );
+      setResult(res);
+    } catch {
+      setErrorMessage(
+        isEn
+          ? 'Failed to generate divination result. Please adjust inputs and try again.'
+          : '起卦推演出现异常，请检查数值后重试。'
+      );
+    }
   };
 
-  const action = isEn && result.decisionActionEn ? result.decisionActionEn : result.decisionActionZh;
+  const action =
+    result &&
+    (isEn && result.decisionActionEn
+      ? result.decisionActionEn
+      : result.decisionActionZh);
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
-      {/* 标题 */}
-      <div className="w-full text-center mb-6">
-        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          {isEn ? 'Meihua Yishu · Daily Strategic Decision' : '梅花易数 · 每日决策'}
+    <div className="w-full max-w-4xl mx-auto flex flex-col items-center text-zinc-900 px-2 sm:px-0">
+      {/* 标题与简介 */}
+      <header className="w-full text-center mb-8">
+        <h1 className="font-serif font-semibold text-2xl sm:text-3xl text-zinc-900 tracking-tight">
+          {isEn ? 'Meihua Decision' : '梅花易数决策'}
         </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-1.5 max-w-md mx-auto">
+        <p className="text-xs sm:text-sm text-zinc-600 mt-2 max-w-lg mx-auto leading-relaxed">
           {isEn
-            ? 'Shao Yong Classic Oracle · Body vs Application Interactions · Strategic Timing'
-            : '邵康节心易神数 · 体用生克断吉凶 · 时空动静定先机'}
+            ? 'Structured classic I Ching timing and body-application analysis for practical clarity.'
+            : '依邵雍梅花易数体用生克法，推演事态动静、过程机巧与决策宜忌。'}
         </p>
-      </div>
+      </header>
 
       {/* 提问与起卦方式输入 */}
-      <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 sm:p-6 shadow-2xs mb-8">
+      <section
+        aria-labelledby="meihua-input-heading"
+        className="w-full rounded-xl bg-white border border-zinc-200 p-4 sm:p-6 mb-8"
+      >
+        <h2 id="meihua-input-heading" className="sr-only">
+          {isEn ? 'Divination Setup' : '起卦设定'}
+        </h2>
+
         <form onSubmit={handleCast} className="flex flex-col gap-4">
           <div>
-            <label className="block text-xs font-serif font-bold text-[#111111] mb-2">
-              {isEn ? 'Inquire on Core Decision' : '叩问心中关键决策'}
+            <label
+              htmlFor="decision-question-input"
+              className="block text-xs font-semibold text-zinc-800 mb-1.5"
+            >
+              {isEn ? 'Decision Inquiry' : '决策焦点'}
             </label>
             <input
+              id="decision-question-input"
               type="text"
               value={question}
-              onChange={e => setQuestion(e.target.value)}
-              placeholder={isEn ? 'Enter your pending decision, contract, or strategy...' : '输入你当前面临的抉择、合作或动向...'}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs sm:text-sm text-[#111111] focus:outline-hidden focus:border-[#111111]"
+              onChange={e => {
+                setQuestion(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
+              placeholder={
+                isEn
+                  ? 'Enter pending decision, contract, or strategy...'
+                  : '输入当前面临的抉择、合作或动向...'
+              }
+              className="w-full px-3.5 py-2.5 rounded-lg bg-zinc-50 border border-zinc-300 text-xs sm:text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 focus:bg-white"
             />
           </div>
 
           {/* 常见预设决策速选 */}
-          <div className="flex flex-wrap gap-1.5">
-            {presetList.map((p, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setQuestion(p)}
-                className="text-left text-xs px-2.5 py-1 rounded-lg bg-[#FAF6ED] hover:bg-[#F2ECE1] text-[#5C5549] transition-colors border border-[#111111]/5 cursor-pointer font-serif"
-              >
-                {p}
-              </button>
-            ))}
+          <div>
+            <span className="block text-[11px] font-medium text-zinc-500 mb-1.5">
+              {isEn ? 'Preset inquiries' : '预设参考'}
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {presetList.map((p, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setQuestion(p);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
+                  className="text-left text-xs px-2.5 py-1 rounded-md bg-zinc-100 hover:bg-zinc-200 text-zinc-700 transition-colors border border-zinc-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* 起卦模式切换 */}
-          <div className="flex items-center justify-between pt-3 border-t border-[#111111]/6 flex-wrap gap-3">
-            <div className="flex items-center gap-2">
+          {/* 起卦模式切换与提交 */}
+          <div className="pt-3 border-t border-zinc-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium text-zinc-600 mr-1">
+                {isEn ? 'Method:' : '起卦方式：'}
+              </span>
               <button
                 type="button"
                 onClick={() => setMode('time')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-serif transition-colors cursor-pointer ${
+                aria-pressed={mode === 'time'}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-900 ${
                   mode === 'time'
-                    ? 'bg-[#111111] text-[#FFFDF9]'
-                    : 'bg-[#FAF6ED] text-[#736B5E]'
+                    ? 'bg-zinc-900 text-white border-zinc-900'
+                    : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
                 }`}
               >
-                {isEn ? 'Present Time Sync' : '时空即刻感应'}
+                {isEn ? 'Present Time' : '时辰起卦'}
               </button>
               <button
                 type="button"
                 onClick={() => setMode('numbers')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-serif transition-colors cursor-pointer ${
+                aria-pressed={mode === 'numbers'}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-900 ${
                   mode === 'numbers'
-                    ? 'bg-[#111111] text-[#FFFDF9]'
-                    : 'bg-[#FAF6ED] text-[#736B5E]'
+                    ? 'bg-zinc-900 text-white border-zinc-900'
+                    : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
                 }`}
               >
-                {isEn ? '3 Random Numbers' : '随机心易灵数'}
+                {isEn ? 'Custom Numbers' : '数字起卦'}
               </button>
             </div>
 
             {mode === 'numbers' && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={numA}
-                  onChange={e => setNumA(Number(e.target.value))}
-                  placeholder={isEn ? 'Upper' : '上卦数'}
-                  className="w-16 px-2 py-1 rounded-md bg-[#FAF6ED] border border-[#111111]/10 text-xs text-center"
-                />
-                <input
-                  type="number"
-                  value={numB}
-                  onChange={e => setNumB(Number(e.target.value))}
-                  placeholder={isEn ? 'Lower' : '下卦数'}
-                  className="w-16 px-2 py-1 rounded-md bg-[#FAF6ED] border border-[#111111]/10 text-xs text-center"
-                />
-                <input
-                  type="number"
-                  value={numMoving}
-                  onChange={e => setNumMoving(Number(e.target.value))}
-                  placeholder={isEn ? 'Line' : '动爻数'}
-                  className="w-16 px-2 py-1 rounded-md bg-[#FAF6ED] border border-[#111111]/10 text-xs text-center"
-                />
+              <div className="flex items-center gap-2 flex-wrap">
+                <label className="flex items-center gap-1 text-xs text-zinc-600">
+                  <span>{isEn ? 'Upper' : '上'}</span>
+                  <input
+                    type="number"
+                    min="1"
+                    aria-label={isEn ? 'Upper Trigram Number' : '上卦数'}
+                    value={numA}
+                    onChange={e => setNumA(Number(e.target.value))}
+                    className="w-14 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-center text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
+                  />
+                </label>
+                <label className="flex items-center gap-1 text-xs text-zinc-600">
+                  <span>{isEn ? 'Lower' : '下'}</span>
+                  <input
+                    type="number"
+                    min="1"
+                    aria-label={isEn ? 'Lower Trigram Number' : '下卦数'}
+                    value={numB}
+                    onChange={e => setNumB(Number(e.target.value))}
+                    className="w-14 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-center text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
+                  />
+                </label>
+                <label className="flex items-center gap-1 text-xs text-zinc-600">
+                  <span>{isEn ? 'Line' : '动爻'}</span>
+                  <input
+                    type="number"
+                    min="1"
+                    aria-label={isEn ? 'Moving Line Number' : '动爻数'}
+                    value={numMoving}
+                    onChange={e => setNumMoving(Number(e.target.value))}
+                    className="w-14 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-center text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
+                  />
+                </label>
               </div>
             )}
 
             <button
               type="submit"
-              className="px-6 py-2 rounded-xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider transition-all cursor-pointer shadow-xs"
+              className="w-full sm:w-auto px-5 py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium tracking-wide transition-colors cursor-pointer border border-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-1"
             >
-              {isEn ? 'Cast Hexagram' : '起卦断事'}
+              {isEn ? 'Cast Hexagram' : '排卦推演'}
             </button>
           </div>
         </form>
-      </div>
 
-      {/* 卦象推演三位一体卡片 (本卦 · 互卦 · 变卦) */}
-      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-        {/* 本卦 (起因与当下现状) */}
-        <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3 border-b border-[#111111]/6 pb-2">
-              <span className="text-xs font-serif font-bold text-[#111111]">
-                {isEn ? 'Primary · Present' : '本卦 · 现状'}
-              </span>
-              <span className="text-[11px] font-serif text-[#8C6D23]">
-                {isEn ? `Moving Line ${result.movingLine}` : `动在第 ${result.movingLine} 爻`}
-              </span>
+        {/* 错误状态 */}
+        {errorMessage && (
+          <div
+            role="alert"
+            className="mt-4 p-3 rounded-lg border border-zinc-300 bg-zinc-100 text-zinc-800 text-xs"
+          >
+            {errorMessage}
+          </div>
+        )}
+      </section>
+
+      {/* 结果状态 / 空状态 */}
+      {!result ? (
+        <section
+          aria-label={isEn ? 'Divination Status' : '推演状态'}
+          className="w-full rounded-xl bg-white border border-zinc-200 p-8 text-center text-zinc-500 text-xs sm:text-sm"
+        >
+          {isEn
+            ? 'No hexagram cast yet. Enter an inquiry and select Cast Hexagram.'
+            : '尚未排定卦象。请输入决策问题后点击“排卦推演”。'}
+        </section>
+      ) : (
+        <>
+          {/* 卦象推演三联 (本卦 · 互卦 · 变卦) */}
+          <section
+            aria-labelledby="hexagram-cards-heading"
+            className="w-full mb-8"
+          >
+            <h2 id="hexagram-cards-heading" className="sr-only">
+              {isEn ? 'Hexagram Breakdown' : '卦象解析'}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* 本卦 */}
+              <article className="rounded-xl bg-white border border-zinc-200 p-5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-200">
+                    <span className="text-xs font-semibold text-zinc-900">
+                      {isEn ? 'Primary · Present' : '本卦 · 现状'}
+                    </span>
+                    <span className="text-[11px] font-mono text-zinc-600">
+                      {isEn
+                        ? `Line ${result.movingLine}`
+                        : `第 ${result.movingLine} 爻动`}
+                    </span>
+                  </div>
+
+                  <div className="text-center my-4">
+                    <div className="font-serif font-bold text-xl sm:text-2xl text-zinc-900 mb-1">
+                      {isEn
+                        ? result.primaryHexagram.fullNameEn ||
+                          result.primaryHexagram.fullNameZh
+                        : result.primaryHexagram.fullNameZh}
+                    </div>
+                    <span className="text-xs text-zinc-600 block">
+                      {isEn
+                        ? `Upper [${result.primaryHexagram.upper.natureEn}] / Lower [${result.primaryHexagram.lower.natureEn}]`
+                        : `上【${result.primaryHexagram.upper.nameZh}（${result.primaryHexagram.upper.natureZh}）】 / 下【${result.primaryHexagram.lower.nameZh}（${result.primaryHexagram.lower.natureZh}）】`}
+                    </span>
+                  </div>
+
+                  {/* 体用标注 */}
+                  <div className="space-y-1.5 pt-3 border-t border-zinc-200 text-xs">
+                    <div className="flex justify-between items-center p-2 rounded-md bg-zinc-50 border border-zinc-100">
+                      <span className="font-medium text-zinc-800">
+                        {isEn ? 'Body (Self / Core)' : '体卦 (我方/主体)'}
+                      </span>
+                      <span className="text-zinc-600 font-mono">
+                        {isEn
+                          ? `${result.bodyTrigram.trigram.nameEn} · ${result.bodyTrigram.trigram.element}`
+                          : `${result.bodyTrigram.trigram.nameZh} · ${result.bodyTrigram.trigram.elementZh}`}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 rounded-md bg-zinc-50 border border-zinc-100">
+                      <span className="font-medium text-zinc-800">
+                        {isEn
+                          ? 'Application (External / Target)'
+                          : '用卦 (对方/客体)'}
+                      </span>
+                      <span className="text-zinc-600 font-mono">
+                        {isEn
+                          ? `${result.applicationTrigram.trigram.nameEn} · ${result.applicationTrigram.trigram.element}`
+                          : `${result.applicationTrigram.trigram.nameZh} · ${result.applicationTrigram.trigram.elementZh}`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              {/* 互卦 */}
+              <article className="rounded-xl bg-white border border-zinc-200 p-5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-200">
+                    <span className="text-xs font-semibold text-zinc-900">
+                      {isEn ? 'Nuclear · Process' : '互卦 · 过程'}
+                    </span>
+                    <span className="text-[11px] text-zinc-500">
+                      {isEn ? 'Lines 2-5' : '二至五爻'}
+                    </span>
+                  </div>
+
+                  <div className="text-center my-4">
+                    <div className="font-serif font-bold text-xl sm:text-2xl text-zinc-900 mb-1">
+                      {isEn
+                        ? result.mutualHexagram.fullNameEn ||
+                          result.mutualHexagram.fullNameZh
+                        : result.mutualHexagram.fullNameZh}
+                    </div>
+                    <span className="text-xs text-zinc-600 block">
+                      {isEn
+                        ? `Upper [${result.mutualHexagram.upper.natureEn}] / Lower [${result.mutualHexagram.lower.natureEn}]`
+                        : `上【${result.mutualHexagram.upper.nameZh}】 / 下【${result.mutualHexagram.lower.nameZh}】`}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-zinc-600 leading-relaxed pt-3 border-t border-zinc-200">
+                    {isEn
+                      ? result.mutualHexagram.summaryEn ||
+                        result.mutualHexagram.summaryZh
+                      : result.mutualHexagram.summaryZh}
+                  </p>
+                </div>
+              </article>
+
+              {/* 变卦 */}
+              <article className="rounded-xl bg-white border border-zinc-200 p-5 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-200">
+                    <span className="text-xs font-semibold text-zinc-900">
+                      {isEn ? 'Transformed · Outcome' : '变卦 · 终局'}
+                    </span>
+                    <span className="text-[11px] text-zinc-500">
+                      {isEn ? 'Line Shift' : '动爻生变'}
+                    </span>
+                  </div>
+
+                  <div className="text-center my-4">
+                    <div className="font-serif font-bold text-xl sm:text-2xl text-zinc-900 mb-1">
+                      {isEn
+                        ? result.transformedHexagram.fullNameEn ||
+                          result.transformedHexagram.fullNameZh
+                        : result.transformedHexagram.fullNameZh}
+                    </div>
+                    <span className="text-xs text-zinc-600 block">
+                      {isEn
+                        ? `New Application: ${result.transformedHexagram.changedApplication.nameEn} (${result.transformedHexagram.changedApplication.element})`
+                        : `新用卦：${result.transformedHexagram.changedApplication.nameZh} (${result.transformedHexagram.changedApplication.elementZh})`}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-zinc-600 leading-relaxed pt-3 border-t border-zinc-200">
+                    {isEn
+                      ? result.transformedHexagram.summaryEn ||
+                        result.transformedHexagram.summaryZh
+                      : result.transformedHexagram.summaryZh}
+                  </p>
+                </div>
+              </article>
             </div>
+          </section>
 
-            <div className="text-center my-4">
-              <div className="font-serif font-black text-2xl text-[#111111] mb-1">
-                {isEn ? (result.primaryHexagram.fullNameEn || result.primaryHexagram.fullNameZh) : result.primaryHexagram.fullNameZh}
+          {/* 体用生克断语与行动建议 */}
+          {action && (
+            <section
+              aria-labelledby="verdict-heading"
+              className="w-full rounded-xl bg-white border border-zinc-200 p-5 sm:p-6 mb-8"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-4 mb-4">
+                <div>
+                  <span className="text-[11px] text-zinc-500 uppercase tracking-wide block">
+                    {isEn ? 'Interaction Analysis' : '生克格局'}
+                  </span>
+                  <h3
+                    id="verdict-heading"
+                    className="font-serif font-bold text-xl text-zinc-900 mt-0.5"
+                  >
+                    {isEn
+                      ? result.wuxingRelation.headlineEn ||
+                        result.wuxingRelation.headlineZh
+                      : result.wuxingRelation.headlineZh}
+                  </h3>
+                  <p className="text-xs text-zinc-600 mt-1">
+                    {isEn
+                      ? result.wuxingRelation.analysisEn ||
+                        result.wuxingRelation.analysisZh
+                      : result.wuxingRelation.analysisZh}
+                  </p>
+                </div>
+
+                <div className="text-left sm:text-right pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
+                  <span className="text-[11px] text-zinc-500 block">
+                    {isEn ? 'Judgment Level' : '断语定性'}
+                  </span>
+                  <div className="font-serif font-bold text-2xl text-zinc-900">
+                    {isEn
+                      ? result.wuxingRelation.levelEn ||
+                        result.wuxingRelation.levelZh
+                      : result.wuxingRelation.levelZh}
+                  </div>
+                </div>
               </div>
-              <span className="text-xs font-serif text-[#736B5E]">
-                {isEn
-                  ? `Upper [${result.primaryHexagram.upper.natureEn}] / Lower [${result.primaryHexagram.lower.natureEn}]`
-                  : `上【${result.primaryHexagram.upper.nameZh}（${result.primaryHexagram.upper.natureZh}）】 / 下【${result.primaryHexagram.lower.nameZh}（${result.primaryHexagram.lower.natureZh}）】`}
-              </span>
-            </div>
 
-            {/* 体用标注 */}
-            <div className="space-y-2 pt-2 border-t border-[#111111]/6 text-xs font-serif">
-              <div className="flex justify-between items-center p-2 rounded-lg bg-[#FAF6ED]">
-                <span className="font-bold text-[#111111]">
-                  {isEn ? 'Body (Self / Core Issue)' : '体卦 (我方/事核)'}
+              {/* 决断断语 */}
+              <div className="p-4 rounded-lg bg-zinc-50 border border-zinc-200 mb-5">
+                <span className="text-[11px] font-semibold text-zinc-700 uppercase tracking-wide block mb-1">
+                  {isEn ? 'Verdict & Strategy' : '直决与策略'}
                 </span>
-                <span className="text-[#8C6D23]">
-                  {isEn ? `${result.bodyTrigram.trigram.nameEn} (${result.bodyTrigram.trigram.element})` : `${result.bodyTrigram.trigram.nameZh} (${result.bodyTrigram.trigram.elementZh})`}
-                </span>
+                <p className="text-xs sm:text-sm font-semibold text-zinc-900 leading-relaxed">
+                  {action.verdict}
+                </p>
+                <p className="text-xs text-zinc-600 mt-2 leading-relaxed">
+                  <strong className="text-zinc-800 font-semibold">
+                    {isEn ? 'Tactical Advice: ' : '策略指引：'}
+                  </strong>
+                  {action.tacticalAdvice}
+                </p>
               </div>
-              <div className="flex justify-between items-center p-2 rounded-lg bg-[#FAF6ED]">
-                <span className="font-bold text-[#111111]">
-                  {isEn ? 'Application (External / Allies)' : '用卦 (外部/事态)'}
-                </span>
-                <span className="text-[#8C6D23]">
-                  {isEn ? `${result.applicationTrigram.trigram.nameEn} (${result.applicationTrigram.trigram.element})` : `${result.applicationTrigram.trigram.nameZh} (${result.applicationTrigram.trigram.elementZh})`}
-                </span>
+
+              {/* 宜忌清单 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-3.5 rounded-lg border border-zinc-200 bg-white">
+                  <span className="font-semibold text-zinc-900 block mb-2">
+                    {isEn ? 'Suitable' : '宜行之策'}
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {action.suitable.map((s, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-1 rounded bg-zinc-100 text-zinc-800 border border-zinc-200"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-lg border border-zinc-200 bg-white">
+                  <span className="font-semibold text-zinc-900 block mb-2">
+                    {isEn ? 'Unsuitable' : '当戒之举'}
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {action.unsuitable.map((u, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-1 rounded bg-zinc-100 text-zinc-800 border border-zinc-200"
+                      >
+                        {u}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </section>
+          )}
+        </>
+      )}
 
-        {/* 互卦 (发展与过程机巧) */}
-        <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3 border-b border-[#111111]/6 pb-2">
-              <span className="text-xs font-serif font-bold text-[#111111]">
-                {isEn ? 'Nuclear · Progression' : '互卦 · 过程'}
-              </span>
-              <span className="text-[11px] font-serif text-[#736B5E]">
-                {isEn ? 'Lines 2, 3, 4, 5 Interlock' : '二三四五爻交织'}
-              </span>
-            </div>
-
-            <div className="text-center my-4">
-              <div className="font-serif font-black text-2xl text-[#111111] mb-1">
-                {isEn ? (result.mutualHexagram.fullNameEn || result.mutualHexagram.fullNameZh) : result.mutualHexagram.fullNameZh}
-              </div>
-              <span className="text-xs font-serif text-[#736B5E]">
-                {isEn
-                  ? `Upper [${result.mutualHexagram.upper.natureEn}] / Lower [${result.mutualHexagram.lower.natureEn}]`
-                  : `上【${result.mutualHexagram.upper.nameZh}】 / 下【${result.mutualHexagram.lower.nameZh}】`}
-              </span>
-            </div>
-
-            <p className="text-xs font-serif text-[#524B40] leading-relaxed pt-2 border-t border-[#111111]/6">
-              {isEn ? (result.mutualHexagram.summaryEn || result.mutualHexagram.summaryZh) : result.mutualHexagram.summaryZh}
-            </p>
-          </div>
-        </div>
-
-        {/* 变卦 (归宿与终局结果) */}
-        <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3 border-b border-[#111111]/6 pb-2">
-              <span className="text-xs font-serif font-bold text-[#111111]">
-                {isEn ? 'Transformed · Resolution' : '变卦 · 终局'}
-              </span>
-              <span className="text-[11px] font-serif text-[#8C6D23]">
-                {isEn ? 'Shift on Moving Line' : '动极生变'}
-              </span>
-            </div>
-
-            <div className="text-center my-4">
-              <div className="font-serif font-black text-2xl text-[#111111] mb-1">
-                {isEn ? (result.transformedHexagram.fullNameEn || result.transformedHexagram.fullNameZh) : result.transformedHexagram.fullNameZh}
-              </div>
-              <span className="text-xs font-serif text-[#736B5E]">
-                {isEn
-                  ? `New Application: ${result.transformedHexagram.changedApplication.nameEn} (${result.transformedHexagram.changedApplication.element})`
-                  : `新用卦：${result.transformedHexagram.changedApplication.nameZh} (${result.transformedHexagram.changedApplication.elementZh})`}
-              </span>
-            </div>
-
-            <p className="text-xs font-serif text-[#524B40] leading-relaxed pt-2 border-t border-[#111111]/6">
-              {isEn ? (result.transformedHexagram.summaryEn || result.transformedHexagram.summaryZh) : result.transformedHexagram.summaryZh}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 体用生克大判决与行动指南 */}
-      <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#111111]/6 pb-4 mb-5">
-          <div>
-            <span className="text-[11px] font-serif text-[#736B5E] block">
-              {isEn ? 'Elements Interaction' : '体用五行气场'}
-            </span>
-            <h3 className="font-serif font-black text-2xl text-[#111111] mt-0.5">
-              {isEn ? (result.wuxingRelation.headlineEn || result.wuxingRelation.headlineZh) : result.wuxingRelation.headlineZh}
-            </h3>
-            <p className="text-xs font-serif text-[#524B40] mt-1">
-              {isEn ? (result.wuxingRelation.analysisEn || result.wuxingRelation.analysisZh) : result.wuxingRelation.analysisZh}
-            </p>
-          </div>
-
-          <div className="text-left sm:text-right">
-            <span className="text-[11px] font-serif text-[#736B5E] block">
-              {isEn ? 'Oracle Grade' : '易断气运'}
-            </span>
-            <div className="font-serif font-black text-3xl text-[#8C6D23]">
-              {isEn ? (result.wuxingRelation.levelEn || result.wuxingRelation.levelZh) : result.wuxingRelation.levelZh}
-            </div>
-          </div>
-        </div>
-
-        {/* 决断断语 */}
-        <div className="p-4 rounded-xl bg-[#FAF6ED] border border-[#111111]/6 mb-5">
-          <span className="text-[11px] font-serif font-bold text-[#111111] block mb-1">
-            {isEn ? 'Direct Verdict' : '直决断语'}
-          </span>
-          <p className="text-xs font-serif text-[#111111] leading-relaxed font-semibold">
-            {action.verdict}
-          </p>
-          <p className="text-xs font-serif text-[#524B40] mt-2 leading-relaxed">
-            {isEn ? 'Tactical Strategy: ' : '战术策略：'}{action.tacticalAdvice}
-          </p>
-        </div>
-
-        {/* 宜忌清单 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-serif">
-          <div>
-            <span className="font-bold text-emerald-800 block mb-1.5">
-              {isEn ? '【FAVORED ACTIONS】' : '【当行之宜】'}
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {action.suitable.map((s, idx) => (
-                <span key={idx} className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-100">
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <span className="font-bold text-rose-800 block mb-1.5">
-              {isEn ? '【AVOID ACTIONS】' : '【当避之戒】'}
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {action.unsuitable.map((u, idx) => (
-                <span key={idx} className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-800 border border-rose-100">
-                  {u}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* 相关推演与内页链接 */}
+      <footer
+        aria-label={isEn ? 'Related tools' : '关联工具'}
+        className="w-full pt-4 border-t border-zinc-200 flex flex-wrap items-center justify-center gap-4 text-xs text-zinc-600"
+      >
+        <Link
+          href={`/${lang}/fatemaster`}
+          className="hover:text-zinc-900 underline underline-offset-4 focus:outline-none focus:ring-1 focus:ring-zinc-900 rounded px-1"
+        >
+          {isEn ? 'FateMaster Console' : '玄学中台总览'}
+        </Link>
+        <span aria-hidden="true" className="text-zinc-300">
+          •
+        </span>
+        <Link
+          href={`/${lang}/fatemaster/daily-decision`}
+          className="hover:text-zinc-900 underline underline-offset-4 focus:outline-none focus:ring-1 focus:ring-zinc-900 rounded px-1"
+        >
+          {isEn ? 'Daily Decision Alias' : '今日决策通道'}
+        </Link>
+        <span aria-hidden="true" className="text-zinc-300">
+          •
+        </span>
+        <Link
+          href={`/${lang}/bazi`}
+          className="hover:text-zinc-900 underline underline-offset-4 focus:outline-none focus:ring-1 focus:ring-zinc-900 rounded px-1"
+        >
+          {isEn ? 'BaZi Analysis' : '八字排盘'}
+        </Link>
+      </footer>
     </div>
   );
 }

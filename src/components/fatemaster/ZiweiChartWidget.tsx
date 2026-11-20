@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { calculateZiwei, ZiweiChartResult, ZiweiPalace } from '@/lib/metaphysics/ziwei';
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
   const isEn = lang === 'en';
@@ -16,7 +16,11 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
     calculateZiwei(1996, 8, 18, 12)
   );
 
-  const [activePalaceIndex, setActivePalaceIndex] = useState<number>(chart.palaces.find(p => p.isLifePalace)?.index ?? 0);
+  const [activePalaceIndex, setActivePalaceIndex] = useState<number>(
+    () => chart.palaces.find(p => p.isLifePalace)?.index ?? 0
+  );
+
+  const [mobileView, setMobileView] = useState<'cards' | 'grid'>('cards');
 
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +30,8 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
     setActivePalaceIndex(lifeIdx);
   };
 
-  const selectedPalace = chart.palaces.find(p => p.index === activePalaceIndex) || chart.palaces[0];
+  const selectedPalace: ZiweiPalace =
+    chart.palaces.find(p => p.index === activePalaceIndex) || chart.palaces[0];
 
   // 12 宫在 4x4 盘面中的经典分布 (围绕周边 12 格排布)
   const gridPositions: Record<number, { col: number; row: number }> = {
@@ -44,27 +49,33 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
     4: { col: 1, row: 2 }  // 辰
   };
 
+  const getTransformationBadge = (transformation?: string) => {
+    if (!transformation) return '';
+    const t = transformation.replace('化', '');
+    if (t === '禄' || t === 'Lu') {
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    }
+    if (t === '权' || t === 'Quan') {
+      return 'bg-red-50 text-red-700 border-red-200';
+    }
+    if (t === '科' || t === 'Ke') {
+      return 'bg-blue-50 text-blue-700 border-blue-200';
+    }
+    if (t === '忌' || t === 'Ji') {
+      return 'bg-amber-50 text-amber-800 border-amber-200';
+    }
+    return 'bg-zinc-100 text-zinc-800 border-zinc-200';
+  };
+
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col items-center">
-      {/* 标题 */}
-      <div className="w-full text-center mb-6">
-        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          {isEn ? 'AI Ziwei Doushu Chart' : 'AI 紫微斗数排盘'}
-        </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-1.5 max-w-lg mx-auto">
-          {isEn
-            ? '12 Palaces · Life & Body Alignment · 14 Major Stars · Natal Transformations'
-            : '十二宫位星耀分布 · 命身双宫定位 · 十四主星庙旺 · 生年四化飞星'}
-        </p>
-      </div>
-
       {/* 生辰调参框 */}
-      <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 shadow-2xs mb-8">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <span className="text-xs font-serif font-bold text-[#111111]">
+      <div className="w-full rounded-sm bg-white border border-[#E4E4E7] p-5 sm:p-6 mb-8">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 className="font-serif text-[16px] sm:text-[17px] font-normal text-[#171717]">
             {isEn ? 'Birth Timing' : '生辰历法'}
-          </span>
-          <span className="text-[11px] font-serif text-[#736B5E]">
+          </h2>
+          <span className="text-[12px] text-[#52525B]">
             {isEn
               ? `Lunar: ${chart.lunarDate.yearGanZhi} Year · ${chart.bureau.nameEn}`
               : `农历：${chart.lunarDate.yearGanZhi}年 ${chart.lunarDate.monthZh}${chart.lunarDate.dayZh} ${chart.lunarDate.hourBranch} · 【${chart.bureau.nameZh}】`}
@@ -73,7 +84,7 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
 
         <form onSubmit={handleCalculate} className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div>
-            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">
+            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Year' : '公历年'}
             </label>
             <input
@@ -82,12 +93,12 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
               onChange={e => setYear(Number(e.target.value))}
               min={1920}
               max={2035}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
+              className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">
-              {isEn ? 'Month' : '月'}
+            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
+              {isEn ? 'Month' : '月份'}
             </label>
             <input
               type="number"
@@ -95,12 +106,12 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
               onChange={e => setMonth(Number(e.target.value))}
               min={1}
               max={12}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
+              className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">
-              {isEn ? 'Day' : '日'}
+            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
+              {isEn ? 'Day' : '日期'}
             </label>
             <input
               type="number"
@@ -108,12 +119,12 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
               onChange={e => setDay(Number(e.target.value))}
               min={1}
               max={31}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
+              className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-serif text-[#736B5E] mb-1">
-              {isEn ? 'Birth Hour (0-23)' : '出生时辰 (点)'}
+            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
+              {isEn ? 'Hour (0-23)' : '时辰（0-23点）'}
             </label>
             <input
               type="number"
@@ -121,217 +132,471 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
               onChange={e => setHour(Number(e.target.value))}
               min={0}
               max={23}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
+              className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
           <div className="flex items-end col-span-2 sm:col-span-1">
             <button
               type="submit"
-              className="w-full py-2 rounded-xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider transition-colors cursor-pointer"
+              className="w-full min-h-[40px] rounded-sm bg-[#171717] hover:bg-[#333333] text-white text-[13px] font-medium tracking-wide transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             >
-              {isEn ? 'Recalculate Chart' : '重新排盘'}
+              {isEn ? 'Recalculate' : '开始排盘'}
             </button>
           </div>
         </form>
       </div>
 
-      {/* 紫微斗数十二宫方形大盘面 (桌面端 4x4 完整九宫格网，移动端自适应网格) */}
+      {/* 紫微斗数十二宫盘面 */}
       <div className="w-full mb-8">
-        <div className="hidden md:grid grid-cols-4 grid-rows-4 gap-2.5 p-3 rounded-2xl bg-[#F7F3EF] border border-[#111111]/10 shadow-2xs">
-          {/* 中间 2x2 天心盘面 */}
-          <div className="col-start-2 col-span-2 row-start-2 row-span-2 rounded-xl bg-[#FFFDF9] border border-[#111111]/8 p-5 flex flex-col justify-between text-center">
-            <div>
-              <span className="text-[11px] font-serif tracking-widest text-[#8C6D23] uppercase block mb-1">
-                Z I W E I · D O U S H U
-              </span>
-              <h3 className="font-serif font-black text-xl text-[#111111]">
-                {isEn ? 'Twelve Palaces Hologram' : '天盘十二宫全息图'}
-              </h3>
-              <p className="text-xs font-serif text-[#736B5E] mt-1">
-                {isEn
-                  ? `${chart.bureau.nameEn} · Life Palace [${chart.lifePalaceBranch}] · Body Palace [${chart.bodyPalaceBranch}]`
-                  : `五行局：${chart.bureau.nameZh} · 命宫坐【${chart.lifePalaceBranch}】 · 身宫坐【${chart.bodyPalaceBranch}】`}
-              </p>
+        {/* 桌面端/平板端 4x4 方形大盘面 (带横向局部包含，防止小视口溢出) */}
+        <div className="hidden md:block overflow-x-auto pb-2">
+          <div className="min-w-[680px] grid grid-cols-4 grid-rows-4 gap-2.5 p-3 rounded-sm bg-[#FAFAFA] border border-[#E4E4E7]">
+            {/* 中间 2x2 天心盘面 */}
+            <div className="col-start-2 col-span-2 row-start-2 row-span-2 rounded-sm bg-white border border-[#E4E4E7] p-5 flex flex-col justify-between text-center">
+              <div>
+                <span className="text-[11px] font-medium tracking-[0.2em] text-[#52525B] uppercase block mb-1">
+                  Z I W E I · D O U S H U
+                </span>
+                <h3 className="font-serif text-[18px] sm:text-[20px] font-normal text-[#171717]">
+                  {isEn ? 'Twelve Palaces Chart' : '天盘十二宫全息图'}
+                </h3>
+                <p className="text-[12px] text-[#52525B] mt-1">
+                  {isEn
+                    ? `${chart.bureau.nameEn} · Life Palace [${chart.lifePalaceBranch}] · Body Palace [${chart.bodyPalaceBranch}]`
+                    : `五行局：${chart.bureau.nameZh} · 命宫坐【${chart.lifePalaceBranch}】 · 身宫坐【${chart.bodyPalaceBranch}】`}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[12px] text-left">
+                <span className="font-medium text-[#171717] block mb-0.5">
+                  {isEn ? `Life Star: ${chart.dayMasterStarEn}` : `命宫主星：${chart.dayMasterStar}`}
+                </span>
+                <p className="text-[11px] text-[#52525B] leading-relaxed line-clamp-3">
+                  {isEn ? chart.overallProfileEn.personality : chart.overallProfileZh.personality}
+                </p>
+              </div>
+
+              <div className="flex justify-around items-center pt-2 border-t border-[#E4E4E7] text-[11px] text-[#52525B]">
+                {isEn ? (
+                  <>
+                    <span className="flex items-center gap-1">
+                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">Lu</span>
+                      <span>{chart.fourTransformationsEn.lu}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-red-50 text-red-700 border-red-200">Quan</span>
+                      <span>{chart.fourTransformationsEn.quan}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-blue-50 text-blue-700 border-blue-200">Ke</span>
+                      <span>{chart.fourTransformationsEn.ke}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-amber-50 text-amber-800 border-amber-200">Ji</span>
+                      <span>{chart.fourTransformationsEn.ji}</span>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex items-center gap-1">
+                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">禄</span>
+                      <span>{chart.fourTransformations.lu}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-red-50 text-red-700 border-red-200">权</span>
+                      <span>{chart.fourTransformations.quan}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-blue-50 text-blue-700 border-blue-200">科</span>
+                      <span>{chart.fourTransformations.ke}</span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-amber-50 text-amber-800 border-amber-200">忌</span>
+                      <span>{chart.fourTransformations.ji}</span>
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-[#FAF6ED] border border-[#111111]/6 text-xs font-serif text-left">
-              <span className="font-bold text-[#111111] block mb-0.5">
-                {isEn ? `Life Star: ${chart.dayMasterStarEn}` : `命宫主星：${chart.dayMasterStar}`}
-              </span>
-              <p className="text-[11px] text-[#524B40] leading-relaxed line-clamp-3">
-                {isEn ? chart.overallProfileEn.personality : chart.overallProfileZh.personality}
-              </p>
-            </div>
+            {/* 周边 12 个宫位 */}
+            {chart.palaces.map(palace => {
+              const pos = gridPositions[palace.index];
+              const isSelected = palace.index === activePalaceIndex;
+              return (
+                <button
+                  key={palace.index}
+                  type="button"
+                  onClick={() => setActivePalaceIndex(palace.index)}
+                  style={{
+                    gridColumnStart: pos.col,
+                    gridRowStart: pos.row
+                  }}
+                  className={`p-3 rounded-sm border text-left cursor-pointer transition-colors flex flex-col justify-between focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                    isSelected
+                      ? 'bg-white border-[#171717] ring-1 ring-[#171717]'
+                      : palace.isLifePalace
+                      ? 'bg-white border-[#171717]/40 hover:border-[#171717]'
+                      : 'bg-white border-[#E4E4E7] hover:border-[#A1A1AA]'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[12px] font-serif font-semibold text-[#171717]">
+                          {isEn ? palace.nameEn : palace.name}
+                        </span>
+                        {palace.isLifePalace && (
+                          <span className="text-[9px] px-1 py-0.2 rounded-xs bg-[#171717] text-white font-medium">
+                            {isEn ? 'Life' : '命'}
+                          </span>
+                        )}
+                        {palace.isBodyPalace && !palace.isLifePalace && (
+                          <span className="text-[9px] px-1 py-0.2 rounded-xs bg-[#F5F5F6] text-[#52525B] border border-[#E4E4E7] font-medium">
+                            {isEn ? 'Body' : '身'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-[#52525B] font-mono">
+                        {palace.stem}{palace.branch}
+                      </span>
+                    </div>
 
-            <div className="flex justify-around items-center pt-2 border-t border-[#111111]/6 text-[10px] font-serif text-[#736B5E]">
-              {isEn ? (
-                <>
-                  <span>Lu · {chart.fourTransformationsEn.lu}</span>
-                  <span>Quan · {chart.fourTransformationsEn.quan}</span>
-                  <span>Ke · {chart.fourTransformationsEn.ke}</span>
-                  <span>Ji · {chart.fourTransformationsEn.ji}</span>
-                </>
-              ) : (
-                <>
-                  <span>禄 · {chart.fourTransformations.lu}</span>
-                  <span>权 · {chart.fourTransformations.quan}</span>
-                  <span>科 · {chart.fourTransformations.ke}</span>
-                  <span>忌 · {chart.fourTransformations.ji}</span>
-                </>
-              )}
+                    {/* 主星群 */}
+                    <div className="space-y-0.5 my-1 min-h-[38px]">
+                      {palace.majorStars.map((st, sIdx) => (
+                        <div key={sIdx} className="flex items-center justify-between text-[11px]">
+                          <span className="font-medium text-[#171717]">
+                            {isEn ? (st.nameEn || st.name) : st.name}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-[#71717A]">
+                              {isEn ? (st.brightnessEn || st.brightness) : st.brightness}
+                            </span>
+                            {st.transformation && (
+                              <span
+                                className={`px-1 py-0.2 rounded-xs text-[9px] font-medium border ${getTransformationBadge(
+                                  st.transformation
+                                )}`}
+                              >
+                                {isEn ? (st.transformationEn || st.transformation) : st.transformation}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {palace.majorStars.length === 0 && (
+                        <span className="text-[10px] text-[#A1A1AA] italic font-serif">
+                          {isEn ? 'Opposite Star' : '对宫借星'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-[#E4E4E7] flex justify-between items-center text-[10px] text-[#52525B]">
+                    <span>{isEn ? `Age ${palace.decadalRange}` : `${palace.decadalRange} 岁`}</span>
+                    <span className="text-[9px] text-[#71717A]">
+                      {isEn
+                        ? (palace.isLifePalace ? 'Life' : palace.isBodyPalace ? 'Body' : '')
+                        : (palace.isLifePalace ? '本命' : palace.isBodyPalace ? '身宫' : '')}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 移动端十二宫视图与控制 */}
+        <div className="md:hidden space-y-4">
+          {/* 移动端天心简况卡片 */}
+          <div className="p-4 rounded-sm bg-white border border-[#E4E4E7] text-left">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-medium tracking-[0.15em] text-[#52525B] uppercase">
+                {isEn ? 'Center Hologram' : '天盘核心'}
+              </span>
+              <span className="text-[11px] text-[#52525B]">
+                {chart.bureau.nameZh}
+              </span>
+            </div>
+            <div className="text-[13px] font-medium text-[#171717] mb-1">
+              {isEn
+                ? `Life Palace [${chart.lifePalaceBranch}] · Body Palace [${chart.bodyPalaceBranch}] · Star: ${chart.dayMasterStarEn}`
+                : `命宫【${chart.lifePalaceBranch}】 · 身宫【${chart.bodyPalaceBranch}】 · 主星：${chart.dayMasterStar}`}
+            </div>
+            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#E4E4E7] text-[10px]">
+              <span className="flex items-center gap-1">
+                <span className="px-1 py-0.2 rounded-xs border bg-emerald-50 text-emerald-700 border-emerald-200">禄</span>
+                <span>{chart.fourTransformations.lu}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="px-1 py-0.2 rounded-xs border bg-red-50 text-red-700 border-red-200">权</span>
+                <span>{chart.fourTransformations.quan}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="px-1 py-0.2 rounded-xs border bg-blue-50 text-blue-700 border-blue-200">科</span>
+                <span>{chart.fourTransformations.ke}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="px-1 py-0.2 rounded-xs border bg-amber-50 text-amber-800 border-amber-200">忌</span>
+                <span>{chart.fourTransformations.ji}</span>
+              </span>
             </div>
           </div>
 
-          {/* 周边 12 个宫位 */}
-          {chart.palaces.map(palace => {
-            const pos = gridPositions[palace.index];
-            const isSelected = palace.index === activePalaceIndex;
-            return (
-              <div
-                key={palace.index}
-                onClick={() => setActivePalaceIndex(palace.index)}
-                style={{
-                  gridColumnStart: pos.col,
-                  gridRowStart: pos.row
-                }}
-                className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
-                  isSelected
-                    ? 'bg-[#FFFDF9] border-[#8C6D23] ring-2 ring-[#8C6D23]/30 shadow-md'
-                    : palace.isLifePalace
-                    ? 'bg-[#FFFDF9] border-[#111111]/30 shadow-xs'
-                    : 'bg-[#FFFDF9]/90 border-[#111111]/8 hover:border-[#111111]/25'
+          {/* 移动端视图切换控件 */}
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-[#52525B]">
+              {isEn ? 'Palaces Navigation' : '十二宫位切换'}
+            </span>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() => setMobileView('cards')}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-sm border transition-colors cursor-pointer ${
+                  mobileView === 'cards'
+                    ? 'bg-[#171717] text-white border-[#171717]'
+                    : 'bg-[#F5F5F6] text-[#52525B] border-[#E4E4E7]'
                 }`}
               >
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className={`text-xs font-serif font-black ${
-                      palace.isLifePalace ? 'text-[#8C6D23]' : 'text-[#111111]'
-                    }`}>
-                      {isEn ? palace.nameEn : palace.name}
+                {isEn ? 'Cards' : '卡片列表'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileView('grid')}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-sm border transition-colors cursor-pointer ${
+                  mobileView === 'grid'
+                    ? 'bg-[#171717] text-white border-[#171717]'
+                    : 'bg-[#F5F5F6] text-[#52525B] border-[#E4E4E7]'
+                }`}
+              >
+                {isEn ? '4x4 Grid' : '全盘方阵'}
+              </button>
+            </div>
+          </div>
+
+          {mobileView === 'cards' ? (
+            /* 移动端卡片列表 */
+            <div className="grid grid-cols-2 gap-2">
+              {chart.palaces.map(palace => {
+                const isSelected = palace.index === activePalaceIndex;
+                return (
+                  <button
+                    key={palace.index}
+                    type="button"
+                    onClick={() => setActivePalaceIndex(palace.index)}
+                    className={`p-3 rounded-sm border text-left cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-white border-[#171717] ring-1 ring-[#171717]'
+                        : palace.isLifePalace
+                        ? 'bg-white border-[#171717]/40'
+                        : 'bg-white border-[#E4E4E7]'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center text-[12px] font-medium mb-1">
+                      <div className="flex items-center gap-1">
+                        <span className="text-[#171717] font-serif">
+                          {isEn ? palace.nameEn : palace.name}
+                        </span>
+                        {palace.isLifePalace && (
+                          <span className="text-[9px] px-1 py-0.2 rounded-xs bg-[#171717] text-white font-medium">
+                            {isEn ? 'Life' : '命'}
+                          </span>
+                        )}
+                        {palace.isBodyPalace && !palace.isLifePalace && (
+                          <span className="text-[9px] px-1 py-0.2 rounded-xs bg-[#F5F5F6] text-[#52525B] border border-[#E4E4E7] font-medium">
+                            {isEn ? 'Body' : '身'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-[#52525B] font-mono">
+                        {palace.stem}{palace.branch}
+                      </span>
+                    </div>
+
+                    <div className="my-1 text-[11px] min-h-[32px] space-y-0.5">
+                      {palace.majorStars.length > 0 ? (
+                        palace.majorStars.map((s, idx) => (
+                          <div key={idx} className="flex items-center justify-between">
+                            <span className="text-[#171717] font-medium">
+                              {isEn ? (s.nameEn || s.name) : s.name}
+                            </span>
+                            {s.transformation && (
+                              <span
+                                className={`px-1 rounded-xs text-[9px] border ${getTransformationBadge(
+                                  s.transformation
+                                )}`}
+                              >
+                                {isEn ? (s.transformationEn || s.transformation) : s.transformation}
+                              </span>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-[10px] text-[#A1A1AA] italic">
+                          {isEn ? 'Opposite Star' : '对宫借星'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="pt-1 border-t border-[#E4E4E7] flex justify-between items-center text-[10px] text-[#52525B]">
+                      <span>{isEn ? `Age ${palace.decadalRange}` : `${palace.decadalRange} 岁`}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            /* 移动端横向滑动 4x4 方阵包含器 */
+            <div className="overflow-x-auto pb-2">
+              <div className="min-w-[620px] grid grid-cols-4 grid-rows-4 gap-2 p-2.5 rounded-sm bg-[#FAFAFA] border border-[#E4E4E7]">
+                {/* 移动端 4x4 盘面中的中心格 */}
+                <div className="col-start-2 col-span-2 row-start-2 row-span-2 rounded-sm bg-white border border-[#E4E4E7] p-3 flex flex-col justify-between text-center">
+                  <div>
+                    <span className="text-[10px] font-medium text-[#52525B] uppercase block">
+                      Z I W E I
                     </span>
-                    <span className="text-[10px] font-serif text-[#736B5E]">
-                      {palace.stem}{palace.branch}
+                    <h3 className="font-serif text-[15px] font-normal text-[#171717]">
+                      {isEn ? 'Twelve Palaces' : '天盘十二宫'}
+                    </h3>
+                    <p className="text-[11px] text-[#52525B] mt-0.5">
+                      {chart.bureau.nameZh} · 命【{chart.lifePalaceBranch}】 身【{chart.bodyPalaceBranch}】
+                    </p>
+                  </div>
+                  <div className="p-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[11px] text-left">
+                    <span className="font-medium text-[#171717] block">
+                      {isEn ? `Star: ${chart.dayMasterStarEn}` : `主星：${chart.dayMasterStar}`}
                     </span>
                   </div>
+                </div>
 
-                  {/* 主星群 */}
-                  <div className="space-y-0.5 my-1 min-h-[38px]">
-                    {palace.majorStars.map((st, sIdx) => (
-                      <div key={sIdx} className="flex items-center justify-between text-xs font-serif">
-                        <span className="font-bold text-[#111111]">
-                          {isEn ? (st.nameEn || st.name) : st.name}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] text-[#736B5E]">
-                            {isEn ? (st.brightnessEn || st.brightness) : st.brightness}
+                {chart.palaces.map(palace => {
+                  const pos = gridPositions[palace.index];
+                  const isSelected = palace.index === activePalaceIndex;
+                  return (
+                    <button
+                      key={palace.index}
+                      type="button"
+                      onClick={() => setActivePalaceIndex(palace.index)}
+                      style={{
+                        gridColumnStart: pos.col,
+                        gridRowStart: pos.row
+                      }}
+                      className={`p-2 rounded-sm border text-left cursor-pointer transition-colors flex flex-col justify-between ${
+                        isSelected
+                          ? 'bg-white border-[#171717] ring-1 ring-[#171717]'
+                          : palace.isLifePalace
+                          ? 'bg-white border-[#171717]/40'
+                          : 'bg-white border-[#E4E4E7]'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[11px] font-serif font-semibold text-[#171717]">
+                            {isEn ? palace.nameEn : palace.name}
                           </span>
-                          {st.transformation && (
-                            <span className="px-1 rounded-sm text-[9px] font-bold bg-[#8C6D23] text-[#FFFDF9]">
-                              {isEn ? (st.transformationEn || st.transformation) : st.transformation}
-                            </span>
-                          )}
+                          <span className="text-[9px] text-[#52525B] font-mono">
+                            {palace.stem}{palace.branch}
+                          </span>
+                        </div>
+                        <div className="space-y-0.5 my-1 min-h-[30px] text-[10px]">
+                          {palace.majorStars.map((st, sIdx) => (
+                            <div key={sIdx} className="flex items-center justify-between">
+                              <span className="font-medium text-[#171717]">
+                                {isEn ? (st.nameEn || st.name) : st.name}
+                              </span>
+                              {st.transformation && (
+                                <span
+                                  className={`px-1 rounded-xs text-[8px] border ${getTransformationBadge(
+                                    st.transformation
+                                  )}`}
+                                >
+                                  {isEn ? (st.transformationEn || st.transformation) : st.transformation}
+                                </span>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
-                    {palace.majorStars.length === 0 && (
-                      <span className="text-[10px] text-[#736B5E]/60 italic font-serif">
-                        {isEn ? 'Opposite Star' : '对宫借星'}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="pt-1.5 border-t border-[#111111]/6 flex justify-between items-center text-[9px] text-[#736B5E] font-serif">
-                  <span>{isEn ? `Age ${palace.decadalRange}` : `${palace.decadalRange} 岁`}</span>
-                  <span>
-                    {isEn
-                      ? (palace.isLifePalace ? 'Life' : palace.isBodyPalace ? 'Body' : '')
-                      : (palace.isLifePalace ? '本命' : palace.isBodyPalace ? '身宫' : '')}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 移动端 12 宫纵向卡片列表 */}
-        <div className="md:hidden grid grid-cols-2 gap-2">
-          {chart.palaces.map(palace => (
-            <div
-              key={palace.index}
-              onClick={() => setActivePalaceIndex(palace.index)}
-              className={`p-3 rounded-xl border cursor-pointer ${
-                palace.index === activePalaceIndex
-                  ? 'bg-[#FFFDF9] border-[#8C6D23] ring-1 ring-[#8C6D23]'
-                  : 'bg-[#FFFDF9] border-[#111111]/8'
-              }`}
-            >
-              <div className="flex justify-between items-center text-xs font-serif font-bold">
-                <span>{isEn ? palace.nameEn : palace.name}</span>
-                <span className="text-[10px] text-[#736B5E]">{palace.stem}{palace.branch}</span>
-              </div>
-              <div className="my-1 text-xs font-serif font-semibold text-[#8C6D23]">
-                {palace.majorStars.map(s => (isEn ? s.nameEn : s.name)).join(' ') || (isEn ? 'Opposite Star' : '借星')}
+                      <div className="pt-1 border-t border-[#E4E4E7] text-[9px] text-[#52525B]">
+                        {palace.decadalRange} 岁
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
       {/* 选中宫位深层推演报告 */}
-      <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 shadow-2xs mb-8">
-        <div className="flex items-center justify-between mb-4 border-b border-[#111111]/6 pb-3">
+      <div className="w-full rounded-sm bg-white border border-[#E4E4E7] p-5 sm:p-6 mb-8">
+        <div className="flex items-center justify-between mb-4 border-b border-[#E4E4E7] pb-3 flex-wrap gap-2">
           <div>
-            <span className="text-[11px] font-serif text-[#736B5E]">
+            <span className="text-[11px] font-medium tracking-[0.15em] text-[#52525B] uppercase block">
               {isEn ? 'Palace Deep Analysis' : '当前宫位解析'}
             </span>
-            <h3 className="font-serif font-black text-xl text-[#111111] mt-0.5">
+            <h3 className="font-serif text-[18px] sm:text-[20px] font-normal text-[#171717] mt-0.5">
               {isEn
                 ? `【${selectedPalace.nameEn}】 · Branch ${selectedPalace.stem}${selectedPalace.branch}`
                 : `【${selectedPalace.name}】 · ${selectedPalace.stem}${selectedPalace.branch}宫`}
             </h3>
           </div>
-          <span className="text-xs font-serif text-[#8C6D23]">
+          <span className="text-[12px] font-medium text-[#171717] bg-[#F5F5F6] px-2.5 py-1 rounded-sm border border-[#E4E4E7]">
             {isEn ? `Decadal Range: Age ${selectedPalace.decadalRange}` : `大限运势：${selectedPalace.decadalRange} 岁`}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-          <div className="p-3.5 rounded-xl bg-[#FAF6ED] border border-[#111111]/5">
-            <span className="text-[11px] font-serif text-[#736B5E] block mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+          <div className="p-3.5 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7]">
+            <span className="text-[11px] font-medium text-[#52525B] block mb-1">
               {isEn ? 'Major Stars' : '主星坐镇'}
             </span>
-            <span className="font-serif font-bold text-sm text-[#111111]">
+            <span className="font-serif font-medium text-[13px] sm:text-[14px] text-[#171717]">
               {isEn
                 ? (selectedPalace.majorStars.map(s => `${s.nameEn || s.name} (${s.brightnessEn || 'Flourishing'})`).join(', ') || 'Opposite Celestial Energy')
                 : (selectedPalace.majorStars.map(s => `${s.name}(${s.brightness || '旺'})`).join('、') || '对宫天马借气')}
             </span>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#FAF6ED] border border-[#111111]/5">
-            <span className="text-[11px] font-serif text-[#736B5E] block mb-1">
+          <div className="p-3.5 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7]">
+            <span className="text-[11px] font-medium text-[#52525B] block mb-1">
               {isEn ? 'Four Transformations' : '四化引动'}
             </span>
-            <span className="font-serif font-bold text-sm text-[#8C6D23]">
-              {isEn
-                ? (selectedPalace.transformationsEn.join(', ') || 'None in this palace')
-                : (selectedPalace.transformations.join('、') || '无本宫生年四化')}
-            </span>
+            <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+              {selectedPalace.transformations.length > 0 ? (
+                selectedPalace.transformations.map((t, idx) => (
+                  <span
+                    key={idx}
+                    className={`px-1.5 py-0.5 rounded-xs text-[11px] font-medium border ${getTransformationBadge(
+                      t
+                    )}`}
+                  >
+                    {isEn ? (selectedPalace.transformationsEn[idx] || t) : t}
+                  </span>
+                ))
+              ) : (
+                <span className="text-[12px] text-[#71717A]">
+                  {isEn ? 'None in this palace' : '无本宫生年四化'}
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#FAF6ED] border border-[#111111]/5">
-            <span className="text-[11px] font-serif text-[#736B5E] block mb-1">
-              {isEn ? 'Minor Lucky Stars' : '辅耀辅弼'}
+          <div className="p-3.5 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7]">
+            <span className="text-[11px] font-medium text-[#52525B] block mb-1">
+              {isEn ? 'Minor Lucky Stars' : '辅耀吉煞'}
             </span>
-            <span className="font-serif font-bold text-sm text-[#524B40]">
+            <span className="font-serif font-medium text-[13px] sm:text-[14px] text-[#171717]">
               {isEn
-                ? selectedPalace.minorStars.map(m => m.nameEn || m.name).join(', ')
-                : selectedPalace.minorStars.map(m => m.name).join('、')}
+                ? (selectedPalace.minorStars.map(m => m.nameEn || m.name).join(', ') || 'None')
+                : (selectedPalace.minorStars.map(m => m.name).join('、') || '本宫无辅星')}
             </span>
           </div>
         </div>
 
-        <p className="text-xs font-serif text-[#524B40] leading-relaxed">
+        <p className="text-[13px] sm:text-[14px] leading-relaxed text-[#52525B] bg-[#FAFAFA] p-4 rounded-sm border border-[#E4E4E7]">
           {isEn
             ? (selectedPalace.name === '命宫'
                 ? chart.overallProfileEn.personality
@@ -353,10 +618,10 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                 : `${selectedPalace.name}气象和泰，主星拱照，遇事有规有矩，循道而行即为上吉。`)}
         </p>
 
-        <div className="pt-4 mt-5 border-t border-[#111111]/6 flex justify-end">
+        <div className="pt-4 mt-5 border-t border-[#E4E4E7] flex justify-end">
           <Link
             href={`/${lang}/fatemaster/ziwei-marriage`}
-            className="flex items-center gap-1.5 text-xs font-serif text-[#111111] hover:text-[#8C6D23] transition-colors"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#171717] hover:text-[#52525B] transition-colors"
           >
             <span>{isEn ? 'Compare two charts? Open Ziwei Marriage Synastry' : '想看两人紫微命盘合婚？进入【紫微合婚专厅】'}</span>
             <ArrowRight className="w-3.5 h-3.5" />

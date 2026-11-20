@@ -194,12 +194,12 @@ ${dm.cosmicAdviceZh}
   return (
     <div ref={containerRef} className="w-full max-w-4xl mx-auto flex flex-col items-center">
       {/* 出生信息输入表单 */}
-      <div className="w-full rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-5 sm:p-6 shadow-2xs mb-8">
+      <div className="w-full rounded-sm bg-white border border-[#E4E4E7] p-5 sm:p-6 mb-8">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <h3 className="font-serif font-bold text-sm text-[#111111]">
+          <h2 className="font-serif text-[16px] sm:text-[17px] font-normal text-[#171717]">
             {isEn ? 'Four Pillars (BaZi)' : '生辰八字'}
-          </h3>
-          <span className="text-[11px] font-serif text-[#736B5E]">
+          </h2>
+          <span className="text-[12px] text-[#52525B]">
             {isEn
               ? `Lunar: ${baziResult.lunarString} · Zodiac [${baziResult.zodiacSignEn}]`
               : `农历：${baziResult.lunarString} · 生肖【${baziResult.zodiacSignZh}】`}
@@ -208,7 +208,7 @@ ${dm.cosmicAdviceZh}
 
         <form onSubmit={handleCalculate} className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">
+            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Year' : '出生年份'}
             </label>
             <input
@@ -217,12 +217,12 @@ ${dm.cosmicAdviceZh}
               onChange={e => setYear(Number(e.target.value))}
               min={1920}
               max={2035}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
+              className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">
+            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Month' : '月份'}
             </label>
             <input
@@ -231,12 +231,12 @@ ${dm.cosmicAdviceZh}
               onChange={e => setMonth(Number(e.target.value))}
               min={1}
               max={12}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
+              className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">
+            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Day' : '日期'}
             </label>
             <input
@@ -245,12 +245,12 @@ ${dm.cosmicAdviceZh}
               onChange={e => setDay(Number(e.target.value))}
               min={1}
               max={31}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
+              className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">
+            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Hour (0-23)' : '出生时辰（0-23点）'}
             </label>
             <input
@@ -259,20 +259,22 @@ ${dm.cosmicAdviceZh}
               onChange={e => setHour(Number(e.target.value))}
               min={0}
               max={23}
-              className="w-full px-3 py-2 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 text-xs text-[#111111]"
+              className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
 
-          <div>
-            <label className="block text-[11px] text-[#736B5E] mb-1">
+          <div className="col-span-2 sm:col-span-1">
+            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Gender' : '性别'}
             </label>
-            <div className="flex gap-1.5 h-8">
+            <div className="flex gap-1.5 h-10">
               <button
                 type="button"
                 onClick={() => setGender('male')}
-                className={`flex-1 rounded-xl text-xs font-serif transition-colors ${
-                  gender === 'male' ? 'bg-[#111111] text-[#FFFDF9]' : 'bg-[#FAF6ED] text-[#736B5E]'
+                className={`flex-1 rounded-sm text-[12px] font-medium transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                  gender === 'male'
+                    ? 'bg-[#171717] text-white border border-[#171717]'
+                    : 'bg-[#F5F5F6] text-[#52525B] border border-[#E4E4E7] hover:bg-[#E4E4E7] hover:text-[#171717]'
                 }`}
               >
                 {isEn ? 'Male' : '乾造 (男)'}
@@ -280,8 +282,10 @@ ${dm.cosmicAdviceZh}
               <button
                 type="button"
                 onClick={() => setGender('female')}
-                className={`flex-1 rounded-xl text-xs font-serif transition-colors ${
-                  gender === 'female' ? 'bg-[#111111] text-[#FFFDF9]' : 'bg-[#FAF6ED] text-[#736B5E]'
+                className={`flex-1 rounded-sm text-[12px] font-medium transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                  gender === 'female'
+                    ? 'bg-[#171717] text-white border border-[#171717]'
+                    : 'bg-[#F5F5F6] text-[#52525B] border border-[#E4E4E7] hover:bg-[#E4E4E7] hover:text-[#171717]'
                 }`}
               >
                 {isEn ? 'Female' : '坤造 (女)'}
@@ -292,7 +296,7 @@ ${dm.cosmicAdviceZh}
           <div className="col-span-2 sm:col-span-5 pt-2">
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider transition-colors cursor-pointer"
+              className="w-full min-h-[44px] rounded-sm bg-[#171717] hover:bg-[#333333] text-white text-[14px] font-medium tracking-wide transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             >
               <span>{isEn ? 'Calculate BaZi Chart' : '开始排盘'}</span>
             </button>
@@ -301,7 +305,7 @@ ${dm.cosmicAdviceZh}
       </div>
 
       {/* 四柱八字盘面展示 (GSAP 飞入动效) */}
-      <div ref={pillarsRef} className="w-full grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div ref={pillarsRef} className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
         {[
           {
             label: isEn ? 'Year Pillar · Ancestry' : '年柱 · 祖荫',
@@ -323,35 +327,37 @@ ${dm.cosmicAdviceZh}
         ].map((item, idx) => (
           <div
             key={idx}
-            className={`pillar-box p-4 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 text-center shadow-2xs flex flex-col justify-between ${
-              item.isSelf ? 'border-[#8C6D23]/60 shadow-xs' : ''
+            className={`pillar-box p-3.5 sm:p-4 rounded-sm text-center flex flex-col justify-between transition-colors ${
+              item.isSelf
+                ? 'border-2 border-[#171717] bg-[#F5F5F6]/40'
+                : 'border border-[#E4E4E7] bg-white'
             }`}
           >
             <div>
-              <span className="text-[11px] font-medium text-[#736B5E] block mb-2">
+              <span className="text-[11px] font-medium text-[#52525B] block mb-2">
                 {item.label}
               </span>
 
               {/* 天干 */}
-              <div className="text-3xl font-serif font-black text-[#111111] mb-1">
+              <div className="text-3xl font-serif font-normal text-[#171717] mb-1">
                 {item.p.gan}
               </div>
-              <span className="text-[10px] text-[#8C6D23] font-serif block mb-2">
+              <span className="text-[11px] text-[#52525B] font-mono block mb-2">
                 {isEn
                   ? `${item.p.ganInfo.element} · ${item.p.ganInfo.archetypeEn}`
                   : `${ELEMENT_ZH_MAP[item.p.ganInfo.element]} · ${item.p.ganInfo.archetypeZh}`}
               </span>
 
               {/* 地支 */}
-              <div className="text-3xl font-serif font-black text-[#111111] mb-1">
+              <div className="text-3xl font-serif font-normal text-[#171717] mb-1">
                 {item.p.zhi}
               </div>
-              <span className="text-[10px] text-[#736B5E] block">
+              <span className="text-[11px] text-[#52525B] block">
                 {isEn ? `Zodiac: ${item.p.zhiInfo.animalEn}` : `生肖：${item.p.zhiInfo.animalZh}`}
               </span>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-[#111111]/6 text-[10px] text-[#5C5549] font-serif">
+            <div className="mt-3 pt-2 border-t border-[#E4E4E7] text-[11px] text-[#52525B]">
               {isEn ? `Sound: ${item.p.naYin}` : `纳音：${item.p.naYin}`}
             </div>
           </div>
@@ -359,35 +365,35 @@ ${dm.cosmicAdviceZh}
       </div>
 
       {/* 五行能量雷达与平衡进度 (GSAP 动态拉伸) */}
-      <div className="w-full rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-6 sm:p-8 shadow-xs mb-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="w-full rounded-sm bg-white border border-[#E4E4E7] p-5 sm:p-6 mb-8">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
           <div className="flex items-center gap-2">
-            <Compass className="w-4 h-4 text-[#8C6D23]" />
-            <h4 className="font-serif font-bold text-base text-[#111111]">
+            <Compass className="w-4 h-4 text-[#171717]" />
+            <h2 className="font-serif text-[17px] sm:text-[18px] font-normal text-[#171717]">
               {isEn ? 'Five Elements Energy Balance' : '原局五行气场能量分布'}
-            </h4>
+            </h2>
           </div>
-          <span className="text-xs text-[#736B5E]">
+          <span className="text-[12px] text-[#52525B]">
             {isEn ? 'Relative 100% distribution' : '总计 100% 相对生克比例'}
           </span>
         </div>
 
         <div ref={chartBarsRef} className="space-y-3">
           {baziResult.fiveElements.map((el, i) => (
-            <div key={i} className="flex items-center gap-3 text-xs">
-              <span className="w-16 font-serif font-bold text-[#111111]">
+            <div key={i} className="flex items-center gap-2 sm:gap-3 text-xs">
+              <span className="w-14 sm:w-16 font-medium text-[#171717] shrink-0 text-left">
                 {isEn ? el.element : el.elementZh} ({el.count})
               </span>
-              <div className="flex-1 h-3.5 bg-[#FAF6ED] rounded-full overflow-hidden p-0.5">
+              <div className="flex-1 h-3 bg-[#F5F5F6] border border-[#E4E4E7] rounded-sm overflow-hidden p-0.5">
                 <div
-                  className="wuxing-bar h-full rounded-full transition-all"
+                  className="wuxing-bar h-full rounded-sm transition-all"
                   style={{
                     width: `${el.percentage}%`,
                     backgroundColor: ELEMENT_COLORS[el.element] || '#059669'
                   }}
                 />
               </div>
-              <span className="w-10 text-right font-medium text-[#736B5E]">
+              <span className="w-10 text-right font-mono text-[12px] text-[#52525B] shrink-0">
                 {el.percentage}%
               </span>
             </div>
@@ -396,23 +402,23 @@ ${dm.cosmicAdviceZh}
       </div>
 
       {/* AI 命理全息蓝图报告 */}
-      <div className="w-full rounded-3xl bg-[#FFFDF9] ring-1 ring-[#111111]/10 p-6 sm:p-8 shadow-xs text-left">
+      <div className="w-full rounded-sm bg-white border border-[#E4E4E7] p-5 sm:p-6 text-left">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FFE59A]/40 text-[#8C6D23] border border-[#E8CF86]/50">
-              QiCosmos AI
+            <span className="inline-block px-2 py-0.5 rounded-sm text-[11px] font-medium bg-[#F5F5F6] text-[#52525B] border border-[#E4E4E7] uppercase tracking-wider">
+              AI Analysis
             </span>
-            <h4 className="font-serif font-black text-xl text-[#111111] mt-1">
+            <h3 className="font-serif text-[18px] sm:text-[20px] font-normal text-[#171717] mt-1.5">
               {isEn ? 'AI BaZi Holographic Insight' : 'AI 命理全息洞察报告'}
-            </h4>
+            </h3>
           </div>
 
           <button
             onClick={handleGenerateAiReport}
             disabled={isGeneratingAi}
-            className="px-6 py-2.5 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+            className="min-h-[40px] px-5 py-2 rounded-sm bg-[#171717] hover:bg-[#333333] text-white text-[13px] font-medium flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#FFE59A]" />
+            <Sparkles className="w-3.5 h-3.5 text-white" />
             <span>
               {isEn
                 ? (isGeneratingAi ? 'Analyzing BaZi Stems & Branches...' : 'Generate Full AI Reading')
@@ -422,11 +428,11 @@ ${dm.cosmicAdviceZh}
         </div>
 
         {aiReport ? (
-          <div className="prose prose-stone max-w-none text-[#111111] text-xs sm:text-sm leading-relaxed space-y-4 whitespace-pre-line border-t border-[#111111]/8 pt-6 animate-in fade-in">
+          <div className="prose prose-neutral max-w-none text-[#171717] text-[13px] sm:text-[14px] leading-relaxed space-y-4 whitespace-pre-line border-t border-[#E4E4E7] pt-6 animate-in fade-in">
             {aiReport}
           </div>
         ) : (
-          <div className="p-8 text-center text-xs text-[#736B5E] border-t border-[#111111]/8">
+          <div className="py-8 text-center text-[13px] text-[#52525B] border-t border-[#E4E4E7]">
             {isEn
               ? 'Click the button above to generate AI insights covering career trajectory, wealth affinity, romance harmony, and constitutional balance.'
               : '点击上方按钮，让 AI 依据你八字的十神与五行原局，生成事业、财富、姻缘与开运指导。'}

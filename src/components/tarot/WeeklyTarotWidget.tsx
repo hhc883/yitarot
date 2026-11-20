@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
-import { getDictionary } from '@/lib/i18n/dict';
+import { CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 
 interface WeeklyAspect {
   titleZh: string;
@@ -21,159 +21,143 @@ const ASPECTS: WeeklyAspect[] = [
   { titleZh: '破局突破口', titleEn: 'Breakthrough', focusZh: '化解阻滞的最优行动切入点', focusEn: 'Strategic pivot & action leverage' }
 ];
 
-export function WeeklyTarotWidget({ lang = 'zh' }: { lang?: string }) {
-  const isEn = lang === 'en';
-  const d = getDictionary(lang);
-  const t = d.fortune;
+function getOrientation(isEn: boolean, isReversed: boolean) {
+  return isEn ? (isReversed ? 'Reversed' : 'Upright') : (isReversed ? '逆位' : '正位');
+}
 
-  const [cards, setCards] = useState<DrawnCard[]>(() => drawRandomCards(5));
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
-  const [flippedMap, setFlippedMap] = useState<Record<number, boolean>>({
-    0: true, 1: true, 2: true, 3: true, 4: true
-  });
+export function WeeklyTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
+  const isEn = lang === 'en';
+  const [cards, setCards] = useState<DrawnCard[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  useEffect(() => {
+    // Both server and browser start with the same five empty slots.
+    const frame = requestAnimationFrame(() => setCards(drawRandomCards(5)));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   const handleShuffle = () => {
-    const newCards = drawRandomCards(5);
-    setCards(newCards);
+    setCards(drawRandomCards(5));
     setSelectedIndex(0);
-    setFlippedMap({ 0: true, 1: true, 2: true, 3: true, 4: true });
   };
 
-  const currentAspect = ASPECTS[selectedIndex];
-  const currentCard = cards[selectedIndex];
-  const aspectTitle = isEn ? currentAspect.titleEn : currentAspect.titleZh;
-  const aspectFocus = isEn ? currentAspect.focusEn : currentAspect.focusZh;
-  const cardName = isEn ? currentCard.card.nameEn : currentCard.card.nameZh;
-  const orientationStr = isEn
-    ? (currentCard.isReversed ? 'Reversed' : 'Upright')
-    : (currentCard.isReversed ? '逆位' : '正位');
+  const selected = cards[selectedIndex];
+  const aspect = ASPECTS[selectedIndex];
+  const aspectTitle = isEn ? aspect.titleEn : aspect.titleZh;
+  const detail = selected && isEn ? CARD_DETAIL_EN[selected.card.slug] : undefined;
+  const selectedName = selected ? (isEn ? selected.card.nameEn : selected.card.nameZh) : '';
+  const selectedOrientation = selected ? getOrientation(isEn, selected.isReversed) : '';
 
   return (
-    <div className="w-full max-w-5xl mx-auto">
-      {/* 极简标题 */}
-      <div className="text-center mb-8">
-        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          {t.weeklyTitle}
-        </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-2">
-          {t.weeklySubtitle}
-        </p>
+    <section aria-labelledby="weekly-aspects" className="space-y-6 border-t border-neutral-200 pt-6 sm:pt-8">
+      <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
+        <h2 id="weekly-aspects" className="font-serif text-2xl font-semibold">{isEn ? 'Five themes' : '本周五个主题'}</h2>
+        <button
+          type="button"
+          onClick={handleShuffle}
+          disabled={!selected}
+          className="inline-flex min-h-11 items-center gap-2 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-800 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900 disabled:cursor-wait disabled:text-neutral-500"
+        >
+          <RotateCcw aria-hidden="true" className="size-4" />
+          {isEn ? 'Redraw weekly spread' : '重抽本周牌阵'}
+        </button>
       </div>
 
-      {/* 核心卡片容器 */}
-      <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 sm:p-8 shadow-2xs space-y-8">
-        {/* 五维卡牌横排选择器 */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {cards.map((drawn, idx) => {
-            const aspect = ASPECTS[idx];
-            const isSelected = selectedIndex === idx;
-            const isFlipped = flippedMap[idx] ?? true;
-            const itemTitle = isEn ? aspect.titleEn : aspect.titleZh;
-            const itemCardName = isEn ? drawn.card.nameEn : drawn.card.nameZh;
+      <p className="sr-only" role="status">
+        {selected
+          ? `${aspectTitle}: ${selectedName} (${selectedOrientation})`
+          : (isEn ? 'Preparing your five cards…' : '正在准备五张牌…')}
+      </p>
 
-            return (
-              <div
-                key={idx}
-                onClick={() => setSelectedIndex(idx)}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col items-center ${
-                  isSelected
-                    ? 'bg-[#111111] text-[#FFFDF9] border-[#111111]'
-                    : 'bg-[#FAF6ED] text-[#111111] border-[#111111]/10 hover:bg-[#F2ECE1]'
-                }`}
-              >
-                <span
-                  className={`text-[11px] font-serif font-bold mb-1 truncate max-w-full ${
-                    isSelected ? 'text-[#FFFDF9]' : 'text-[#736B5E]'
-                  }`}
-                >
-                  {itemTitle}
+      <div role="group" aria-labelledby="weekly-aspects" className="grid grid-cols-2 gap-2 sm:grid-cols-5 sm:gap-3">
+        {ASPECTS.map((item, index) => {
+          const drawn = cards[index];
+          const title = isEn ? item.titleEn : item.titleZh;
+          const name = drawn ? (isEn ? drawn.card.nameEn : drawn.card.nameZh) : '';
+          const isSelected = Boolean(drawn) && selectedIndex === index;
+          return (
+            <button
+              key={item.titleEn}
+              type="button"
+              disabled={!drawn}
+              aria-pressed={isSelected}
+              aria-controls="weekly-detail"
+              onClick={() => setSelectedIndex(index)}
+              className={`flex min-h-[5.5rem] min-w-0 flex-col items-start gap-1 rounded-lg border p-2.5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 sm:min-h-[16rem] sm:items-center sm:px-2 sm:py-3 sm:text-center ${isSelected ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-200 bg-white text-neutral-900 hover:border-neutral-400 hover:bg-neutral-50'}`}
+            >
+              <span className="text-sm font-semibold leading-5">{title}</span>
+              <span aria-hidden="true" className="my-1 hidden sm:block">
+                {drawn ? (
+                  <TarotCardView key={drawn.card.id} card={drawn.card} isReversed={drawn.isReversed} size="sm" showDetails={false} lang={lang} className="motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:animate-none" />
+                ) : (
+                  <span className="block h-38 w-24 rounded-xl border border-neutral-200 bg-neutral-100" />
+                )}
+              </span>
+              <span className={`[overflow-wrap:anywhere] text-xs leading-5 ${isSelected ? 'text-neutral-200' : 'text-neutral-600'}`}>
+                {drawn ? name : <span aria-hidden="true" className="mt-1 block h-3 w-14 rounded bg-neutral-200" />}
+              </span>
+              {drawn && (
+                <span className={`text-xs leading-4 ${isSelected ? 'text-neutral-200' : 'text-neutral-600'}`}>
+                  {getOrientation(isEn, drawn.isReversed)}
                 </span>
-
-                <div className="my-1 pointer-events-none">
-                  <TarotCardView
-                    card={drawn.card}
-                    isReversed={drawn.isReversed}
-                    isFlipped={isFlipped}
-                    size="sm"
-                  />
-                </div>
-
-                <div className="text-center mt-2 w-full">
-                  <span className="text-[11px] font-serif block truncate font-bold">
-                    {itemCardName}
-                  </span>
-                  <span
-                    className={`text-[10px] font-serif block ${
-                      isSelected ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
-                    }`}
-                  >
-                    {isEn ? (drawn.isReversed ? 'Reversed' : 'Upright') : (drawn.isReversed ? '逆位' : '正位')}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* 选中的维度详细解读面板 */}
-        <div className="p-6 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#111111]/8">
-            <div>
-              <span className="text-[11px] font-mono tracking-wider text-[#736B5E] uppercase block">
-                {currentAspect.titleEn}
-              </span>
-              <h3 className="font-serif font-black text-base text-[#111111]">
-                {aspectTitle} · {cardName}（{orientationStr}）
-              </h3>
-            </div>
-            <span className="text-xs font-serif text-[#736B5E]">
-              {aspectFocus}
-            </span>
-          </div>
-
-          <div className="space-y-3 text-xs font-serif leading-relaxed text-[#111111]">
-            <div>
-              <span className="font-bold text-[#736B5E] block mb-0.5">
-                {isEn ? '【Archetypal Insight】' : '【核心原型启示】'}
-              </span>
-              <p className="text-[#333333]">
-                {currentCard.isReversed ? currentCard.card.reversedMeaning : currentCard.card.uprightMeaning}
-              </p>
-            </div>
-
-            <div>
-              <span className="font-bold text-[#736B5E] block mb-0.5">
-                {isEn ? '【Actionable Guidance】' : '【七日行动切入建议】'}
-              </span>
-              <p className="text-[#333333]">
-                {isEn
-                  ? `Regarding ${currentAspect.titleEn}, maintain grounded pacing this week. ${
-                      currentCard.isReversed
-                        ? 'Beware of energy drain from unworkable routines. Yielding minor ground often yields superior strategic leverage.'
-                        : 'Align with the clear positive momentum. Step forward with authentic commitment and embrace the weekly window.'
-                    }`
-                  : `在${currentAspect.titleZh}方面，本周宜维持客观理性的节律。${
-                      currentCard.isReversed
-                        ? '留意隐蔽的能量损耗，切勿强行推进行不通的旧模式，适度退让反而能赢得转圜空间。'
-                        : '顺应当前清晰的正向动能，主动作出积极承诺与实质行动，把握本周的窗口期。'
-                    }`}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 底部洗牌操作 */}
-        <div className="pt-2 border-t border-[#111111]/8 flex justify-center">
-          <button
-            type="button"
-            onClick={handleShuffle}
-            className="px-4 py-2 rounded-xl bg-[#FAF6ED] hover:bg-[#F2ECE1] text-xs font-serif text-[#111111] border border-[#111111]/10 transition-colors cursor-pointer flex items-center gap-1.5"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-[#736B5E]" />
-            <span>{isEn ? 'Redraw Weekly Spread' : '重新抽取本周运势'}</span>
-          </button>
-        </div>
+              )}
+            </button>
+          );
+        })}
       </div>
-    </div>
+
+      <section aria-labelledby="weekly-detail-heading" id="weekly-detail" aria-busy={!selected} className="grid items-start gap-5 rounded-lg border border-neutral-200 p-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-7 sm:p-6">
+        <div className="mx-auto" aria-hidden="true">
+          {selected ? (
+            <TarotCardView key={selected.card.id} card={selected.card} isReversed={selected.isReversed} size="md" showDetails={false} lang={lang} className="motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:animate-none" />
+          ) : (
+            <div className="h-58 w-36 rounded-xl border border-neutral-200 bg-neutral-100" />
+          )}
+        </div>
+        <div className="min-w-0 space-y-4">
+          <div>
+            <h3 id="weekly-detail-heading" className="font-serif text-2xl font-semibold">{aspectTitle}</h3>
+            <p className="mt-1 text-sm text-neutral-600">{isEn ? aspect.focusEn : aspect.focusZh}</p>
+          </div>
+          {selected ? (
+            <>
+              <p className="font-medium">{selectedName} <span className="text-sm font-normal text-neutral-600">· {selectedOrientation}</span></p>
+              {isEn && !detail ? (
+                <details className="border-y border-neutral-200 text-base text-neutral-700">
+                  <summary className="min-h-11 cursor-pointer py-2 leading-6 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-neutral-900">Card meaning (Chinese only)</summary>
+                  <p lang="zh-CN" className="pb-3 leading-relaxed">{selected.isReversed ? selected.card.reversedMeaning : selected.card.uprightMeaning}</p>
+                </details>
+              ) : (
+                <div>
+                  <h4 className="font-semibold">{isEn ? 'Card meaning' : '牌面解读'}</h4>
+                  <p className="mt-1 text-base leading-relaxed text-neutral-700">
+                    {selected.isReversed ? (detail?.reversedMeaning ?? selected.card.reversedMeaning) : (detail?.uprightMeaning ?? selected.card.uprightMeaning)}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-semibold">{isEn ? 'A next step for this week' : '本周可以尝试的行动'}</h4>
+                <p className="mt-1 text-base leading-relaxed text-neutral-700">
+                  {isEn
+                    ? `Regarding ${aspect.titleEn}, maintain grounded pacing this week. ${
+                        selected.isReversed
+                          ? 'Beware of energy drain from unworkable routines. Yielding minor ground often yields superior strategic leverage.'
+                          : 'Align with the clear positive momentum. Step forward with authentic commitment and embrace the weekly window.'
+                      }`
+                    : `在${aspect.titleZh}方面，本周宜维持客观理性的节律。${
+                        selected.isReversed
+                          ? '留意隐蔽的能量损耗，切勿强行推进行不通的旧模式，适度退让反而能赢得转圜空间。'
+                          : '顺应当前清晰的正向动能，主动作出积极承诺与实质行动，把握本周的窗口期。'
+                      }`}
+                </p>
+              </div>
+            </>
+          ) : (
+            <p className="text-neutral-600">{isEn ? 'Preparing your five cards…' : '正在准备五张牌…'}</p>
+          )}
+        </div>
+      </section>
+    </section>
   );
 }

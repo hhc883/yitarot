@@ -54,7 +54,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN" className="h-full antialiased">
-      <body className="min-h-full flex flex-col paper-grain bg-[#F7F3EF] text-[#2B261F] selection:bg-[#EAE4D9] selection:text-[#111111]">
+      <body className="min-h-full flex flex-col bg-white text-ink selection:bg-ink selection:text-white">
         <PointsGateProvider>{children}</PointsGateProvider>
       </body>
     </html>

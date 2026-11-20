@@ -17,7 +17,7 @@ export default async function FateMasterCompatibilityPage({
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-10 sm:py-16">
-      <Suspense fallback={<div className="py-20 text-center text-xs text-[#736B5E] animate-pulse">正在载入生肖配对...</div>}>
+      <Suspense fallback={<div className="py-20 text-center text-xs text-zinc-500 animate-pulse">{lang === 'en' ? 'Loading zodiac compatibility...' : '正在载入生肖配对...'}</div>}>
         <ZodiacCompatibilityWidget lang={lang} />
       </Suspense>
     </div>
