@@ -47,10 +47,12 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
   const pointsGate = usePointsGate();
 
-  // 验收 / 复现入口：?lines=101011（6 位，自初爻至上爻，1=阳、0=阴）
+  // 验收 / 复现入口：支持 ?lines=101011（0/1 阴阳）或 ?lines=978678（6=老阴, 7=少阳, 8=少阴, 9=老阳）
   useEffect(() => {
-    const raw = new URLSearchParams(window.location.search).get('lines');
-    if (!raw || !/^[01]{6}$/.test(raw)) return;
+    const rawParam = new URLSearchParams(window.location.search).get('lines');
+    if (!rawParam) return;
+    const clean = rawParam.replace(/[^016789]/g, '');
+    if (clean.length !== 6) return;
 
     let cancelled = false;
     const timer = window.setTimeout(() => {
@@ -58,16 +60,47 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
       const curTime = getCurrentLiuYaoTimeInfo();
       setTimeInfo(curTime);
 
-      const presetLines: CoinTossLine[] = raw.split('').map((bit, i) => {
-        const isYang = bit === '1';
-        const coins: [number, number, number] = isYang ? [3, 2, 2] : [3, 3, 2];
+      const presetLines: CoinTossLine[] = clean.split('').map((ch, i) => {
+        let sum = 7;
+        let isYang = true;
+        let isChanging = false;
+        let changedYang = true;
+        let coins: [number, number, number] = [3, 2, 2];
+
+        if (ch === '6') {
+          sum = 6;
+          isYang = false;
+          isChanging = true;
+          changedYang = true;
+          coins = [2, 2, 2];
+        } else if (ch === '9') {
+          sum = 9;
+          isYang = true;
+          isChanging = true;
+          changedYang = false;
+          coins = [3, 3, 3];
+        } else if (ch === '8' || ch === '0') {
+          sum = 8;
+          isYang = false;
+          isChanging = false;
+          changedYang = false;
+          coins = [3, 3, 2];
+        } else {
+          // '7' or '1'
+          sum = 7;
+          isYang = true;
+          isChanging = false;
+          changedYang = true;
+          coins = [3, 2, 2];
+        }
+
         return {
           lineIndex: i + 1,
           coins,
-          sum: isYang ? 7 : 8,
+          sum,
           isYang,
-          isChanging: false,
-          changedYang: isYang
+          isChanging,
+          changedYang
         };
       });
 
@@ -404,32 +437,65 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
 
           {/* 卦宫与本变卦名 Header */}
           {reading ? (
-            <div className="flex flex-wrap items-baseline justify-between gap-2 pb-2 border-b border-[#E4E4E7]">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-serif font-black text-[#171717]">
-                    {reading.primaryHexagram.symbol} {isEn ? reading.primaryHexagram.nameEn : reading.primaryHexagram.nameZh}
-                  </span>
-                  {reading.transformedHexagram && (
-                    <span className="text-sm font-serif text-[#52525B]">
-                      之 {reading.transformedHexagram.symbol} {isEn ? reading.transformedHexagram.nameEn : reading.transformedHexagram.nameZh}
+            <div className="space-y-3 pb-3 border-b border-[#E4E4E7]">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xl font-serif font-black text-[#171717]">
+                      {reading.primaryHexagram.symbol} {isEn ? reading.primaryHexagram.nameEn : reading.primaryHexagram.nameZh}
                     </span>
+                    <span className="text-xs text-[#52525B] font-mono">
+                      ({reading.najia?.palace}宫{reading.najia?.palaceElement})
+                    </span>
+                  </div>
+
+                  <span className="text-xs text-[#71717A] font-serif">
+                    {reading.transformedHexagram ? (
+                      isEn ? 'transforms into' : '之 ➔'
+                    ) : (
+                      isEn ? '(Static Hexagram)' : '（六爻安静）'
+                    )}
+                  </span>
+
+                  {reading.transformedHexagram && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xl font-serif font-black text-[#171717]">
+                        {reading.transformedHexagram.symbol} {isEn ? reading.transformedHexagram.nameEn : reading.transformedHexagram.nameZh}
+                      </span>
+                      {reading.najia?.transformedChart && (
+                        <span className="text-xs text-[#52525B] font-mono">
+                          ({reading.najia.transformedChart.palace}宫{reading.najia.transformedChart.palaceElement})
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
-                {reading.najia && (
-                  <p className="text-[11px] text-[#71717A] font-mono">
-                    【{reading.najia.palace}宫{reading.najia.palaceElement}】· {reading.najia.generationName} · 世在第{reading.najia.shiIndex}爻 · 应在第{reading.najia.yingIndex}爻
-                  </p>
-                )}
+
+                <span className="text-[11px] font-mono text-[#71717A] bg-[#FAFAFA] border border-[#E4E4E7] px-2 py-0.5 rounded">
+                  文王序第 {reading.primaryHexagram.number} 卦
+                </span>
               </div>
-              <span className="text-[11px] font-mono text-[#52525B]">
-                文王卦序第 {reading.primaryHexagram.number} 卦
-              </span>
+
+              {reading.najia && (
+                <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#52525B] font-mono">
+                  <span>本卦：{reading.najia.palace}宫【{reading.najia.palaceElement}】· {reading.najia.generationName}</span>
+                  <span>•</span>
+                  <span>世在第 {reading.najia.shiIndex} 爻 · 应在第 {reading.najia.yingIndex} 爻</span>
+                  {reading.transformedHexagram && (
+                    <>
+                      <span>•</span>
+                      <span className="text-red-700 font-medium">
+                        变卦：{reading.najia.transformedChart?.palace}宫【{reading.najia.transformedChart?.palaceElement}】· {reading.najia.transformedChart?.generationName}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center justify-between pb-2 border-b border-[#E4E4E7]">
               <h4 className="font-serif font-bold text-xs text-[#171717]">
-                {isEn ? 'Orthodox Najia Lines' : '纳甲六爻对照盘'}
+                {isEn ? 'Orthodox Najia Lines' : '正统纳甲六爻对照盘'}
               </h4>
               <span className="text-[11px] font-mono text-[#71717A]">
                 {isEn ? 'Cast bottom to top' : '自初爻至上爻逐掷'}
@@ -437,107 +503,201 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
             </div>
           )}
 
-          {/* 6 爻对照排盘区（倒序排列：第6爻在最上，第1爻在最下） */}
-          <div className="flex flex-col-reverse gap-2 my-1">
+          {/* 表头：本卦 vs 动变 vs 变卦 */}
+          {reading && (
+            <div className="grid grid-cols-12 gap-1 text-[11px] font-mono text-[#71717A] px-2 pb-1 border-b border-[#F4F4F5]">
+              <div className="col-span-1">六神</div>
+              <div className="col-span-5 flex items-center justify-between pr-2">
+                <span className="font-medium text-[#171717]">
+                  【本卦】{reading.primaryHexagram.nameZh}
+                </span>
+                <span>爻象</span>
+              </div>
+              <div className="col-span-1 text-center font-medium">动变</div>
+              <div className="col-span-5 flex items-center justify-between pl-2">
+                <span>爻象</span>
+                <span className="font-medium text-[#171717]">
+                  {reading.transformedHexagram
+                    ? `【变卦】${reading.transformedHexagram.nameZh}`
+                    : '【无变卦 · 纯静】'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* 6 爻正统对照排盘区（倒序排列：第6爻在最上，第1爻在最下） */}
+          <div className="flex flex-col-reverse gap-2 my-1 overflow-x-auto">
             {[1, 2, 3, 4, 5, 6].map(idx => {
               const lineData = lines.find(l => l.lineIndex === idx);
               const najiaDetail = reading?.najia?.lines.find(l => l.lineIndex === idx);
+              const transformedDetail = reading?.najia?.transformedChart?.lines.find(l => l.lineIndex === idx);
 
               return (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] text-xs gap-1 sm:gap-2.5 transition-all"
+                  className={`grid grid-cols-12 items-center p-2 sm:p-2.5 rounded-xl border text-xs gap-1 transition-all ${
+                    lineData?.isChanging
+                      ? 'bg-red-50/40 border-red-200'
+                      : 'bg-[#F5F5F6] border-[#E4E4E7]'
+                  }`}
                 >
-                  {/* 六神 */}
-                  <span className="font-mono text-[11px] font-medium text-[#171717] w-9 sm:w-11 shrink-0">
+                  {/* 1. 六神 */}
+                  <div className="col-span-1 font-mono text-[11px] font-medium text-[#171717] truncate">
                     {najiaDetail ? najiaDetail.sixBeast : (idx === 1 ? '六神' : '···')}
-                  </span>
+                  </div>
 
-                  {/* 爻名 (初九/初六/九二/六二...) */}
-                  <span className="font-serif text-[11px] text-[#52525B] w-9 sm:w-11 shrink-0 text-center">
-                    {lineData
-                      ? formatLineName(idx, lineData.isYang)
-                      : (idx === 1 ? (isEn ? 'Line 1' : '初爻') : idx === 6 ? (isEn ? 'Line 6' : '上爻') : `${idx}爻`)}
-                  </span>
+                  {/* 2. 本卦 6 爻信息 */}
+                  <div className="col-span-5 flex items-center justify-between pr-2 border-r border-[#E4E4E7]/60">
+                    {/* 爻名 */}
+                    <span className="font-serif text-[11px] text-[#52525B] w-8 shrink-0">
+                      {lineData
+                        ? formatLineName(idx, lineData.isYang)
+                        : (idx === 1 ? (isEn ? 'Line 1' : '初爻') : idx === 6 ? (isEn ? 'Line 6' : '上爻') : `${idx}爻`)}
+                    </span>
 
-                  {/* 本卦六亲地支 (如: 父母 戌土) */}
-                  <span className="font-serif text-[11px] text-[#171717] font-medium w-16 sm:w-20 shrink-0">
-                    {najiaDetail ? `${najiaDetail.relative} ${najiaDetail.branch}${najiaDetail.element}` : '——'}
-                  </span>
+                    {/* 六亲地支 (如: 父母 戌土) */}
+                    <span className="font-serif text-[11px] text-[#171717] font-medium truncate px-1">
+                      {najiaDetail ? `${najiaDetail.relative} ${najiaDetail.branch}${najiaDetail.element}` : '——'}
+                    </span>
 
-                  {/* 本卦爻画 */}
-                  <div className="w-16 sm:w-20 h-2 flex items-center justify-center shrink-0">
-                    <div className="relative w-full h-full flex items-center justify-between">
-                      {lineData ? (
-                        lineData.isYang ? (
-                          /* 阳爻 ⚊ */
-                          <div className="w-full h-full bg-[#171717] rounded-xs" />
+                    {/* 本卦爻画 */}
+                    <div className="w-12 h-2 flex items-center justify-center shrink-0">
+                      <div className="relative w-full h-full flex items-center justify-between">
+                        {lineData ? (
+                          lineData.isYang ? (
+                            <div className="w-full h-full bg-[#171717] rounded-xs" />
+                          ) : (
+                            <>
+                              <div className="w-[calc(50%-3px)] h-full bg-[#171717] rounded-xs" />
+                              <div className="w-[calc(50%-3px)] h-full bg-[#171717] rounded-xs" />
+                            </>
+                          )
                         ) : (
-                          /* 阴爻 ⚋ */
-                          <>
-                            <div className="w-[calc(50%-4px)] h-full bg-[#171717] rounded-xs" />
-                            <div className="w-[calc(50%-4px)] h-full bg-[#171717] rounded-xs" />
-                          </>
-                        )
-                      ) : (
-                        <div className="w-full h-full border-b border-dashed border-[#171717]/30" />
+                          <div className="w-full h-full border-b border-dashed border-[#171717]/30" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 世应徽章 */}
+                    <div className="w-5 text-center shrink-0">
+                      {najiaDetail?.isShi && (
+                        <span className="text-[10px] font-mono bg-[#171717] text-white px-1 py-0.2 rounded font-medium">
+                          世
+                        </span>
+                      )}
+                      {najiaDetail?.isYing && (
+                        <span className="text-[10px] font-mono bg-[#E4E4E7] text-[#171717] px-1 py-0.2 rounded">
+                          应
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  {/* 世应与动爻状态标记 */}
-                  <div className="w-12 sm:w-14 text-center shrink-0">
-                    {najiaDetail ? (
-                      <div className="flex items-center justify-center gap-1">
-                        {najiaDetail.isShi && (
-                          <span className="text-[10px] font-mono bg-[#171717] text-white px-1.5 py-0.2 rounded">
-                            世
-                          </span>
-                        )}
-                        {najiaDetail.isYing && (
-                          <span className="text-[10px] font-mono bg-[#E4E4E7] text-[#171717] px-1.5 py-0.2 rounded">
-                            应
-                          </span>
-                        )}
-                        {lineData?.isChanging && (
-                          <span className="text-[10px] font-mono text-red-600 font-bold">
-                            {lineData.isYang ? '○动' : '×动'}
-                          </span>
-                        )}
-                      </div>
+                  {/* 3. 中间动变通道 */}
+                  <div className="col-span-1 flex items-center justify-center text-center">
+                    {lineData?.isChanging ? (
+                      <span className="text-[10px] font-mono text-red-600 font-bold bg-white border border-red-200 px-1 py-0.5 rounded shadow-2xs animate-pulse">
+                        {lineData.isYang ? '○动➔' : '✕动➔'}
+                      </span>
                     ) : (
-                      <span className="text-[10px] text-[#71717A]">
-                        {lineData ? (lineData.isChanging ? '⚡动' : '静') : '待掷'}
+                      <span className="text-[10px] font-mono text-[#A1A1AA]">
+                        {lineData ? '静' : '待'}
                       </span>
                     )}
                   </div>
 
-                  {/* 变卦爻象（若有动爻） */}
-                  <div className="min-w-0 flex-1 text-right text-[11px] font-serif">
-                    {najiaDetail?.transformed ? (
-                      <span className="text-red-700 font-medium">
-                        → {najiaDetail.transformed.relative} {najiaDetail.transformed.branch}{najiaDetail.transformed.element} {najiaDetail.transformed.isYang ? '⚊' : '⚋'}
-                      </span>
-                    ) : lineData ? (
-                      <span className="text-[10px] text-[#71717A] font-mono">
-                        {lineData.sum === 7 || lineData.sum === 8 ? '守静' : ''}
-                      </span>
-                    ) : null}
+                  {/* 4. 变卦 6 爻信息 */}
+                  <div className="col-span-5 flex items-center justify-between pl-2 border-l border-[#E4E4E7]/60">
+                    {transformedDetail ? (
+                      <>
+                        {/* 变卦爻画 */}
+                        <div className="w-12 h-2 flex items-center justify-center shrink-0">
+                          <div className="relative w-full h-full flex items-center justify-between">
+                            {transformedDetail.isYang ? (
+                              <div className={`w-full h-full rounded-xs ${transformedDetail.isChanged ? 'bg-red-600' : 'bg-[#171717]'}`} />
+                            ) : (
+                              <>
+                                <div className={`w-[calc(50%-3px)] h-full rounded-xs ${transformedDetail.isChanged ? 'bg-red-600' : 'bg-[#171717]'}`} />
+                                <div className={`w-[calc(50%-3px)] h-full rounded-xs ${transformedDetail.isChanged ? 'bg-red-600' : 'bg-[#171717]'}`} />
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 变卦六亲地支 */}
+                        <span className={`font-serif text-[11px] truncate px-1 ${transformedDetail.isChanged ? 'text-red-700 font-bold' : 'text-[#52525B]'}`}>
+                          {transformedDetail.relative} {transformedDetail.branch}{transformedDetail.element}
+                        </span>
+
+                        {/* 变卦爻名 */}
+                        <span className="font-serif text-[11px] text-[#71717A] w-8 text-right shrink-0">
+                          {transformedDetail.lineNameZh}
+                        </span>
+                      </>
+                    ) : (
+                      <div className="w-full text-center text-[10px] text-[#A1A1AA] font-mono">
+                        {lineData ? '（无动爻 · 守静）' : '···'}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* 卦象结果精要提示 */}
+          {/* 双卦全息卡片 (本卦 + 变卦并列解析) */}
           {reading && (
-            <div className="pt-3 border-t border-[#E4E4E7] text-center space-y-1">
-              <p className="text-xs text-[#52525B] leading-relaxed italic max-w-lg mx-auto">
-                卦辞：“{reading.primaryHexagram.judgmentZh}”
-              </p>
-              <p className="text-[11px] text-[#71717A] leading-relaxed max-w-lg mx-auto">
-                大象传：“{reading.primaryHexagram.imageZh}”
-              </p>
+            <div className="mt-4 pt-3 border-t border-[#E4E4E7] grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in">
+              {/* 本卦精要卡 */}
+              <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#E4E4E7] space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-serif font-bold text-xs text-[#171717] flex items-center gap-1">
+                    <span>本卦：【{reading.primaryHexagram.nameZh}】</span>
+                    <span className="text-base">{reading.primaryHexagram.symbol}</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-[#71717A]">
+                    下{reading.primaryHexagram.lowerTrigram}上{reading.primaryHexagram.upperTrigram}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#52525B] leading-relaxed line-clamp-2 italic">
+                  卦辞：“{reading.primaryHexagram.judgmentZh}”
+                </p>
+                <p className="text-[10px] text-[#71717A] leading-relaxed line-clamp-2">
+                  大象：“{reading.primaryHexagram.imageZh}”
+                </p>
+              </div>
+
+              {/* 变卦精要卡 */}
+              <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#E4E4E7] space-y-1.5">
+                {reading.transformedHexagram ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="font-serif font-bold text-xs text-red-700 flex items-center gap-1">
+                        <span>变卦：【{reading.transformedHexagram.nameZh}】</span>
+                        <span className="text-base">{reading.transformedHexagram.symbol}</span>
+                      </span>
+                      <span className="text-[10px] font-mono text-red-600">
+                        下{reading.transformedHexagram.lowerTrigram}上{reading.transformedHexagram.upperTrigram}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#52525B] leading-relaxed line-clamp-2 italic">
+                      变卦卦辞：“{reading.transformedHexagram.judgmentZh}”
+                    </p>
+                    <p className="text-[10px] text-red-700 leading-relaxed line-clamp-2">
+                      转机趋向：动爻引动气场流转，事情终局将向【{reading.transformedHexagram.nameZh}】所指引的格局演化。
+                    </p>
+                  </>
+                ) : (
+                  <div className="h-full flex flex-col justify-center text-center py-2 space-y-1">
+                    <span className="font-serif font-medium text-xs text-[#171717]">
+                      六爻安静 · 纯守本卦
+                    </span>
+                    <p className="text-[11px] text-[#71717A] leading-relaxed">
+                      此卦无老阳老阴发动，气象沉凝平稳。事无剧变，守常得安。
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

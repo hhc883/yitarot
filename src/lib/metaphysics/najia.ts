@@ -39,6 +39,24 @@ export interface LineNajiaDetail {
   };
 }
 
+export interface TransformedLineDetail {
+  lineIndex: number; // 1 to 6
+  lineNameZh: string; // "初九", "六二"...
+  lineNameEn: string;
+  isYang: boolean;
+  branch: string;
+  element: ElementName;
+  relative: SixRelativeName;
+  isChanged: boolean; // 是否由动爻转化而来
+}
+
+export interface TransformedHexChart {
+  palace: PalaceName;
+  palaceElement: ElementName;
+  generationName: string;
+  lines: TransformedLineDetail[]; // 包含变卦全部 6 爻（动爻变后 + 静爻照搬）
+}
+
 export interface FullNajiaChart {
   timeInfo: LiuYaoTimeInfo;
   palace: PalaceName;
@@ -47,6 +65,7 @@ export interface FullNajiaChart {
   shiIndex: number; // 1-6
   yingIndex: number; // 1-6
   lines: LineNajiaDetail[]; // 1 to 6
+  transformedChart: TransformedHexChart | null; // 完整变卦 6 爻排盘（无动爻时为 null）
 }
 
 // 八宫基础定义
@@ -311,6 +330,40 @@ export function buildNajiaChart(
     });
   }
 
+  // 构造变卦完整 6 爻排盘（包含动爻化后与静爻照搬）
+  let transformedChart: TransformedHexChart | null = null;
+  if (transformedBinary && transformedBranches) {
+    const tMeta = HEX_PALACE_MAP.get(transformedBinary);
+    const tLines: TransformedLineDetail[] = [];
+    for (let i = 0; i < 6; i++) {
+      const lineIndex = i + 1;
+      const tYang = transformedBinary.charAt(i) === '1';
+      const tBranch = transformedBranches[i];
+      const tElement = BRANCH_ELEMENT[tBranch];
+      const tRelative = deriveSixRelative(meta.palaceElement, tElement);
+      const isChanged = linesStatus[i]?.isChanging || false;
+      tLines.push({
+        lineIndex,
+        lineNameZh: formatLineName(lineIndex, tYang),
+        lineNameEn: formatLineNameEn(lineIndex, tYang),
+        isYang: tYang,
+        branch: tBranch,
+        element: tElement,
+        relative: tRelative,
+        isChanged
+      });
+    }
+
+    if (tMeta) {
+      transformedChart = {
+        palace: tMeta.palace,
+        palaceElement: tMeta.palaceElement,
+        generationName: tMeta.generationName,
+        lines: tLines
+      };
+    }
+  }
+
   return {
     timeInfo: time,
     palace: meta.palace,
@@ -318,6 +371,7 @@ export function buildNajiaChart(
     generationName: meta.generationName,
     shiIndex: meta.shi,
     yingIndex: meta.ying,
-    lines: linesDetail
+    lines: linesDetail,
+    transformedChart
   };
 }
