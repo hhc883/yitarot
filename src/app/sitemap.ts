@@ -7,16 +7,33 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const coreRoutes = [
     '',
+    // 东西专厅入口与核心主页
+    '/east',
+    '/west',
+    '/blog',
+    '/privacy',
     // 东方周易命理
     '/fatemaster',
     '/fatemaster/bazi',
+    '/fatemaster/bazi-daily',
     '/fatemaster/liuyao',
+    '/fatemaster/ziwei',
+    '/fatemaster/ziwei-marriage',
+    '/fatemaster/meihua',
+    '/fatemaster/qimen',
+    '/fatemaster/relationship',
+    '/fatemaster/relationship-network',
     '/fatemaster/compatibility',
     // 西方塔罗神谕
     '/reading',
+    '/draw',
     '/yes-no',
     '/love',
     '/fortune/daily',
+    '/fortune/weekly',
+    '/fortune/monthly',
+    '/fortune/seasonal',
+    '/fortune/yearly',
     '/cards',
     '/spreads',
     '/pricing'

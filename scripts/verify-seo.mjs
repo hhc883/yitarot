@@ -19,7 +19,7 @@ function getAll144CompatibilitySlugs() {
 }
 
 console.log("==========================================");
-console.log("   QiCosmos Automated SEO Health Check   ");
+console.log("   YiTatro Automated SEO Health Check   ");
 console.log("==========================================\n");
 
 // 1. Programmatic SEO Coverage Check
