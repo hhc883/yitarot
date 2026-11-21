@@ -39,10 +39,18 @@
 | C | 应用到剩余设计稿，统一视觉规范，补齐加载、404、Error 边界与品牌收口。 | 本地验收通过 |
 | D | 发布前检查：多语言 SEO（hreflang/canonical/OG/Twitter）、动态路由元数据、全仓杂色零残留、全站生产构建。 | 本地通过（发布就绪） |
 | E | 博客与内容营销 SEO 系统：双语博客聚合页、动态文章路由、Markdown 渲染与目录提取、Schema.org BlogPosting、工具转化漏斗与 Sitemap 全量索引。 | 本地通过（发布就绪） |
+| F | 多模态视觉识卦系统（Gemini 4 Vision）：六爻页面新增「截图/拍照解卦」双模式、剪贴板 Ctrl+V 秒速粘贴排盘图、流式辨爻与深度解卦。 | 本地通过（发布就绪） |
 
 ## 交接记录
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- F（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 全绿验收通过）：
+  1. **多模态视觉识卦系统（Stage F.1）**：
+     - **页面双模态交互**：在六爻页面（`/[lang]/fatemaster/liuyao`）中新增 `LiuYaoContainer` 容器，支持在「🪙 三钱投掷起卦」与「📷 截图/拍照识卦」双模式间无缝切换。
+     - **截图上传与剪贴板秒速粘贴**：封装 `HexagramVisionWidget`，支持文件拖拽、文件选择以及**全局/局部 Ctrl+V 剪贴板快速粘贴**（截屏后直接按 Ctrl+V 即可秒速完成上传预览）。
+     - **服务端多模态流式解析**：新增 `/api/fatemaster/liuyao/vision` 路由，接入官方 `@google/genai` 的 `gemini-4-hydrogen` 多模态输入（`type: 'image'` + `type: 'text'`），实时进行本卦识别、动爻判定、变卦推演与五维结构化解卦输出。
+  2. **构建与验证**：全仓 `npm run build` 生成 335 条路由全部通过，`npm run lint` 达成 0 errors, 0 warnings，本地生产服务正常运行。
 
 - E（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 全绿验收通过）：
   1. **双语博客与内容营销 SEO 架构（Stage E.1）**：
