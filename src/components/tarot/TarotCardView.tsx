@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { TarotCardData, getCardImageUrl } from '@/lib/tarot/deck';
+import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
 
 interface TarotCardViewProps {
   card: TarotCardData;
@@ -88,13 +89,28 @@ export function TarotCardView({
                   {isReversed ? (isEn ? 'Rev' : '逆') : (isEn ? 'Up' : '正')}
                 </span>
               </div>
-              {!isEn && (
-                <p className="text-[9px] text-[#52525B] truncate">
-                  {isReversed
-                    ? card.reversedKeywords.slice(0, 2).join(' · ')
-                    : card.uprightKeywords.slice(0, 2).join(' · ')}
-                </p>
-              )}
+              {(() => {
+                const detailEn = isEn ? getLocalizedCardDetailEn(card.slug) : undefined;
+                if (isEn && detailEn) {
+                  return (
+                    <p className="text-[9px] text-[#52525B] truncate">
+                      {isReversed
+                        ? detailEn.reversedKeywords.slice(0, 2).join(' · ')
+                        : detailEn.uprightKeywords.slice(0, 2).join(' · ')}
+                    </p>
+                  );
+                }
+                if (!isEn) {
+                  return (
+                    <p className="text-[9px] text-[#52525B] truncate">
+                      {isReversed
+                        ? card.reversedKeywords.slice(0, 2).join(' · ')
+                        : card.uprightKeywords.slice(0, 2).join(' · ')}
+                    </p>
+                  );
+                }
+                return null;
+              })()}
             </div>
           )}
         </div>

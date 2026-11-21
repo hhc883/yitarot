@@ -5,6 +5,7 @@ import Link from 'next/link';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TAROT_DECK, drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
+import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from './TarotCardView';
 import { Sparkles, RefreshCw, ArrowRight } from 'lucide-react';
 
@@ -157,58 +158,77 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
             isFlipped={isFlipped}
             size="md"
             showDetails={isFlipped}
+            lang={lang === 'en' ? 'en' : 'zh'}
           />
         </div>
       </div>
 
       {/* 右侧卡牌解读与行动 */}
       <div ref={textContentRef} className="flex-1 flex flex-col justify-between text-left w-full h-full">
-        <div>
-          {/* 标题与换一张 */}
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h3 className="font-serif font-bold text-xl sm:text-2xl text-[#111111] tracking-tight">
-                {isFlipped ? dailyCard.card.nameZh : (lang === 'en' ? 'Daily Draw' : '每日一签')}
-              </h3>
-              <p className="text-xs font-serif text-[#7D7466] mt-0.5">
-                {isFlipped ? dailyCard.card.nameEn : (lang === 'en' ? 'Daily Archetype' : '今日能量原形')}
-              </p>
-            </div>
-
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="text-xs text-[#52525B] hover:text-[#171717] flex items-center gap-1 transition-colors cursor-pointer px-2.5 py-1 rounded-md hover:bg-[#F5F5F6]"
-              title="重新抽取"
-            >
-              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-[#171717]' : ''}`} />
-              <span>{lang === 'en' ? 'Redraw' : '重抽'}</span>
-            </button>
-          </div>
-
-          {/* 阐述正文 */}
-          <p className="text-xs sm:text-sm text-[#52525B] leading-relaxed mt-3 min-h-[44px]">
-            {isFlipped
-              ? dailyCard.card.uprightMeaning
-              : (lang === 'en'
+        {(() => {
+          const detailEn = lang === 'en' ? getLocalizedCardDetailEn(dailyCard.card.slug) : undefined;
+          const cardTitle = isFlipped
+            ? (lang === 'en' ? dailyCard.card.nameEn : dailyCard.card.nameZh)
+            : (lang === 'en' ? 'Daily Draw' : '每日一签');
+          const cardSubtitle = isFlipped
+            ? (lang === 'en'
+                ? (detailEn?.keywords.slice(0, 3).join(' · ') || dailyCard.card.nameEn)
+                : dailyCard.card.nameEn)
+            : (lang === 'en' ? 'Daily Archetype' : '今日能量原形');
+          const meaningText = isFlipped
+            ? (lang === 'en'
+                ? (detailEn?.uprightMeaning || dailyCard.card.uprightMeaning)
+                : dailyCard.card.uprightMeaning)
+            : (lang === 'en'
                 ? 'Take a quiet moment. Click the card to draw your guiding archetype for today.'
-                : '留白三分钟，感应时空能量。轻触牌面，显化今日指引。')}
-          </p>
+                : '留白三分钟，感应时空能量。轻触牌面，显化今日指引。');
+          const adviceText = isFlipped
+            ? (lang === 'en'
+                ? (detailEn?.advice || 'Trust your inner wisdom and take measured steps.')
+                : dailyCard.card.advice)
+            : (lang === 'en'
+                ? 'A direct psychological mirror for clear decisions.'
+                : '不做宿命判决，只作内心镜像。');
 
-          {/* 启示箴言 */}
-          <div
-            ref={adviceRef}
-            className="p-3 rounded-xl bg-[#F5F5F6] text-xs text-[#171717] font-serif border-l-2 border-[#171717] mt-3 mb-1 transition-colors duration-300"
-          >
-            {isFlipped ? (
-              <span>{dailyCard.card.advice}</span>
-            ) : (
-              <span className="text-[#52525B]">
-                {lang === 'en' ? 'A direct psychological mirror for clear decisions.' : '不做宿命判决，只作内心镜像。'}
-              </span>
-            )}
-          </div>
-        </div>
+          return (
+            <div>
+              {/* 标题与换一张 */}
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h3 className="font-serif font-bold text-xl sm:text-2xl text-[#111111] tracking-tight">
+                    {cardTitle}
+                  </h3>
+                  <p className="text-xs font-serif text-[#7D7466] mt-0.5">
+                    {cardSubtitle}
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="text-xs text-[#52525B] hover:text-[#171717] flex items-center gap-1 transition-colors cursor-pointer px-2.5 py-1 rounded-md hover:bg-[#F5F5F6]"
+                  title={lang === 'en' ? 'Draw another card' : '重新抽取'}
+                >
+                  <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-[#171717]' : ''}`} />
+                  <span>{lang === 'en' ? 'Redraw' : '重抽'}</span>
+                </button>
+              </div>
+
+              {/* 阐述正文 */}
+              <p className="text-xs sm:text-sm text-[#52525B] leading-relaxed mt-3 min-h-[44px]">
+                {meaningText}
+              </p>
+
+              {/* 启示箴言 */}
+              <div
+                ref={adviceRef}
+                className="p-3 rounded-xl bg-[#F5F5F6] text-xs text-[#171717] font-serif border-l-2 border-[#171717] mt-3 mb-1 transition-colors duration-300"
+              >
+                <span>{adviceText}</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* 底部按钮区 */}
         <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-[#E4E4E7] mt-3">

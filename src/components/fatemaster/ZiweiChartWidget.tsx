@@ -1,9 +1,24 @@
 'use client';
 
 import React, { useState } from 'react';
-import { calculateZiwei, ZiweiChartResult, ZiweiPalace } from '@/lib/metaphysics/ziwei';
+import { calculateZiwei, ZiweiChartResult, ZiweiPalace, STAR_NAMES_EN } from '@/lib/metaphysics/ziwei';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+
+const BRANCH_EN_MAP: Record<string, string> = {
+  '子': 'Zi (Rat)',
+  '丑': 'Chou (Ox)',
+  '寅': 'Yin (Tiger)',
+  '卯': 'Mao (Rabbit)',
+  '辰': 'Chen (Dragon)',
+  '巳': 'Si (Snake)',
+  '午': 'Wu (Horse)',
+  '未': 'Wei (Goat)',
+  '申': 'Shen (Monkey)',
+  '酉': 'You (Rooster)',
+  '戌': 'Xu (Dog)',
+  '亥': 'Hai (Pig)'
+};
 
 export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
   const isEn = lang === 'en';
@@ -77,7 +92,7 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
           </h2>
           <span className="text-[12px] text-[#52525B]">
             {isEn
-              ? `Lunar: ${chart.lunarDate.yearGanZhi} Year · ${chart.bureau.nameEn}`
+              ? `Solar Date: ${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} · ${chart.bureau.nameEn}`
               : `农历：${chart.lunarDate.yearGanZhi}年 ${chart.lunarDate.monthZh}${chart.lunarDate.dayZh} ${chart.lunarDate.hourBranch} · 【${chart.bureau.nameZh}】`}
           </span>
         </div>
@@ -162,7 +177,7 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                 </h3>
                 <p className="text-[12px] text-[#52525B] mt-1">
                   {isEn
-                    ? `${chart.bureau.nameEn} · Life Palace [${chart.lifePalaceBranch}] · Body Palace [${chart.bodyPalaceBranch}]`
+                    ? `${chart.bureau.nameEn} · Life Palace [${BRANCH_EN_MAP[chart.lifePalaceBranch] || chart.lifePalaceBranch}] · Body Palace [${BRANCH_EN_MAP[chart.bodyPalaceBranch] || chart.bodyPalaceBranch}]`
                     : `五行局：${chart.bureau.nameZh} · 命宫坐【${chart.lifePalaceBranch}】 · 身宫坐【${chart.bodyPalaceBranch}】`}
                 </p>
               </div>
@@ -316,30 +331,38 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                 {isEn ? 'Center Hologram' : '天盘核心'}
               </span>
               <span className="text-[11px] text-[#52525B]">
-                {chart.bureau.nameZh}
+                {isEn ? chart.bureau.nameEn : chart.bureau.nameZh}
               </span>
             </div>
             <div className="text-[13px] font-medium text-[#171717] mb-1">
               {isEn
-                ? `Life Palace [${chart.lifePalaceBranch}] · Body Palace [${chart.bodyPalaceBranch}] · Star: ${chart.dayMasterStarEn}`
+                ? `Life Palace [${BRANCH_EN_MAP[chart.lifePalaceBranch] || chart.lifePalaceBranch}] · Body Palace [${BRANCH_EN_MAP[chart.bodyPalaceBranch] || chart.bodyPalaceBranch}] · Star: ${chart.dayMasterStarEn}`
                 : `命宫【${chart.lifePalaceBranch}】 · 身宫【${chart.bodyPalaceBranch}】 · 主星：${chart.dayMasterStar}`}
             </div>
             <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#E4E4E7] text-[10px]">
               <span className="flex items-center gap-1">
-                <span className="px-1 py-0.2 rounded-xs border bg-emerald-50 text-emerald-700 border-emerald-200">禄</span>
-                <span>{chart.fourTransformations.lu}</span>
+                <span className="px-1 py-0.2 rounded-xs border bg-emerald-50 text-emerald-700 border-emerald-200">
+                  {isEn ? 'Lu' : '禄'}
+                </span>
+                <span>{isEn ? (STAR_NAMES_EN[chart.fourTransformations.lu] || chart.fourTransformations.lu) : chart.fourTransformations.lu}</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="px-1 py-0.2 rounded-xs border bg-red-50 text-red-700 border-red-200">权</span>
-                <span>{chart.fourTransformations.quan}</span>
+                <span className="px-1 py-0.2 rounded-xs border bg-red-50 text-red-700 border-red-200">
+                  {isEn ? 'Quan' : '权'}
+                </span>
+                <span>{isEn ? (STAR_NAMES_EN[chart.fourTransformations.quan] || chart.fourTransformations.quan) : chart.fourTransformations.quan}</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="px-1 py-0.2 rounded-xs border bg-blue-50 text-blue-700 border-blue-200">科</span>
-                <span>{chart.fourTransformations.ke}</span>
+                <span className="px-1 py-0.2 rounded-xs border bg-blue-50 text-blue-700 border-blue-200">
+                  {isEn ? 'Ke' : '科'}
+                </span>
+                <span>{isEn ? (STAR_NAMES_EN[chart.fourTransformations.ke] || chart.fourTransformations.ke) : chart.fourTransformations.ke}</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="px-1 py-0.2 rounded-xs border bg-amber-50 text-amber-800 border-amber-200">忌</span>
-                <span>{chart.fourTransformations.ji}</span>
+                <span className="px-1 py-0.2 rounded-xs border bg-amber-50 text-amber-800 border-amber-200">
+                  {isEn ? 'Ji' : '忌'}
+                </span>
+                <span>{isEn ? (STAR_NAMES_EN[chart.fourTransformations.ji] || chart.fourTransformations.ji) : chart.fourTransformations.ji}</span>
               </span>
             </div>
           </div>
@@ -460,7 +483,9 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                       {isEn ? 'Twelve Palaces' : '天盘十二宫'}
                     </h3>
                     <p className="text-[11px] text-[#52525B] mt-0.5">
-                      {chart.bureau.nameZh} · 命【{chart.lifePalaceBranch}】 身【{chart.bodyPalaceBranch}】
+                      {isEn
+                        ? `${chart.bureau.nameEn} · Life [${BRANCH_EN_MAP[chart.lifePalaceBranch] || chart.lifePalaceBranch}] Body [${BRANCH_EN_MAP[chart.bodyPalaceBranch] || chart.bodyPalaceBranch}]`
+                        : `${chart.bureau.nameZh} · 命【${chart.lifePalaceBranch}】 身【${chart.bodyPalaceBranch}】`}
                     </p>
                   </div>
                   <div className="p-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[11px] text-left">
@@ -539,7 +564,7 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
             </span>
             <h3 className="font-serif text-[18px] sm:text-[20px] font-normal text-[#171717] mt-0.5">
               {isEn
-                ? `【${selectedPalace.nameEn}】 · Branch ${selectedPalace.stem}${selectedPalace.branch}`
+                ? `【${selectedPalace.nameEn}】 · ${BRANCH_EN_MAP[selectedPalace.branch] || selectedPalace.branch} Palace`
                 : `【${selectedPalace.name}】 · ${selectedPalace.stem}${selectedPalace.branch}宫`}
             </h3>
           </div>

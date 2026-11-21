@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { getAllCards, TarotSuit } from '@/lib/tarot/deck';
+import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
 import { Search } from 'lucide-react';
 import { IconBook78 } from '@/components/icons/QiIcons';
@@ -117,6 +118,7 @@ export default function CardsEncyclopediaPage() {
                   isFlipped={true}
                   size="sm"
                   showDetails={false}
+                  lang={lang === 'en' ? 'en' : 'zh'}
                 />
               </div>
 
@@ -124,21 +126,36 @@ export default function CardsEncyclopediaPage() {
                 <span className="font-serif font-bold text-sm text-neutral-900 group-hover:text-black transition-colors block">
                   {lang === 'en' ? card.nameEn : card.nameZh}
                 </span>
-                <span className="text-[10px] text-neutral-500 block font-serif italic">
-                  {lang === 'en' ? card.nameZh : card.nameEn}
-                </span>
-                {lang !== 'en' && (
-                  <div className="mt-1 flex flex-wrap justify-center gap-1">
-                    {card.keywords.slice(0, 2).map((kw, i) => (
+                {lang === 'en' ? (
+                  <span className="text-[10px] text-neutral-500 block font-serif">
+                    {card.arcana === 'major' ? `Major · ${card.romanNumeral}` : `${card.suit} · Minor`}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-neutral-500 block font-serif italic">
+                    {card.nameEn}
+                  </span>
+                )}
+                <div className="mt-1 flex flex-wrap justify-center gap-1">
+                  {lang === 'en' ? (
+                    getLocalizedCardDetailEn(card.slug)?.keywords.slice(0, 2).map((kw, i) => (
                       <span
                         key={i}
                         className="text-[9px] px-1.5 py-0.5 rounded-sm bg-neutral-100 text-neutral-600"
                       >
                         {kw}
                       </span>
-                    ))}
-                  </div>
-                )}
+                    ))
+                  ) : (
+                    card.keywords.slice(0, 2).map((kw, i) => (
+                      <span
+                        key={i}
+                        className="text-[9px] px-1.5 py-0.5 rounded-sm bg-neutral-100 text-neutral-600"
+                      >
+                        {kw}
+                      </span>
+                    ))
+                  )}
+                </div>
               </div>
             </Link>
           ))}

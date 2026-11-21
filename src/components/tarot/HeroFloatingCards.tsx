@@ -15,7 +15,8 @@ interface CardItem {
   numeral: string;
   rotation: number;
   zIndex: number;
-  insight: string;
+  insightZh: string;
+  insightEn: string;
 }
 
 const HERO_CARDS: CardItem[] = [
@@ -25,7 +26,8 @@ const HERO_CARDS: CardItem[] = [
     numeral: 'VI',
     rotation: -14,
     zIndex: 10,
-    insight: '✦ 恋人：坦诚倾听你的心声，选择你所深爱的'
+    insightZh: '✦ 恋人：坦诚倾听你的心声，选择你所深爱的',
+    insightEn: '✦ The Lovers: Listen honestly to your heart, choose what you truly love'
   },
   {
     slug: 'the-star',
@@ -33,7 +35,8 @@ const HERO_CARDS: CardItem[] = [
     numeral: 'XVII',
     rotation: 0,
     zIndex: 25,
-    insight: '✦ 星星：风暴过后的天空，繁星正在为你引路'
+    insightZh: '✦ 星星：风暴过后的天空，繁星正在为你引路',
+    insightEn: '✦ The Star: Sky after the storm, the stars guide your path forward'
   },
   {
     slug: 'the-sun',
@@ -41,16 +44,20 @@ const HERO_CARDS: CardItem[] = [
     numeral: 'XIX',
     rotation: 14,
     zIndex: 15,
-    insight: '✦ 太阳：阴霾尽散，成功与生机正向你涌来'
+    insightZh: '✦ 太阳：阴霾尽散，成功与生机正向你涌来',
+    insightEn: '✦ The Sun: Shadows disperse, triumph and vitality surge toward you'
   }
 ];
 
-export function HeroFloatingCards() {
+export function HeroFloatingCards({ lang = 'zh' }: { lang?: string }) {
+  const isEn = lang === 'en';
   const containerRef = useRef<HTMLDivElement>(null);
   const insightPillRef = useRef<HTMLDivElement>(null);
 
   const [activeCardIndex, setActiveCardIndex] = useState(1); // 默认选中心间（星星）
-  const [activeInsight, setActiveInsight] = useState(HERO_CARDS[1].insight);
+  const [activeInsight, setActiveInsight] = useState(
+    isEn ? HERO_CARDS[1].insightEn : HERO_CARDS[1].insightZh
+  );
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
   // 预先获取卡牌元数据
@@ -60,9 +67,10 @@ export function HeroFloatingCards() {
   });
 
   // 点击卡牌聚焦
-  const handleSelectCard = (index: number, insight: string) => {
+  const handleSelectCard = (index: number) => {
     setActiveCardIndex(index);
-    setActiveInsight(insight);
+    const nextInsight = isEn ? HERO_CARDS[index].insightEn : HERO_CARDS[index].insightZh;
+    setActiveInsight(nextInsight);
 
     // 提示胶囊弹性弹跳
     if (insightPillRef.current) {
@@ -88,7 +96,7 @@ export function HeroFloatingCards() {
       <div
         className="hero-cards-deck w-full min-h-[280px] sm:min-h-[330px] py-4"
         role="region"
-        aria-label="塔罗卡牌扇形展台"
+        aria-label={isEn ? 'Tarot card fan stage' : '塔罗卡牌扇形展台'}
       >
         {cardsData.map((item, idx) => {
           const isActive = activeCardIndex === idx;
@@ -99,28 +107,28 @@ export function HeroFloatingCards() {
           return (
             <div
               key={item.slug}
-              data-text={`${item.card.nameZh} · ${item.card.nameEn}`}
+              data-text={isEn ? item.card.nameEn : `${item.card.nameZh} · ${item.card.nameEn}`}
               style={{
                 '--r': item.rotation,
                 zIndex: isActive ? 25 : item.zIndex
               } as React.CSSProperties}
-              onClick={() => handleSelectCard(idx, item.insight)}
+              onClick={() => handleSelectCard(idx)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  handleSelectCard(idx, item.insight);
+                  handleSelectCard(idx);
                 }
               }}
               tabIndex={0}
               role="button"
-              aria-label={`${item.card.nameZh} - ${item.card.nameEn}`}
+              aria-label={isEn ? item.card.nameEn : `${item.card.nameZh} - ${item.card.nameEn}`}
               className={`hero-glass-card group ${isActive ? 'is-active' : ''}`}
             >
               {/* 卡牌插画核心展示区 */}
               <div className="relative w-full flex-1 rounded-xl overflow-hidden border border-[#E4E4E7] bg-[#F5F5F6] p-0.5">
                 <Image
                   src={imageSrc}
-                  alt={`${item.card.nameZh} (${item.card.nameEn})`}
+                  alt={isEn ? item.card.nameEn : `${item.card.nameZh} (${item.card.nameEn})`}
                   fill
                   sizes="(max-width: 640px) 150px, 200px"
                   className="object-cover rounded-lg transition-transform duration-500 group-hover:scale-104"
@@ -137,14 +145,27 @@ export function HeroFloatingCards() {
                 </div>
               </div>
 
-              {/* 底部牌名横条 */}
+              {/* 底部牌名横条（英文模式只展现英文名，不混入中文） */}
               <div className="w-full mt-1.5 pt-1.5 pb-1 px-2.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#E4E4E7] flex items-center justify-between text-left shadow-2xs">
-                <span className="font-serif font-bold text-xs text-[#171717] tracking-wide">
-                  {item.card.nameZh}
-                </span>
-                <span className="text-[10px] font-serif italic text-[#52525B] font-medium tracking-tight">
-                  {item.card.nameEn}
-                </span>
+                {isEn ? (
+                  <>
+                    <span className="font-serif font-bold text-xs text-[#171717] tracking-wide">
+                      {item.card.nameEn}
+                    </span>
+                    <span className="text-[10px] font-serif text-[#52525B] font-medium tracking-tight">
+                      Arcana {item.numeral}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-serif font-bold text-xs text-[#171717] tracking-wide">
+                      {item.card.nameZh}
+                    </span>
+                    <span className="text-[10px] font-serif italic text-[#52525B] font-medium tracking-tight">
+                      {item.card.nameEn}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           );

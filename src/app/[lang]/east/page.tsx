@@ -256,9 +256,11 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
                   <h3 className="font-serif text-[17px] font-normal tracking-tight text-[#171717] transition-colors group-hover:text-[#171717]">
                     {isEn ? tool.titleEn : tool.titleZh}
                   </h3>
-                  <p className="mt-1 text-[12px] tracking-wide text-[#52525B]">
-                    {isEn ? tool.titleZh : tool.titleEn}
-                  </p>
+                  {!isEn && (
+                    <p className="mt-1 text-[12px] tracking-wide text-[#52525B]">
+                      {tool.titleEn}
+                    </p>
+                  )}
                   <p className="mt-3 text-[13.5px] leading-relaxed text-[#52525B]">
                     {isEn ? tool.descEn : tool.descZh}
                   </p>

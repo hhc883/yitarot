@@ -14,6 +14,39 @@ import { usePointsGate } from '@/components/site/PointsGateProvider';
 
 gsap.registerPlugin(useGSAP);
 
+const NAYIN_EN_MAP: Record<string, string> = {
+  '海中金': 'Sea Metal',
+  '炉中火': 'Furnace Fire',
+  '大林木': 'Forest Wood',
+  '路旁土': 'Roadside Earth',
+  '剑锋金': 'Sword Edge Metal',
+  '山头火': 'Mountaintop Fire',
+  '涧下水': 'Stream Water',
+  '城头土': 'City Wall Earth',
+  '白蜡金': 'White Wax Metal',
+  '杨柳木': 'Willow Wood',
+  '泉中水': 'Spring Water',
+  '屋上土': 'Rooftop Earth',
+  '霹雳火': 'Thunderbolt Fire',
+  '松柏木': 'Pine & Cypress Wood',
+  '长流水': 'Flowing Stream Water',
+  '沙中金': 'Sand Gold Metal',
+  '山下火': 'Foot-hill Fire',
+  '平地木': 'Plains Wood',
+  '壁上土': 'Wall Earth',
+  '金箔金': 'Gold Leaf Metal',
+  '覆灯火': 'Lamp Fire',
+  '天河水': 'Heavenly River Water',
+  '大驿土': 'Post Station Earth',
+  '钗钏金': 'Hairpin Metal',
+  '桑柘木': 'Mulberry Wood',
+  '大溪水': 'Great Torrent Water',
+  '沙中土': 'Desert Sand Earth',
+  '天上火': 'Heavenly Sun Fire',
+  '石榴木': 'Pomegranate Wood',
+  '大海水': 'Ocean Water'
+};
+
 export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
   const isEn = lang === 'en';
   const containerRef = useRef<HTMLDivElement>(null);
@@ -200,7 +233,7 @@ ${dm.cosmicAdviceZh}
           </h2>
           <span className="text-[12px] text-[#52525B]">
             {isEn
-              ? `Lunar: ${baziResult.lunarString} · Zodiac [${baziResult.zodiacSignEn}]`
+              ? `Solar Date: ${baziResult.birthSolar.year}-${String(baziResult.birthSolar.month).padStart(2, '0')}-${String(baziResult.birthSolar.day).padStart(2, '0')} · Zodiac [${baziResult.zodiacSignEn}]`
               : `农历：${baziResult.lunarString} · 生肖【${baziResult.zodiacSignZh}】`}
           </span>
         </div>
@@ -357,7 +390,7 @@ ${dm.cosmicAdviceZh}
             </div>
 
             <div className="mt-3 pt-2 border-t border-[#E4E4E7] text-[11px] text-[#52525B]">
-              {isEn ? `Sound: ${item.p.naYin}` : `纳音：${item.p.naYin}`}
+              {isEn ? `Sound: ${NAYIN_EN_MAP[item.p.naYin] || item.p.naYin}` : `纳音：${item.p.naYin}`}
             </div>
           </div>
         ))}

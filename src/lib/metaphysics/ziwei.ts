@@ -106,6 +106,20 @@ export interface ZiweiMarriageResult {
 }
 
 const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+export const BRANCH_NAMES_EN: Record<string, string> = {
+  "子": "Zi (Rat)",
+  "丑": "Chou (Ox)",
+  "寅": "Yin (Tiger)",
+  "卯": "Mao (Rabbit)",
+  "辰": "Chen (Dragon)",
+  "巳": "Si (Snake)",
+  "午": "Wu (Horse)",
+  "未": "Wei (Goat)",
+  "申": "Shen (Monkey)",
+  "酉": "You (Rooster)",
+  "戌": "Xu (Dog)",
+  "亥": "Hai (Pig)"
+};
 const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
 
 const PALACE_NAMES = [
@@ -450,7 +464,7 @@ export function calculateZiwei(
       marriage: `夫妻宫气象和煦，宜择三观契合、彼此尊重独立空间的伴侣，晚婚或成熟相处模式更为吉祥。`
     },
     overallProfileEn: {
-      personality: `Life Palace situated in [Branch ${BRANCHES[lifePalaceIndex]}], governed by [${lifeStarsEn}]. Displays calm composure, profound strategic foresight, acute perception, and steady leadership temperament.`,
+      personality: `Life Palace situated in [${BRANCH_NAMES_EN[BRANCHES[lifePalaceIndex]] || BRANCHES[lifePalaceIndex]}], governed by [${lifeStarsEn}]. Displays calm composure, profound strategic foresight, acute perception, and steady leadership temperament.`,
       career: `Career Palace receives auspicious celestial support. Well-suited for high technical barriers, executive decision-making, and long-term strategic initiatives. Steady discipline yields profound late-career achievement.`,
       wealth: `Wealth Palace reflects flourishing prosperity. Primary wealth flow is solid and dependable. Speculative shortcuts should be avoided; prioritize compounding value through knowledge, reputation, and durable craftsmanship.`,
       marriage: `Spouses Palace possesses calm harmony. Favors a partner with aligned worldviews and healthy personal space. Mature pacing and mindful mutual respect foster lifelong companionship.`

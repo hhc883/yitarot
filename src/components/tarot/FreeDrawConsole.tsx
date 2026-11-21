@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
+import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from './TarotCardView';
 import { RefreshCw } from 'lucide-react';
 
@@ -195,9 +196,14 @@ export function FreeDrawConsole({
             const orientationStr = isEn
               ? (drawn.isReversed ? 'Reversed' : 'Upright')
               : (drawn.isReversed ? '逆位' : '正位');
-            const meaning = drawn.isReversed
-              ? drawn.card.reversedMeaning
-              : drawn.card.uprightMeaning;
+            const detailEn = isEn ? getLocalizedCardDetailEn(drawn.card.slug) : undefined;
+            const meaning = isEn
+              ? (drawn.isReversed
+                  ? (detailEn?.reversedMeaning || drawn.card.reversedMeaning)
+                  : (detailEn?.uprightMeaning || drawn.card.uprightMeaning))
+              : (drawn.isReversed
+                  ? drawn.card.reversedMeaning
+                  : drawn.card.uprightMeaning);
 
             return (
               <div
@@ -222,6 +228,7 @@ export function FreeDrawConsole({
                     isReversed={drawn.isReversed}
                     isFlipped={isFlipped}
                     size="sm"
+                    lang={isEn ? 'en' : 'zh'}
                     onFlip={() => toggleFlip(index)}
                   />
                 </div>

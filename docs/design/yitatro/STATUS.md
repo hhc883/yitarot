@@ -44,10 +44,29 @@
 | H | 修复首页吸顶导航与 3D 悬浮塔罗卡牌层叠穿透 bug：建立 `isolation: isolate` 局部层叠孤立域，梳理全局 z-index 阶梯（导航栏 z-[100]），彻底消除卡牌遮盖顶栏与残留金边。 | 本地通过（发布就绪） |
 | I | 预留易学专业 Skill 插件插槽、接入 DeepSeek 降本适配器、六爻 2 积分多轮追问与 7 天生命周期数据存储架构。 | 本地通过（发布就绪） |
 | J | 全站多语言 TDK 关键词继承修复：彻底解决 Next.js App Router 根布局 keywords 向英文页面渗透下沉问题，全站动态与静态路由精准匹配双语 SEO 词库。 | 本地验收通过（发布就绪） |
+| K | 全站多语言纯正度与中英文混入治理：彻底消除英文模式下的中文残留（首页3D展台、每日一签、自由抽牌、卡牌百科、专厅工具卡、八字纳音与紫微宫位），实现全站英文页面 0 中文混入。 | 本地验收通过（发布就绪） |
 
 ## 交接记录
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- K（Antigravity 实现、本地生产构建、ESLint 0 报警、多语言纯正度 0 混入验收通过）：
+  1. **塔罗核心组件纯正多语言改造（Stage K.1）**：
+     - **3D 悬浮卡牌（`HeroFloatingCards.tsx`）**：接入 `lang` 属性，英文下仅呈现纯正英文牌名与阿卡纳编号，神谕胶囊输出英文箴言（`✦ The Star: Sky after the storm, the stars guide your path forward`），阻断中文混入。
+     - **服务端占位与按需加载（`LazyTarotShowcase.tsx`）**：剥离 `dynamic` 内部无语言上下文的写死中文占位，由外层受控渲染动态多语言骨架，消除了 SSR 阶段的中文渗透。
+     - **每日一签（`DailyDrawWidget.tsx`）**：翻牌前后基于 `lang` 自动从 `card-detail-en.ts` 读取英文牌名、英文关键词、正位释义与行动建议。
+     - **自由抽牌（`FreeDrawConsole.tsx`）**：抽牌卡片下方释义精准分流双语，彻底消除英文下的中文逆位释义。
+     - **卡牌百科大全与详情（`cards/page.tsx`、`cards/[slug]/page.tsx`）**：78 张牌列表页在英文下移除下方副标题中文名，详情页 H1 与标题移除多余中文括号（如 `The Fool` 代替 `The Fool (愚人)`）。
+  2. **东方数术工具与中台组件语言纯化（Stage K.2）**：
+     - **专厅导航卡（`east/page.tsx`、`west/page.tsx`）**：英文模式下移除副标题的中文名称展示，仅保留纯正英文工具名与描述。
+     - **八字排盘（`BaziChartGsap.tsx`）**：建立 30 组纳音英文对照字典（如 `Stream Water` 代替 `涧下水`），历法栏在英文下展示公历与生肖英译。
+     - **紫微斗数（`ZiweiChartWidget.tsx`、`ziwei.ts`）**：建立地支英文名称映射（`Zi (Rat)`, `Chou (Ox)` 等），五行局英译（`Wood 3rd Bureau` 代替 `木三局`），四化角标（`Lu`, `Quan`, `Ke`, `Ji`），宫位名称纯英文。
+     - **六爻追问（`LiuYaoFollowUpWidget.tsx`）**：扣分标签、7 天保存规则、灵感预设标签全面提供地道英文版本。
+     - **全站页脚（`SiteFooter.tsx`）**：品牌标语按语言互斥呈现（英文只展示 `A mirror for the mind, not a verdict from fate.`），消除双语同时堆叠。
+  3. **自动化测试与验收**：
+     - `npm run lint`：0 errors, 0 warnings；
+     - `npm run build`：336 条路由全部构建通过；
+     - 自动化爬虫逐页扫描全站所有主要英文路由（`/en`, `/en/east`, `/en/west`, `/en/draw`, `/en/reading`, `/en/fatemaster`, `/en/fatemaster/liuyao`, `/en/fatemaster/bazi`, `/en/fatemaster/ziwei`, `/en/fatemaster/meihua`, `/en/fatemaster/compatibility`, `/en/cards`, `/en/cards/the-fool`, `/en/blog`, `/en/pricing`），确认英文页面非预期中文字符总数为 **0**。
 
 - J（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 关键词全绿验收通过）：
   1. **多语言 TDK 关键词隔离与继承修复（Stage J.1）**：

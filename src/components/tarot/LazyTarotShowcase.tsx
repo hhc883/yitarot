@@ -8,18 +8,12 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 
 const HeroFloatingCards = dynamic(
   () => import('./HeroFloatingCards').then(mod => mod.HeroFloatingCards),
-  {
-    ssr: false,
-    loading: () => <HeroCardsPlaceholder />
-  }
+  { ssr: false }
 );
 
 const DailyDrawWidget = dynamic(
   () => import('./DailyDrawWidget').then(mod => mod.DailyDrawWidget),
-  {
-    ssr: false,
-    loading: () => <DailyDrawPlaceholder />
-  }
+  { ssr: false }
 );
 
 function HeroCardsPlaceholder({ lang = 'zh' }: { lang?: string }) {
@@ -163,7 +157,7 @@ export function LazyTarotShowcase({ lang = 'zh' }: { lang?: string }) {
     <div ref={containerRef} className="relative isolate w-full">
       {shouldLoadInteractive ? (
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
-          <HeroFloatingCards />
+          <HeroFloatingCards lang={lang} />
           <DailyDrawWidget lang={lang} />
         </div>
       ) : (

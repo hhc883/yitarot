@@ -553,7 +553,7 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
                     <span className="font-serif text-[11px] text-[#52525B] w-8 shrink-0">
                       {lineData
                         ? formatLineName(idx, lineData.isYang)
-                        : (idx === 1 ? (isEn ? 'Line 1' : '初爻') : idx === 6 ? (isEn ? 'Line 6' : '上爻') : `${idx}爻`)}
+                        : (idx === 1 ? (isEn ? 'Line 1' : '初爻') : idx === 6 ? (isEn ? 'Line 6' : '上爻') : (isEn ? `Line ${idx}` : `${idx}爻`))}
                     </span>
 
                     {/* 六亲地支 (如: 父母 戌土) */}

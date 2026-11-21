@@ -22,14 +22,14 @@ export function SiteFooter({ lang = 'zh' }: { lang?: string }) {
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="font-serif text-[18px] font-bold tracking-tight text-[#171717]">YiTatro</p>
-            <p className="mt-3 max-w-[30ch] text-[12.5px] leading-relaxed text-[#52525B]">
-              不做宿命判决，只作内心镜像。
-              <br />
-              A mirror for the mind, not a verdict from fate.
+            <p className="mt-3 max-w-[32ch] text-[12.5px] leading-relaxed text-[#52525B]">
+              {lang === 'en'
+                ? 'A mirror for the mind, not a verdict from fate.'
+                : '不做宿命判决，只作内心镜像。'}
             </p>
           </div>
 
-          <nav className="flex flex-wrap gap-x-10 gap-y-4" aria-label="页脚导航">
+          <nav className="flex flex-wrap gap-x-10 gap-y-4" aria-label={lang === 'en' ? 'Footer navigation' : '页脚导航'}>
             {links.map((link) => (
               <Link
                 key={link.href}
@@ -44,7 +44,11 @@ export function SiteFooter({ lang = 'zh' }: { lang?: string }) {
 
         <div className="mt-12 flex flex-col gap-2 border-t border-[#E4E4E7] pt-6 text-[11.5px] text-[#8A8A91] sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 YiTatro</p>
-          <p>For reflection and insight — not a substitute for professional advice.</p>
+          <p>
+            {lang === 'en'
+              ? 'For reflection and insight — not a substitute for professional advice.'
+              : '仅供心境照见与日常启发，不构成任何形式的专业建议。'}
+          </p>
         </div>
       </div>
     </footer>

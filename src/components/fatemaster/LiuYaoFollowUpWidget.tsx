@@ -171,11 +171,11 @@ export function LiuYaoFollowUpWidget({
         {/* 规则与积分标签 */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1 text-[11px] font-mono bg-white border border-[#E4E4E7] text-[#52525B] px-2.5 py-1 rounded-full shadow-2xs">
-            <span>每次追问 2 积分</span>
+            <span>{isEn ? '2 pts per inquiry' : '每次追问 2 积分'}</span>
           </span>
           <span className="inline-flex items-center gap-1 text-[11px] text-[#71717A] bg-[#F4F4F5] px-2.5 py-1 rounded-full">
             <Clock size={11} />
-            <span>普通用户保存 7 天 · 会员永久</span>
+            <span>{isEn ? '7-day retention for users · Permanent for VIP' : '普通用户保存 7 天 · 会员永久'}</span>
           </span>
         </div>
       </div>
@@ -190,7 +190,7 @@ export function LiuYaoFollowUpWidget({
             >
               {msg.role === 'assistant' && (
                 <div className="w-7 h-7 rounded-full bg-[#171717] text-white flex items-center justify-center shrink-0 text-[11px] font-serif font-bold">
-                  易
+                  {isEn ? 'Yi' : '易'}
                 </div>
               )}
 
@@ -204,7 +204,7 @@ export function LiuYaoFollowUpWidget({
                 {msg.content || (
                   <span className="flex items-center gap-1.5 text-[#71717A]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#71717A] animate-pulse" />
-                    <span>依卦象深层推演中...</span>
+                    <span>{isEn ? 'Synthesizing line changes & essence...' : '依卦象深层推演中...'}</span>
                   </span>
                 )}
                 <div
@@ -232,15 +232,23 @@ export function LiuYaoFollowUpWidget({
         <div className="p-3.5 rounded-2xl bg-white border border-[#E4E4E7] space-y-2">
           <span className="text-[11px] font-serif font-medium text-[#71717A] flex items-center gap-1">
             <ShieldCheck size={13} />
-            <span>你可以围绕原卦继续深入探讨：</span>
+            <span>{isEn ? 'You can ask deeper questions regarding this hexagram:' : '你可以围绕原卦继续深入探讨：'}</span>
           </span>
           <div className="flex flex-wrap gap-1.5">
-            {[
-              '具体到农历哪个月份最有利？',
-              '我和对方复合/合作的几率大吗？',
-              '这件事有什么隐藏的暗礁需要提防？',
-              '如果我选择按兵不动，局势会如何变化？'
-            ].map(preset => (
+            {(isEn
+              ? [
+                  'Which upcoming lunar month holds the most favorable timing?',
+                  'What hidden obstacles or unseen factors should I watch out for?',
+                  'What is the likelihood of reconciliation or breakthrough?',
+                  'How will the dynamics evolve if I choose to remain patient?'
+                ]
+              : [
+                  '具体到农历哪个月份最有利？',
+                  '我和对方复合/合作的几率大吗？',
+                  '这件事有什么隐藏的暗礁需要提防？',
+                  '如果我选择按兵不动，局势会如何变化？'
+                ]
+            ).map(preset => (
               <button
                 key={preset}
                 type="button"

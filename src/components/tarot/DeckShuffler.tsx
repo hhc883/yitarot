@@ -276,7 +276,7 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
       card: targetCard.card,
       isReversed: targetCard.isReversed,
       positionName: resolvedPosName,
-      positionDesc: targetPos?.description || ''
+      positionDesc: isEn ? (targetPos?.enName || '') : (targetPos?.description || '')
     };
 
     setDrawnCards(prev => [...prev, newCard]);

@@ -37,14 +37,14 @@ export async function generateMetadata({
 
   const title = isEn
     ? enDetail
-      ? `${card.nameEn} (${card.nameZh}) Tarot Meaning - Upright, Reversed, Love, Career & Symbolism | YiTatro`
-      : `${card.nameEn} (${card.nameZh}) Tarot Meaning | YiTatro`
+      ? `${card.nameEn} Tarot Meaning - Upright, Reversed, Love, Career & Symbolism | YiTatro`
+      : `${card.nameEn} Tarot Meaning | YiTatro`
     : `${card.nameZh}（${card.nameEn}）牌义详解 - 正逆位、爱情、事业与象征 | YiTatro`;
 
   const description = isEn
     ? enDetail
-      ? `Explore the deep tarot meaning of ${card.nameEn} (${card.nameZh}): upright & reversed themes (${enDetail.uprightKeywords.join(', ')}), with insights on love, career, and archetypal symbolism.`
-      : `Tarot reading and archetype interpretation for ${card.nameEn} (${card.nameZh}). Chinese detailed commentary available.`
+      ? `Explore the deep tarot meaning of ${card.nameEn}: upright & reversed themes (${enDetail.uprightKeywords.join(', ')}), with insights on love, career, and archetypal symbolism.`
+      : `Tarot reading and archetype interpretation for ${card.nameEn}. Comprehensive card wisdom.`
     : `深入解析塔罗牌【${card.nameZh}】的正位与逆位含义：${card.uprightKeywords.join('、')}。在爱情、工作与心理学层面的深刻启示。`;
 
   const keywords = isEn
@@ -191,12 +191,7 @@ export default async function CardDetailPage({
 
           <h1 className="font-serif font-bold text-2xl sm:text-3xl lg:text-4xl text-zinc-900 tracking-tight leading-tight">
             {lang === 'en' ? (
-              <>
-                {card.nameEn}{' '}
-                <span lang="zh-CN" className="text-lg sm:text-xl lg:text-2xl font-normal text-zinc-400 font-sans ml-1.5">
-                  ({card.nameZh})
-                </span>
-              </>
+              card.nameEn
             ) : (
               <>
                 {card.nameZh}{' '}
