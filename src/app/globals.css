@@ -23,42 +23,26 @@
   --font-mono: 'JetBrains Mono', monospace;
   
   /* YiTatro 典雅黑白与灰阶中性设计系统 Tokens */
-  --paper: #F7F3EF;          /* 温润古绢/宣纸白底 */
-  --cream: #FFFDF9;          /* 素宣卡片纯白 */
-  --subtle-paper: #F0EAE1;   /* 宣纸淡折痕暗纹 */
-  --obsidian: #080B11;       /* 曜石深玄墨 */
+  --paper: #FFFFFF;          /* 纯净底色 */
+  --cream: #FFFFFF;          /* 卡片纯白 */
+  --subtle-paper: #F5F5F6;   /* 浅灰底 */
+  --obsidian: #171717;       /* 近黑深玄墨 */
   
-  --ink: #111111;            /* 焦墨大标题 */
-  --ink-body: #524B40;       /* 浓墨易读正文 (WCAG AAA) */
-  --ink-muted: #7D7466;      /* 淡墨次级文本 */
-  --ink-faint: #AAA192;      /* 清墨辅助注释 */
+  --ink: #171717;            /* 纯正黑大标题 */
+  --ink-body: #171717;       /* 浓墨易读正文 (WCAG AAA) */
+  --ink-muted: #52525B;      /* 中性深灰次级文本 */
+  --ink-faint: #71717A;      /* 中性浅灰辅助注释 */
   
-  --gold-champagne: #C8A858; /* 哑光香槟泥金 (细致天文刻度) */
-  --gold-stream: #D4AF37;    /* 流光正金 (悬停高辉) */
-  --gold-deep: #8C6D23;      /* 赤铜赤金 (重要按钮与徽标) */
-  
-  --cinnabar: #B84034;       /* 朱砂赤红 (动爻、焦点、印章) */
-  --cinnabar-soft: rgba(184, 64, 52, 0.08); /* 朱砂淡晕 */
-  
-  --jade-pine: #4F7972;      /* 松石玉青 (五行调候生木) */
-  --lunar-silver: #E2DFD8;   /* 月魄银霜 (微羽化嵌线) */
-  
-  --card-bg: #FFFDF9;
-  --card-border: rgba(17, 17, 17, 0.08);
-  --card-border-gold: rgba(200, 168, 88, 0.22);
+  --card-bg: #FFFFFF;
+  --card-border: #E4E4E7;
+  --card-border-gold: #E4E4E7;
 }
 
 body {
-  background-color: var(--paper);
-  color: var(--ink-body);
+  background-color: #FFFFFF;
+  color: var(--ink);
   font-family: var(--font-brand);
   overflow-x: hidden;
-  /* 东方水墨淡雅韵律背景：去除粗俗荧光粉蓝，采用暖宣纸泥金微光与极浅松石玉青 */
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(200, 168, 88, 0.07) 0%, transparent 55%),
-    radial-gradient(circle at 10% 25%, rgba(79, 121, 114, 0.025) 0%, transparent 40%),
-    radial-gradient(circle at 90% 70%, rgba(184, 64, 52, 0.02) 0%, transparent 45%);
-  background-attachment: fixed;
 }
 
 /* 标题专属字体 */

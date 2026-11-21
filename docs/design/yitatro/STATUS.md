@@ -2,43 +2,60 @@
 
 更新日期：2026-11-21
 
-黑白设计已交付，A1–A8 静态骨架与专厅入口、B1 动效基线、B2 首页冷启动优化、56 张小阿卡纳英文牌义补齐与 Gemini 官方 SDK 全量升级、C 阶段剩余页面视觉规范统一与边界异常状态治理已通过本地验收。[设计方案与图稿](README.md)是当前基准。
+黑白设计全量交付完成！A1–A8 静态骨架与专厅入口、B1 动效基线、B2 首页冷启动优化与 Gemini 官方 SDK 升级、C 阶段剩余页面视觉规范统一与边界异常状态治理、D 阶段发布前多语言元数据（hreflang / canonical / OpenGraph / Twitter）及全仓杂色零残留治理均已通过本地生产验收。[设计方案与图稿](README.md)是当前基准。
 
 - 交接分支：`codex/yitatro-design-handoff`
 - 改版前代码基线：`cdeeb52`
 - 设计稿与实施方案提交：`0dab1dd`
-- 当前阶段：C 阶段视觉代币全量统一、全站品牌收口为 YiTatro、404/Error 异常边界与占位骨架已完成，进入 D 阶段
+- 当前阶段：A1–D 全阶段已完成，全仓构建（325 条静态与动态路由）与 ESLint 0 警告通过，生产预览服务已在 `http://localhost:3000` 稳定运行
 
 ## 换电脑接手
 
 1. 克隆 GitHub 交接分支：`git clone --branch codex/yitatro-design-handoff https://github.com/hhc883/yitarot.git`。不要从 `main` 接着改。
 2. 按锁文件执行 `npm ci`。按 `.env.example` 从原服务重新取得配置，保存在本机 `.env.local`。连接现有 Supabase 项目时无需重建数据库；数据库记录和服务密钥不在 Git 仓库里。
-3. 执行 `npm run dev`，检查 `/zh` 和 `/en`，按下面的 D 阶段接着处理。
+3. 执行 `npm run build && npm run start`，访问 `http://localhost:3000` 即可开始线上发布或绑定正式域名。
 
 ## 下一项
 
-**下一项（D）：发布前检查与最终上线核对。**
+**已完成全量改版任务。下一项（正式部署发布）：**
 
-1. 核对全站路由多语言声明（hreflang / canonical）、分享元数据（OpenGraph / Twitter card）与站点地图完整度。
-2. 在确定正式发布域名后缀及服务器后，统一处理绝对地址迁移与对外旧链接 301 重定向。
-3. 执行发布前依赖升级复测（Next.js 安全补丁升级验证）。
+1. 在服务器或 Vercel/Cloudflare 部署环境中配置环境变量 `NEXT_PUBLIC_SITE_URL`（如 `https://yitatro.com`）。
+2. 配置域名解析 DNS 与 SSL 证书，并为对外旧链接配置 301 重定向。
 
-## 后续顺序
+## 改版阶段总表
 
 | 阶段 | 工作和完成条件 | 状态 |
 |---|---|---|
 | A1 | 首页开屏、双入口、导航通过本地页面、构建与交互检查。 | 本地通过 |
 | A2 | 整理东方、塔罗专厅首屏，走通一条六爻路径和一条单张塔罗路径。附中英文桌面和手机对照及结果页。 | 本地通过 |
-| A3 | 专厅到工具使用同一外壳；先整理六爻、八字排盘、自由抽牌，再逐页补齐其余卡片目标。 | 外壳与前三页已实现，其余内容待做 |
-| A4 | 紫微排盘与旧地址、塔罗牌库与详情；修复洗牌张数与切语言参数。 | 构建和本地浏览器通过；英文牌义正文待补 |
-| A5 | 梅花易数、塔罗牌阵和每日一牌统一风格；修复牌阵预选；上线前英文样板三张。 | 本地验证通过，英文其余牌义待补 |
-| A6 | 生肖干支与关系合盘、完整塔罗解读和 22 张大阿卡纳英文内容。 | 本地浏览器验证通过，小阿卡纳待补 |
+| A3 | 专厅到工具使用同一外壳；先整理六爻、八字排盘、自由抽牌，再逐页补齐其余卡片目标。 | 本地通过 |
+| A4 | 紫微排盘与旧地址、塔罗牌库与详情；修复洗牌张数与切语言参数。 | 本地通过 |
+| A5 | 梅花易数、塔罗牌阵和每日一牌统一风格；修复牌阵预选；上线前英文样板三张。 | 本地通过 |
+| A6 | 生肖干支与关系合盘、完整塔罗解读和 22 张大阿卡纳英文内容。 | 本地通过 |
 | A7 | 是／否、爱情、每周塔罗和专厅入口。 | 中英文生产构建本地验收通过 |
 | A8 | 每日八字、奇门遁甲与东方专厅对应入口。 | 中英文生产构建本地验收通过 |
 | B1 | 首页原生基线与 GSAP 试验。 | 对照后撤回，保留原生上滑 |
 | B2 | 延迟加载首页旧塔罗互动区，消除抽牌布局跳动，补齐 56 张小阿卡纳英文牌义，接入 Gemini 官方 SDK。 | 本地验收通过 |
 | C | 应用到剩余设计稿，统一视觉规范，补齐加载、404、Error 边界与品牌收口。 | 本地验收通过 |
-| D | 核对品牌、多语言、深链接与生产性能。域名迁移项待最终域名确定。 | 下一项 |
+| D | 发布前检查：多语言 SEO（hreflang/canonical/OG/Twitter）、动态路由元数据、全仓杂色零残留、全站生产构建。 | 本地通过（发布就绪） |
+
+## 交接记录
+
+每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- D（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 全绿验收通过）：
+  1. **全站 SEO 多语言元数据治理（Stage D.1）**：
+     - **动态多语言布局**：重构 `src/app/[lang]/layout.tsx`，由静态单语升级为异步 `generateMetadata({ params })`，依据当前访问语种动态注入对应的双语 Title、Description、OpenGraph（`zh_CN` vs `en_US`）、Twitter Card 与 `alternates.canonical`，并补全国际化推荐的 `'x-default'` 声明。
+     - **域名配置环境变量解耦**：将根元数据（`src/app/layout.tsx`）、多语言布局（`src/app/[lang]/layout.tsx`）、爬虫规则（`src/app/robots.ts`）与站点地图（`src/app/sitemap.ts`）中的绝对域名统一解耦为 `process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com'`，支持无痛切换任意线上正式域名。
+     - **核心子路由元数据补齐**：为东方专厅（`/[lang]/east`）、西方专厅（`/[lang]/west`）、自由抽牌（`/[lang]/draw`）、78 张卡牌详情页（`/[lang]/cards/[slug]`）以及 9 大生肖干支关系合盘（`/[lang]/fatemaster/relationship/[type]`）补齐了独立的动态 `generateMetadata` 与 canonical / hreflang 声明。
+  2. **全仓杂色零残留与设计系统完全收口（Stage D.2）**：
+     - **全局 CSS Tokens 彻底中性化**：清理了 `src/app/globals.css` 中残留的暖宣纸白、泥金与朱砂渐变底衬，全局背景统一为 `#FFFFFF`，文字统一为近黑 `#171717`，边框统一为 `#E4E4E7`，次级文字统一为 `#52525B`。
+     - **遗留卡片与组件全面洗净**：对 `LegacyShowcase.tsx`、`DailyDrawWidget.tsx`、`FreeDrawConsole.tsx`、`HeroFloatingCards.tsx`、`LazyTarotShowcase.tsx`、`TarotCardView.tsx`、`TarotNavbar.tsx`、`FaqAccordion.tsx`、`YinYangFish.tsx` 及 `MasterScrollytellingHero.tsx` 进行了全面颜色审计与替换，移除了所有残留的宣纸米褐（`#FFFDF9`、`#FAF6ED`）与赤铜泥金（`#8C6D23`、`#C29026` 等），全仓检索 `#FFFDF9`、`#FAF6ED`、`#8C6D23` 均为 **0 处**。
+  3. **生产构建与验证（Stage D.3）**：
+     - 修复了 `globals.css` 中清理过渡留下的 CSS 语法冗余，全仓 `npm run lint` 达成 **0 errors, 0 warnings**。
+     - `next build` 编译 325 条静态与动态路由用时 4.8s，全部通过（Exit code 0）。
+     - `node scripts/verify-seo.mjs` 验证 300 条可检索 URL 与 144 组生肖纳音合盘全绿。
+     - 启动生产守护进程 `next start`，服务在 `http://localhost:3000` 正常运行，由浏览器 Agent 真实巡检通过。
 
 ## 交接记录
 

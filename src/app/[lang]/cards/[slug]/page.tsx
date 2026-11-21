@@ -27,26 +27,49 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang, slug } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
   const card = getCardBySlug(slug);
   if (!card) return { title: lang === 'en' ? 'Card Not Found | YiTatro' : '未找到卡牌 | YiTatro' };
 
-  if (lang === 'en') {
-    const enDetail = ALL_CARD_DETAIL_EN[slug];
-    if (enDetail) {
-      return {
-        title: `${card.nameEn} (${card.nameZh}) Tarot Meaning - Upright, Reversed, Love, Career & Symbolism | YiTatro`,
-        description: `Explore the deep tarot meaning of ${card.nameEn} (${card.nameZh}): upright & reversed themes (${enDetail.uprightKeywords.join(', ')}), with insights on love, career, and archetypal symbolism.`
-      };
-    }
-    return {
-      title: `${card.nameEn} (${card.nameZh}) Tarot Meaning | YiTatro`,
-      description: `Tarot reading and archetype interpretation for ${card.nameEn} (${card.nameZh}). Chinese detailed commentary available.`
-    };
-  }
+  const isEn = lang === 'en';
+  const enDetail = ALL_CARD_DETAIL_EN[slug];
+
+  const title = isEn
+    ? enDetail
+      ? `${card.nameEn} (${card.nameZh}) Tarot Meaning - Upright, Reversed, Love, Career & Symbolism | YiTatro`
+      : `${card.nameEn} (${card.nameZh}) Tarot Meaning | YiTatro`
+    : `${card.nameZh}（${card.nameEn}）牌义详解 - 正逆位、爱情、事业与象征 | YiTatro`;
+
+  const description = isEn
+    ? enDetail
+      ? `Explore the deep tarot meaning of ${card.nameEn} (${card.nameZh}): upright & reversed themes (${enDetail.uprightKeywords.join(', ')}), with insights on love, career, and archetypal symbolism.`
+      : `Tarot reading and archetype interpretation for ${card.nameEn} (${card.nameZh}). Chinese detailed commentary available.`
+    : `深入解析塔罗牌【${card.nameZh}】的正位与逆位含义：${card.uprightKeywords.join('、')}。在爱情、工作与心理学层面的深刻启示。`;
 
   return {
-    title: `${card.nameZh}（${card.nameEn}）牌义详解 - 正逆位、爱情、事业与象征 | YiTatro`,
-    description: `深入解析塔罗牌【${card.nameZh}】的正位与逆位含义：${card.uprightKeywords.join('、')}。在爱情、工作与心理学层面的深刻启示。`
+    title,
+    description,
+    alternates: {
+      canonical: `${siteUrl}/${lang}/cards/${slug}`,
+      languages: {
+        zh: `${siteUrl}/zh/cards/${slug}`,
+        en: `${siteUrl}/en/cards/${slug}`,
+        'x-default': `${siteUrl}/zh/cards/${slug}`
+      }
+    },
+    openGraph: {
+      type: 'article',
+      locale: isEn ? 'en_US' : 'zh_CN',
+      url: `${siteUrl}/${lang}/cards/${slug}`,
+      title,
+      description,
+      siteName: 'YiTatro'
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description
+    }
   };
 }
 

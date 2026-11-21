@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { PointsGateProvider } from '@/components/site/PointsGateProvider';
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://qicosmos.com'),
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'YiTatro｜周易·八字·塔罗 AI 命理 - 在线占卜与自我认知镜像',
     template: '%s | YiTatro'
@@ -30,11 +32,19 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'YiTatro 团队' }],
   creator: 'YiTatro',
+  alternates: {
+    canonical: '/',
+    languages: {
+      'zh-CN': '/zh',
+      'en-US': '/en',
+      'x-default': '/zh'
+    }
+  },
   openGraph: {
     type: 'website',
     locale: 'zh_CN',
-    alternateLocale: ['en_US', 'zh_TW'],
-    url: 'https://qicosmos.com/zh',
+    alternateLocale: ['en_US'],
+    url: `${siteUrl}/zh`,
     siteName: 'YiTatro',
     title: 'YiTatro｜周易·八字·塔罗 AI 命理 - 在线占卜与自我认知镜像',
     description:

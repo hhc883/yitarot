@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { CONTAINER } from '@/components/site/constants';
 import { HexagramGraphic } from '@/components/site/HexagramGraphic';
 
@@ -7,6 +8,41 @@ export const instant = false;
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const isEn = rawLang === 'en';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const currentLang = isEn ? 'en' : 'zh';
+
+  return {
+    title: isEn ? 'I Ching & BaZi East Metaphysics Portal' : '东方专厅｜周易六爻·四柱八字·紫微斗数',
+    description: isEn
+      ? 'Explore traditional Eastern metaphysics: Liu Yao coin oracle, Four Pillars of Destiny (BaZi), Zi Wei Dou Shu, and relationship synastry.'
+      : 'YiTatro 东方专厅：周易六爻神谕、四柱八字排盘、紫微斗数、梅花易数及生肖干支关系合盘。',
+    alternates: {
+      canonical: `${siteUrl}/${currentLang}/east`,
+      languages: {
+        zh: `${siteUrl}/zh/east`,
+        en: `${siteUrl}/en/east`,
+        'x-default': `${siteUrl}/zh/east`
+      }
+    },
+    openGraph: {
+      type: 'website',
+      locale: isEn ? 'en_US' : 'zh_CN',
+      url: `${siteUrl}/${currentLang}/east`,
+      title: isEn ? 'I Ching & BaZi East Metaphysics Portal | YiTatro' : '东方专厅｜周易·八字·紫微 | YiTatro',
+      description: isEn
+        ? 'Traditional Eastern wisdom calculated with rigorous astrological accuracy.'
+        : '严谨传承东方周易术数，提供清澈深邃的命理解读。'
+    }
+  };
 }
 
 /**

@@ -94,8 +94,8 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
     )
       .fromTo(
         bgLayerRef.current,
-        { backgroundColor: '#F7F3EF', color: '#111111' },
-        { backgroundColor: '#080B11', color: '#FFFDF9', ease: 'power2.inOut', duration: 2 },
+        { backgroundColor: '#FFFFFF', color: '#171717' },
+        { backgroundColor: '#171717', color: '#FFFFFF', ease: 'power2.inOut', duration: 2 },
         '<'
       )
       .fromTo(
@@ -261,7 +261,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             ref={title2Ref}
             className="absolute -top-10 sm:-top-16 text-center max-w-lg mx-auto pointer-events-none px-4"
           >
-            <h2 className="font-serif font-black text-2xl sm:text-4xl text-[#FFFDF9]">
+            <h2 className="font-serif font-black text-2xl sm:text-4xl text-white">
               {lang === 'zh' ? '东方以数起爻 · 西方以象明心' : 'Eastern Hexagrams · Western Archetypes'}
             </h2>
           </div>
@@ -274,29 +274,29 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             {/* 东方代表：乾隆通宝 3D 铜钱 */}
             <div
               ref={heroCoinRef}
-              className="w-36 h-36 sm:w-48 sm:h-48 rounded-full border-3 border-[#B8860B] bg-gradient-to-tr from-[#996515] via-[#DAA520] to-[#FFD700] p-2 sm:p-2.5 shadow-2xl flex items-center justify-center text-center transform-style-3d"
+              className="w-36 h-36 sm:w-48 sm:h-48 rounded-full border-3 border-[#171717] bg-gradient-to-tr from-[#27272A] via-[#52525B] to-[#71717A] p-2 sm:p-2.5 shadow-2xl flex items-center justify-center text-center transform-style-3d"
             >
-              <div className="w-full h-full rounded-full border border-[#8B6508]/60 flex items-center justify-center relative bg-[#C59B27]/90 shadow-inner">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFFDF9] border border-[#8B6508] shadow-inner" />
-                <span className="absolute top-1.5 sm:top-2 text-[11px] sm:text-xs font-serif font-black text-[#4A3B18]">乾</span>
-                <span className="absolute bottom-1.5 sm:bottom-2 text-[11px] sm:text-xs font-serif font-black text-[#4A3B18]">隆</span>
-                <span className="absolute left-1.5 sm:left-2 text-[11px] sm:text-xs font-serif font-black text-[#4A3B18]">通</span>
-                <span className="absolute right-1.5 sm:right-2 text-[11px] sm:text-xs font-serif font-black text-[#4A3B18]">宝</span>
+              <div className="w-full h-full rounded-full border border-white/20 flex items-center justify-center relative bg-[#27272A] shadow-inner">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white border border-[#E4E4E7] shadow-inner" />
+                <span className="absolute top-1.5 sm:top-2 text-[11px] sm:text-xs font-serif font-black text-white">乾</span>
+                <span className="absolute bottom-1.5 sm:bottom-2 text-[11px] sm:text-xs font-serif font-black text-white">隆</span>
+                <span className="absolute left-1.5 sm:left-2 text-[11px] sm:text-xs font-serif font-black text-white">通</span>
+                <span className="absolute right-1.5 sm:right-2 text-[11px] sm:text-xs font-serif font-black text-white">宝</span>
               </div>
             </div>
 
-            {/* 西方代表：韦特命运之轮立体金卡 (真实高清艺术插画) */}
+            {/* 西方代表：韦特命运之轮立体卡 */}
             <div
               ref={heroTarotRef}
-              className="w-34 h-54 sm:w-46 sm:h-72 rounded-3xl bg-[#FFFDF9] ring-2 ring-[#E8CF86] p-2.5 sm:p-3 shadow-2xl flex flex-col justify-between text-[#111111] overflow-hidden"
+              className="w-34 h-54 sm:w-46 sm:h-72 rounded-3xl bg-white ring-2 ring-[#E4E4E7] p-2.5 sm:p-3 shadow-2xl flex flex-col justify-between text-[#171717] overflow-hidden"
             >
-              <div className="flex justify-between items-center text-[10px] sm:text-xs text-[#8C6D23] font-serif font-bold pb-1 border-b border-[#E8CF86]/40">
+              <div className="flex justify-between items-center text-[10px] sm:text-xs text-[#171717] font-serif font-bold pb-1 border-b border-[#E4E4E7]">
                 <span>X · ROTA</span>
                 <span>WHEEL OF FORTUNE</span>
               </div>
 
               {/* 核心真实塔罗插画 */}
-              <div className="relative my-1 flex-1 w-full rounded-xl overflow-hidden border border-[#C29026]/30 shadow-inner bg-[#FAF6ED]">
+              <div className="relative my-1 flex-1 w-full rounded-xl overflow-hidden border border-[#E4E4E7] shadow-inner bg-[#F5F5F6]">
                 <Image
                   src="/cards/major-arcana/wheel-of-fortune.webp"
                   alt="Wheel of Fortune"
@@ -308,7 +308,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
                 <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-black/5 via-transparent to-white/10" />
               </div>
 
-              <div className="pt-1 border-t border-[#E8CF86]/40 flex justify-between items-center px-1 text-[9px] sm:text-[10px] font-serif text-[#8C6D23]">
+              <div className="pt-1 border-t border-[#E4E4E7] flex justify-between items-center px-1 text-[9px] sm:text-[10px] font-serif text-[#171717]">
                 <span className="font-bold">{lang === 'zh' ? '命运之轮' : 'The Destiny'}</span>
                 <span className="tracking-widest">T-A-R-O</span>
               </div>
@@ -321,28 +321,28 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             className="relative z-20 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 p-4"
           >
             {/* 东方周易门 */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-sm flex flex-col justify-between text-left hover:border-[#111111]/30 transition-all duration-300">
+            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[#171717]/10 shadow-sm flex flex-col justify-between text-left hover:border-[#171717]/30 transition-all duration-300">
               <div>
                 <div className="mb-3">
                   <YinYangFish size={26} />
                 </div>
-                <h3 className="font-serif font-black text-xl sm:text-2xl text-[#111111] mb-2">
+                <h3 className="font-serif font-black text-xl sm:text-2xl text-[#171717] mb-2">
                   {lang === 'zh' ? '周易 · 八字 · 六爻' : 'I Ching & BaZi'}
                 </h3>
-                <p className="text-xs text-[#524B40] leading-relaxed">
+                <p className="text-xs text-[#52525B] leading-relaxed">
                   {lang === 'zh'
                     ? '24 节气换月柱精准排盘，乾隆通宝 3D 物理掷币，五行能量雷达调候与日主元神剖析。'
                     : 'Authentic 24 solar terms Four Pillars BaZi, Qianlong antique 3D coin toss, and Five Elements balance.'}
                 </p>
               </div>
 
-              <div className="pt-4 mt-6 border-t border-[#111111]/8">
+              <div className="pt-4 mt-6 border-t border-[#171717]/8">
                 <Link
                   href={`/${lang}/fatemaster`}
-                  className="w-full py-3 rounded-xl bg-[#111111] hover:bg-[#2B261F] text-[#FFFDF9] text-xs font-serif tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-[#171717] hover:bg-[#27272A] text-white text-xs font-serif tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
                 >
                   <span>{lang === 'zh' ? '进入周易专厅' : 'Enter Eastern Metaphysics'}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#C8A858]" />
+                  <ArrowRight className="w-3.5 h-3.5 text-white" />
                 </Link>
               </div>
             </div>
@@ -388,11 +388,11 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
           <button
             type="button"
             onClick={handleSkip}
-            className="pointer-events-auto absolute bottom-5 right-5 sm:bottom-7 sm:right-7 z-40 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#111111]/90 hover:bg-[#111111] text-[#FFFDF9] text-xs font-serif transition-all hover:scale-102 cursor-pointer border border-white/20"
+            className="pointer-events-auto absolute bottom-5 right-5 sm:bottom-7 sm:right-7 z-40 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#171717]/90 hover:bg-[#171717] text-white text-xs font-serif transition-all hover:scale-102 cursor-pointer border border-white/20"
             title={lang === 'zh' ? '跳过开幕' : 'Skip intro'}
           >
             <span>{lang === 'zh' ? '跳过' : 'Skip'}</span>
-            <SkipForward className="w-3 h-3 text-[#E8CF86]" />
+            <SkipForward className="w-3 h-3 text-white" />
           </button>
         )}
       </div>

@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getAllCards } from '@/lib/tarot/deck';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://qicosmos.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
   const now = new Date();
 
   const coreRoutes = [

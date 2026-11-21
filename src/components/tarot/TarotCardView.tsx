@@ -49,11 +49,11 @@ export function TarotCardView({
       >
         {/* 卡牌正面 (Front) */}
         <div
-          className="absolute inset-0 w-full h-full rounded-2xl backface-hidden bg-[#FFFDF9] border border-[#C29026]/35 p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden shadow-[inset_0_0_15px_rgba(194,144,38,0.08)]"
+          className="absolute inset-0 w-full h-full rounded-2xl backface-hidden bg-white border border-[#E4E4E7] p-1.5 sm:p-2 flex flex-col justify-between overflow-hidden shadow-xs"
         >
           {/* 高清真实卡牌插画层 */}
           <div
-            className={`relative w-full flex-1 rounded-xl overflow-hidden border border-[#C29026]/25 shadow-inner transition-transform duration-500 bg-[#FAF6ED] ${
+            className={`relative w-full flex-1 rounded-xl overflow-hidden border border-[#E4E4E7] transition-transform duration-500 bg-[#F5F5F6] ${
               isReversed ? 'rotate-180' : ''
             }`}
           >
@@ -67,29 +67,29 @@ export function TarotCardView({
               loading="lazy"
             />
 
-            {/* 微妙的羊皮纸与金箔反光质感层 */}
+            {/* 温润光层 */}
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-black/5 via-transparent to-white/10" />
           </div>
 
           {/* 底部牌名与关键词指示条 (保持正向不倒转) */}
           {showDetails && (
-            <div className="relative z-10 pt-1.5 px-1 text-center bg-[#FFFDF9]/95 backdrop-blur-xs rounded-b-xl border-t border-[#C29026]/20 mt-1">
+            <div className="relative z-10 pt-1.5 px-1 text-center bg-white/95 backdrop-blur-xs rounded-b-xl border-t border-[#E4E4E7] mt-1">
               <div className="flex items-center justify-between gap-1 mb-0.5">
-                <span className="font-serif font-black text-[#1E1B18] text-[11px] sm:text-xs truncate">
+                <span className="font-serif font-black text-[#171717] text-[11px] sm:text-xs truncate">
                   {isEn ? card.nameEn : card.nameZh}
                 </span>
                 <span
                   className={`inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-semibold tracking-wider ${
                     isReversed
-                      ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                      : 'bg-[#FFE59A]/40 text-[#8C6D23] border border-[#E8CF86]/50'
+                      ? 'bg-[#171717] text-white'
+                      : 'bg-[#F5F5F6] text-[#171717] border border-[#E4E4E7]'
                   }`}
                 >
                   {isReversed ? (isEn ? 'Rev' : '逆') : (isEn ? 'Up' : '正')}
                 </span>
               </div>
               {!isEn && (
-                <p className="text-[9px] text-[#736B5E] truncate">
+                <p className="text-[9px] text-[#52525B] truncate">
                   {isReversed
                     ? card.reversedKeywords.slice(0, 2).join(' · ')
                     : card.uprightKeywords.slice(0, 2).join(' · ')}

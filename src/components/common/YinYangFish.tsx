@@ -91,7 +91,7 @@ export function YinYangFish({
           cx="0"
           cy="-47"
           r="11.5"
-          fill="#111111"
+          fill="#171717"
         />
 
         {/* 5. 阴中之阳眼 (下方黑鱼头部里的实心白眼：阴中有阳) */}
@@ -99,7 +99,7 @@ export function YinYangFish({
           cx="0"
           cy="47"
           r="11.5"
-          fill="#FFFDF9"
+          fill="#FFFFFF"
         />
 
         {/* 6. 最外层修容发丝线 (精细收口) */}
@@ -108,7 +108,7 @@ export function YinYangFish({
           cy="0"
           r="94"
           fill="none"
-          stroke="rgba(140, 109, 35, 0.3)"
+          stroke="rgba(23, 23, 23, 0.15)"
           strokeWidth="1"
         />
       </svg>

@@ -117,7 +117,7 @@ export function HeroFloatingCards() {
               className={`hero-glass-card group ${isActive ? 'is-active' : ''}`}
             >
               {/* 卡牌插画核心展示区 */}
-              <div className="relative w-full flex-1 rounded-xl overflow-hidden border border-[#C8A858]/25 bg-[#FAF6ED] p-0.5">
+              <div className="relative w-full flex-1 rounded-xl overflow-hidden border border-[#E4E4E7] bg-[#F5F5F6] p-0.5">
                 <Image
                   src={imageSrc}
                   alt={`${item.card.nameZh} (${item.card.nameEn})`}
@@ -128,21 +128,21 @@ export function HeroFloatingCards() {
                   priority={idx === 1}
                 />
 
-                {/* 羊皮纸温润微光与古金反光质感 */}
+                {/* 温润微光 */}
                 <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-black/5 via-transparent to-white/12" />
 
                 {/* 顶部古典罗马数字角标 */}
-                <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-sm bg-[#FFFDF9]/90 backdrop-blur-xs border border-[#C8A858]/35 text-[9px] font-serif font-black text-[#8C6D23] shadow-2xs pointer-events-none">
+                <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-sm bg-white/90 backdrop-blur-xs border border-[#E4E4E7] text-[9px] font-serif font-black text-[#171717] shadow-2xs pointer-events-none">
                   {item.numeral}
                 </div>
               </div>
 
-              {/* 底部玻璃拟态牌名横条（对应 attr(data-text) 形式，适配网站宋宣与香槟金排版） */}
-              <div className="w-full mt-1.5 pt-1.5 pb-1 px-2.5 rounded-xl bg-[#FFFDF9]/92 backdrop-blur-md border border-[#C8A858]/25 flex items-center justify-between text-left shadow-2xs">
-                <span className="font-serif font-bold text-xs text-[#111111] tracking-wide">
+              {/* 底部牌名横条 */}
+              <div className="w-full mt-1.5 pt-1.5 pb-1 px-2.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#E4E4E7] flex items-center justify-between text-left shadow-2xs">
+                <span className="font-serif font-bold text-xs text-[#171717] tracking-wide">
                   {item.card.nameZh}
                 </span>
-                <span className="text-[10px] font-serif italic text-[#8C6D23] font-medium tracking-tight">
+                <span className="text-[10px] font-serif italic text-[#52525B] font-medium tracking-tight">
                   {item.card.nameEn}
                 </span>
               </div>
@@ -154,9 +154,9 @@ export function HeroFloatingCards() {
       {/* 底部神谕动态提示胶囊 */}
       <div
         ref={insightPillRef}
-        className="mt-3 z-40 px-4 py-2 rounded-full bg-[#FFFDF9]/95 backdrop-blur-md ring-1 ring-[#111111]/10 shadow-lg text-xs font-serif text-[#111111] flex items-center gap-2 max-w-[92%] text-center"
+        className="mt-3 z-40 px-4 py-2 rounded-full bg-white/95 backdrop-blur-md ring-1 ring-[#E4E4E7] shadow-lg text-xs font-serif text-[#171717] flex items-center gap-2 max-w-[92%] text-center"
       >
-        <Sparkles className="w-3.5 h-3.5 text-[#C8A858] shrink-0" />
+        <Sparkles className="w-3.5 h-3.5 text-[#171717] shrink-0" />
         <span className="font-medium tracking-wide">{activeInsight}</span>
       </div>
     </div>

@@ -309,29 +309,29 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
                   href={section.href}
                   className={`relative py-1 text-xs lg:text-sm font-serif tracking-wider transition-all duration-200 select-none ${
                     isActive
-                      ? 'text-[#111111] font-bold after:content-[""] after:absolute after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:w-3.5 after:h-[1.5px] after:bg-[#8C6D23]'
-                      : 'text-[#6E675B] hover:text-[#111111]'
+                      ? 'text-[#171717] font-bold after:content-[""] after:absolute after:-bottom-2.5 after:left-1/2 after:-translate-x-1/2 after:w-3.5 after:h-[1.5px] after:bg-[#171717]'
+                      : 'text-[#52525B] hover:text-[#171717]'
                   }`}
                 >
                   {lang === 'en' ? section.titleEn : section.titleZh}
                 </Link>
 
-                {/* 悬停自动弹出极简子菜单 (去标语、去图标，纯粹高效) */}
+                {/* 悬停自动弹出极简子菜单 */}
                 {isOpen && (
                   <div className="absolute top-[48px] left-1/2 -translate-x-1/2 w-[250px] pt-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                    <div className="rounded-xl bg-[#FFFDF9] border border-[#111111]/10 shadow-lg shadow-[#111111]/4 p-2 backdrop-blur-md">
+                    <div className="rounded-xl bg-white border border-[#E4E4E7] shadow-lg shadow-[#171717]/4 p-2 backdrop-blur-md">
                       <div className="flex flex-col gap-0.5">
                         {section.subItems.map((subItem, idx) => (
                           <Link
                             key={idx}
                             href={subItem.href}
                             onClick={() => setActiveDropdown(null)}
-                            className="group/item flex flex-col px-3 py-2 rounded-lg hover:bg-[#F7F3EF] transition-colors duration-150 text-left"
+                            className="group/item flex flex-col px-3 py-2 rounded-lg hover:bg-[#F5F5F6] transition-colors duration-150 text-left"
                           >
-                            <span className="font-serif font-semibold text-xs text-[#111111] group-hover/item:text-[#8C6D23] transition-colors">
+                            <span className="font-serif font-semibold text-xs text-[#171717] group-hover/item:text-[#171717] transition-colors">
                               {lang === 'en' ? subItem.titleEn : subItem.titleZh}
                             </span>
-                            <span className="text-[11px] text-[#7D7466] leading-snug mt-0.5">
+                            <span className="text-[11px] text-[#52525B] leading-snug mt-0.5">
                               {lang === 'en' ? subItem.descEn : subItem.descZh}
                             </span>
                           </Link>
@@ -349,14 +349,14 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
         <div className="hidden md:flex items-center gap-3 shrink-0">
           <Link
             href={getLanguageSwitchUrl(lang === 'zh' ? 'en' : 'zh')}
-            className="text-[11px] font-serif tracking-widest text-[#7D7466] hover:text-[#111111] transition-colors uppercase px-1.5 py-1"
+            className="text-[11px] font-serif tracking-widest text-[#52525B] hover:text-[#171717] transition-colors uppercase px-1.5 py-1"
           >
             {lang === 'zh' ? 'EN' : '中文'}
           </Link>
 
           <Link
             href={`/${lang}/reading`}
-            className="px-3.5 py-1.5 rounded-full border border-[#111111] text-[#111111] hover:bg-[#111111] hover:text-[#FFFDF9] text-xs font-serif tracking-wider transition-all duration-200"
+            className="px-3.5 py-1.5 rounded-full border border-[#171717] text-[#171717] hover:bg-[#171717] hover:text-white text-xs font-serif tracking-wider transition-all duration-200"
           >
             {lang === 'en' ? 'Oracle' : '起卦'}
           </Link>
@@ -366,13 +366,13 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
         <div className="md:hidden flex items-center gap-3">
           <Link
             href={`/${lang}/reading`}
-            className="px-3 py-1 rounded-full border border-[#111111] text-[11px] font-serif text-[#111111]"
+            className="px-3 py-1 rounded-full border border-[#171717] text-[11px] font-serif text-[#171717]"
           >
             {lang === 'en' ? 'Oracle' : '起卦'}
           </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1 text-xs font-serif tracking-widest text-[#111111] select-none cursor-pointer"
+            className="p-1 text-xs font-serif tracking-widest text-[#171717] select-none cursor-pointer"
             aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? 'CLOSE' : 'MENU'}
@@ -382,24 +382,24 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
 
       {/* 移动端菜单抽屉 */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#FFFDF9] border-b border-[#111111]/10 px-6 pt-3 pb-6 space-y-2 shadow-lg animate-in slide-in-from-top-2 max-h-[80vh] overflow-y-auto">
+        <div className="md:hidden bg-white border-b border-[#E4E4E7] px-6 pt-3 pb-6 space-y-2 shadow-lg animate-in slide-in-from-top-2 max-h-[80vh] overflow-y-auto">
           {navSections.map(section => {
             const isExpanded = mobileExpandedSection === section.key;
 
             return (
-              <div key={section.key} className="border-b border-[#111111]/6 pb-2">
+              <div key={section.key} className="border-b border-[#E4E4E7]/60 pb-2">
                 <div className="flex items-center justify-between py-2">
                   <Link
                     href={section.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="text-sm font-serif font-bold text-[#111111]"
+                    className="text-sm font-serif font-bold text-[#171717]"
                   >
                     {lang === 'en' ? section.titleEn : section.titleZh}
                   </Link>
                   {section.subItems && section.subItems.length > 0 && (
                     <button
                       onClick={() => setMobileExpandedSection(isExpanded ? null : section.key)}
-                      className="text-xs text-[#8C6D23] px-2 py-1 font-serif cursor-pointer"
+                      className="text-xs text-[#171717] px-2 py-1 font-serif cursor-pointer"
                       aria-label="Toggle submenu"
                     >
                       {isExpanded ? '收起' : '展开'}
@@ -408,18 +408,18 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
                 </div>
 
                 {isExpanded && section.subItems && section.subItems.length > 0 && (
-                  <div className="pl-3 pr-1 py-1 space-y-2 bg-[#F7F3EF]/60 rounded-lg my-1 border-l border-[#8C6D23]">
+                  <div className="pl-3 pr-1 py-1 space-y-2 bg-[#F5F5F6] rounded-lg my-1 border-l border-[#171717]">
                     {section.subItems.map((sub, sIdx) => (
                       <Link
                         key={sIdx}
                         href={sub.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block py-1 text-xs font-serif text-[#524B40] hover:text-[#111111]"
+                        className="block py-1 text-xs font-serif text-[#52525B] hover:text-[#171717]"
                       >
-                        <span className="font-semibold block text-[#111111]">
+                        <span className="font-semibold block text-[#171717]">
                           {lang === 'en' ? sub.titleEn : sub.titleZh}
                         </span>
-                        <span className="text-[10px] text-[#7D7466]">
+                        <span className="text-[10px] text-[#52525B]">
                           {lang === 'en' ? sub.descEn : sub.descZh}
                         </span>
                       </Link>
@@ -430,11 +430,11 @@ export function TarotNavbar({ lang = 'zh' }: { lang?: string }) {
             );
           })}
 
-          <div className="pt-3 flex justify-between items-center text-xs font-serif text-[#7D7466]">
+          <div className="pt-3 flex justify-between items-center text-xs font-serif text-[#52525B]">
             <span>{lang === 'en' ? 'Language' : '语言'}</span>
             <Link
               href={getLanguageSwitchUrl(lang === 'zh' ? 'en' : 'zh')}
-              className="text-[#111111] font-semibold underline underline-offset-4"
+              className="text-[#171717] font-semibold underline underline-offset-4"
             >
               {lang === 'zh' ? 'English' : '中文'}
             </Link>

@@ -127,7 +127,7 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
   return (
     <div
       ref={containerRef}
-      className="w-full max-w-3xl mx-auto rounded-3xl bg-[#FFFDF9] border border-[rgba(200,168,88,0.25)] hover:border-[rgba(200,168,88,0.45)] p-6 sm:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row items-center gap-8 justify-between perspective-1000 overflow-hidden md:min-h-[400px]"
+      className="w-full max-w-3xl mx-auto rounded-3xl bg-white border border-[#E4E4E7] hover:border-[#171717] p-6 sm:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row items-center gap-8 justify-between perspective-1000 overflow-hidden md:min-h-[400px]"
     >
       {/* 左侧可交互翻转卡牌 */}
       <div className="flex flex-col items-center shrink-0">
@@ -145,9 +145,9 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
             }
           }}
         >
-          {/* 金色光晕氛围底衬 */}
+          {/* 光晕氛围底衬 */}
           <div
-            className={`absolute -inset-2 rounded-3xl bg-gradient-to-tr from-[#E8CF86]/35 to-[#FFE59A]/35 blur-lg transition-opacity duration-700 pointer-events-none ${
+            className={`absolute -inset-2 rounded-3xl bg-[#171717]/5 blur-lg transition-opacity duration-700 pointer-events-none ${
               isFlipped ? 'opacity-90' : 'opacity-0 group-hover:opacity-40'
             }`}
           />
@@ -178,16 +178,16 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="text-xs text-[#7D7466] hover:text-[#111111] flex items-center gap-1 transition-colors cursor-pointer px-2.5 py-1 rounded-md hover:bg-[#F7F3EF]"
+              className="text-xs text-[#52525B] hover:text-[#171717] flex items-center gap-1 transition-colors cursor-pointer px-2.5 py-1 rounded-md hover:bg-[#F5F5F6]"
               title="重新抽取"
             >
-              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-[#8C6D23]' : ''}`} />
+              <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-[#171717]' : ''}`} />
               <span>{lang === 'en' ? 'Redraw' : '重抽'}</span>
             </button>
           </div>
 
           {/* 阐述正文 */}
-          <p className="text-xs sm:text-sm text-[#524B40] leading-relaxed mt-3 min-h-[44px]">
+          <p className="text-xs sm:text-sm text-[#52525B] leading-relaxed mt-3 min-h-[44px]">
             {isFlipped
               ? dailyCard.card.uprightMeaning
               : (lang === 'en'
@@ -198,12 +198,12 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
           {/* 启示箴言 */}
           <div
             ref={adviceRef}
-            className="p-3 rounded-xl bg-[#F7F3EF] text-xs text-[#111111] font-serif border-l-2 border-[#8C6D23] mt-3 mb-1 transition-colors duration-300"
+            className="p-3 rounded-xl bg-[#F5F5F6] text-xs text-[#171717] font-serif border-l-2 border-[#171717] mt-3 mb-1 transition-colors duration-300"
           >
             {isFlipped ? (
               <span>{dailyCard.card.advice}</span>
             ) : (
-              <span className="text-[#7D7466]">
+              <span className="text-[#52525B]">
                 {lang === 'en' ? 'A direct psychological mirror for clear decisions.' : '不做宿命判决，只作内心镜像。'}
               </span>
             )}
@@ -211,20 +211,20 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
         </div>
 
         {/* 底部按钮区 */}
-        <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-[#111111]/8 mt-3">
+        <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-[#E4E4E7] mt-3">
           {isFlipped ? (
             <>
               <Link
                 href={`/${lang}/reading?card=${dailyCard.card.id}`}
-                className="px-4 py-2 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-medium flex items-center gap-1.5 transition-all shadow-xs"
+                className="px-4 py-2 rounded-full bg-[#171717] hover:bg-[#27272A] text-white text-xs font-medium flex items-center gap-1.5 transition-all shadow-xs"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#C8A858]" />
+                <Sparkles className="w-3.5 h-3.5 text-white" />
                 <span>{lang === 'en' ? 'AI Consultation' : 'AI 深入解析'}</span>
               </Link>
 
               <Link
                 href={`/${lang}/cards/${dailyCard.card.slug}`}
-                className="px-3.5 py-2 rounded-full bg-[#F7F3EF] hover:bg-[#EAE4D9] text-[#111111] text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap border border-[#111111]/6"
+                className="px-3.5 py-2 rounded-full bg-[#F5F5F6] hover:bg-[#E4E4E7] text-[#171717] text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap border border-[#E4E4E7]"
               >
                 <span>{lang === 'en' ? 'Card Details' : '牌义详解'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -233,7 +233,7 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
           ) : (
             <button
               onClick={handleCardClick}
-              className="px-4 py-2 rounded-full bg-[#111111] hover:bg-[#333333] text-[#FFFDF9] text-xs font-serif tracking-wider transition-all shadow-xs cursor-pointer"
+              className="px-4 py-2 rounded-full bg-[#171717] hover:bg-[#27272A] text-white text-xs font-serif tracking-wider transition-all shadow-xs cursor-pointer"
             >
               {lang === 'en' ? 'Flip Card' : '翻开卡牌'}
             </button>

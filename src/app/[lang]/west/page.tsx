@@ -1,12 +1,48 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Metadata } from 'next';
 import { CONTAINER } from '@/components/site/constants';
 
 export const instant = false;
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const isEn = rawLang === 'en';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const currentLang = isEn ? 'en' : 'zh';
+
+  return {
+    title: isEn ? 'Western Tarot Sanctuary - Free Draw, Spreads & Card Meanings' : '塔罗专厅｜自由抽牌·牌阵占卜·78张牌义',
+    description: isEn
+      ? 'Western tarot sanctuary: 78 Rider-Waite card interpretations, free single and multi-card draws, Celtic Cross spread, love tarot, and daily fortunes.'
+      : 'YiTatro 塔罗专厅：78 张经典韦特塔罗牌义库、自由选牌、牌阵占卜、爱情塔罗、是否决断与每日一牌。',
+    alternates: {
+      canonical: `${siteUrl}/${currentLang}/west`,
+      languages: {
+        zh: `${siteUrl}/zh/west`,
+        en: `${siteUrl}/en/west`,
+        'x-default': `${siteUrl}/zh/west`
+      }
+    },
+    openGraph: {
+      type: 'website',
+      locale: isEn ? 'en_US' : 'zh_CN',
+      url: `${siteUrl}/${currentLang}/west`,
+      title: isEn ? 'Tarot Sanctuary | YiTatro' : '塔罗专厅｜经典韦特塔罗 | YiTatro',
+      description: isEn
+        ? 'Deep archetypal psychology and intuitive tarot guidance.'
+        : '深度心理学与直觉塔罗指引，静心照见内心真实答案。'
+    }
+  };
 }
 
 /**

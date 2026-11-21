@@ -1,10 +1,37 @@
 import React, { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { FreeDrawConsole } from '@/components/tarot/FreeDrawConsole';
 
 export const instant = false;
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const isEn = rawLang === 'en';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const currentLang = isEn ? 'en' : 'zh';
+
+  return {
+    title: isEn ? 'Free Tarot Draw (1–6 Cards)' : '自由抽牌｜1–6 张塔罗自选占卜',
+    description: isEn
+      ? 'Draw 1 to 6 cards freely from the classic 78 Rider-Waite tarot deck to reflect your present subconscious thoughts.'
+      : '自由设定抽取 1 至 6 张经典韦特塔罗牌，沉淀当下思绪，映照深层潜意识。',
+    alternates: {
+      canonical: `${siteUrl}/${currentLang}/draw`,
+      languages: {
+        zh: `${siteUrl}/zh/draw`,
+        en: `${siteUrl}/en/draw`,
+        'x-default': `${siteUrl}/zh/draw`
+      }
+    }
+  };
 }
 
 export default async function DrawPage({
@@ -23,7 +50,7 @@ export default async function DrawPage({
         fallback={
           <div className="w-full max-w-5xl mx-auto flex flex-col items-center animate-pulse">
             <div className="w-full text-center mb-6">
-              <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
+              <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#171717] tracking-tight">
                 {lang === 'en' ? 'Free Tarot Draw' : '自由抽牌'}
               </h1>
               <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-1.5 max-w-md mx-auto">
@@ -32,10 +59,10 @@ export default async function DrawPage({
                   : '自由设定抽取 1 至 6 张卡牌，探寻当下潜意识的真实镜像。'}
               </p>
             </div>
-            <div className="w-full rounded-xl bg-white border border-[#111111]/10 p-4 mb-8 h-16" />
+            <div className="w-full rounded-xl bg-white border border-[#E4E4E7] p-4 mb-8 h-16" />
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10 justify-items-center">
               {[0, 1, 2].map(i => (
-                <div key={i} className="w-full max-w-[260px] min-h-[440px] p-4 rounded-xl bg-[#FFFDF9] border border-[#111111]/10 flex flex-col items-center justify-between" />
+                <div key={i} className="w-full max-w-[260px] min-h-[440px] p-4 rounded-xl bg-white border border-[#E4E4E7] flex flex-col items-center justify-between" />
               ))}
             </div>
           </div>

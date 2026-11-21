@@ -41,21 +41,21 @@ export function FaqAccordion() {
         return (
           <div
             key={i}
-            className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/8 overflow-hidden transition-all shadow-xs"
+            className="rounded-2xl bg-white border border-[#E4E4E7] overflow-hidden transition-all shadow-xs"
           >
             <button
               onClick={() => toggle(i)}
-              className="w-full px-5 py-4 text-left font-serif font-bold text-sm sm:text-base text-[#111111] flex items-center justify-between gap-4 cursor-pointer hover:bg-[#FAF6ED]/50 transition-colors"
+              className="w-full px-5 py-4 text-left font-serif font-bold text-sm sm:text-base text-[#171717] flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F5F5F6] transition-colors"
             >
               <span>{item.q}</span>
               <ChevronDown
-                className={`w-4 h-4 text-[#736B5E] shrink-0 transition-transform duration-300 ${
-                  isOpen ? 'rotate-180 text-[#111111]' : ''
+                className={`w-4 h-4 text-[#52525B] shrink-0 transition-transform duration-300 ${
+                  isOpen ? 'rotate-180 text-[#171717]' : ''
                 }`}
               />
             </button>
             {isOpen && (
-              <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#5C5549] leading-relaxed animate-in fade-in slide-in-from-top-1 border-t border-[#111111]/5">
+              <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-[#52525B] leading-relaxed animate-in fade-in slide-in-from-top-1 border-t border-[#E4E4E7]">
                 {item.a}
               </div>
             )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { RELATIONSHIP_CONFIGS, RelationshipType } from '@/lib/metaphysics/relationship';
 import { RelationshipSynastryWidget } from '@/components/fatemaster/RelationshipSynastryWidget';
 import Link from 'next/link';
@@ -16,6 +17,54 @@ export async function generateStaticParams() {
     });
   });
   return params;
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string; type: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang, type: rawType } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+  const type = rawType as RelationshipType;
+  const config = RELATIONSHIP_CONFIGS[type];
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+
+  if (!config) {
+    return { title: lang === 'en' ? 'Relationship Not Found | YiTatro' : '未找到合盘模型 | YiTatro' };
+  }
+
+  const isEn = lang === 'en';
+  const title = isEn
+    ? `${config.titleEn} - BaZi & Five Elements Synastry | YiTatro`
+    : `${config.titleZh} - 生肖干支与八字五行合盘 | YiTatro`;
+  const description = isEn ? config.summaryEn : config.summaryZh;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${siteUrl}/${lang}/fatemaster/relationship/${type}`,
+      languages: {
+        zh: `${siteUrl}/zh/fatemaster/relationship/${type}`,
+        en: `${siteUrl}/en/fatemaster/relationship/${type}`,
+        'x-default': `${siteUrl}/zh/fatemaster/relationship/${type}`
+      }
+    },
+    openGraph: {
+      type: 'article',
+      locale: isEn ? 'en_US' : 'zh_CN',
+      url: `${siteUrl}/${lang}/fatemaster/relationship/${type}`,
+      title,
+      description,
+      siteName: 'YiTatro'
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description
+    }
+  };
 }
 
 export default async function SpecificRelationshipPage({
