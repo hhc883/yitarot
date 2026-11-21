@@ -44,6 +44,9 @@ export async function generateMetadata({
   return {
     title,
     description,
+    keywords: isEn
+      ? [config.titleEn, 'BaZi synastry', 'Zodiac compatibility', 'Chinese astrology relationship', 'Five Elements synergy', 'YiTatro Synastry']
+      : [config.titleZh, '生肖合盘', '八字合盘', '干支配对', '纳音相生相克', '五行生克', 'YiTatro 合盘'],
     alternates: {
       canonical: `${siteUrl}/${lang}/fatemaster/relationship/${type}`,
       languages: {

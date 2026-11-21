@@ -26,6 +26,9 @@ export async function generateMetadata({
     description: isEn
       ? 'Explore traditional Eastern metaphysics: Liu Yao coin oracle, Four Pillars of Destiny (BaZi), Zi Wei Dou Shu, and relationship synastry.'
       : 'YiTatro 东方专厅：周易六爻神谕、四柱八字排盘、紫微斗数、梅花易数及生肖干支关系合盘。',
+    keywords: isEn
+      ? ['I Ching oracle', 'BaZi reading', 'Liu Yao hexagrams', 'Four Pillars of Destiny', 'Zi Wei Dou Shu', 'Chinese synastry', 'Eastern metaphysics', 'YiTatro East']
+      : ['东方专厅', '周易起卦', '六爻排盘', '四柱八字', '紫微斗数', '梅花易数', '生肖合盘', 'YiTatro 东方'],
     alternates: {
       canonical: `${siteUrl}/${currentLang}/east`,
       languages: {

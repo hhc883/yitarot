@@ -30,6 +30,9 @@ export async function generateMetadata({
   return {
     title,
     description,
+    keywords: isEn
+      ? ['Metaphysics blog', 'Tarot card guides', 'BaZi analysis', 'I Ching wisdom', 'Jungian synchronicity', 'Spiritual reflection', 'YiTatro Blog']
+      : ['命理研习博客', '塔罗心法指南', '八字十神分析', '周易智慧', '荣格共时性', '自我认知镜像', 'YiTatro 博客'],
     alternates: {
       canonical: `${siteUrl}/${currentLang}/blog`,
       languages: {

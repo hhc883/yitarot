@@ -26,6 +26,9 @@ export async function generateMetadata({
     description: isEn
       ? 'Western tarot sanctuary: 78 Rider-Waite card interpretations, free single and multi-card draws, Celtic Cross spread, love tarot, and daily fortunes.'
       : 'YiTatro 塔罗专厅：78 张经典韦特塔罗牌义库、自由选牌、牌阵占卜、爱情塔罗、是否决断与每日一牌。',
+    keywords: isEn
+      ? ['Tarot reading', 'Free tarot draw', '78 tarot card meanings', 'Rider-Waite deck', 'Celtic Cross spread', 'Love tarot', 'Daily tarot', 'YiTatro Tarot']
+      : ['塔罗专厅', '自由抽牌', '78张牌义库', '经典韦特塔罗', '牌阵占卜', '爱情塔罗', '是否占卜', 'YiTatro 塔罗'],
     alternates: {
       canonical: `${siteUrl}/${currentLang}/west`,
       languages: {

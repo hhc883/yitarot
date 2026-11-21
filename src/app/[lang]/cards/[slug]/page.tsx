@@ -47,9 +47,14 @@ export async function generateMetadata({
       : `Tarot reading and archetype interpretation for ${card.nameEn} (${card.nameZh}). Chinese detailed commentary available.`
     : `深入解析塔罗牌【${card.nameZh}】的正位与逆位含义：${card.uprightKeywords.join('、')}。在爱情、工作与心理学层面的深刻启示。`;
 
+  const keywords = isEn
+    ? [card.nameEn, `${card.nameEn} tarot meaning`, `${card.nameEn} upright`, `${card.nameEn} reversed`, ...(enDetail ? enDetail.keywords : card.keywords), 'Rider-Waite tarot']
+    : [card.nameZh, card.nameEn, `${card.nameZh}牌义`, `${card.nameZh}正位`, `${card.nameZh}逆位`, ...card.keywords, '韦特塔罗牌'];
+
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: `${siteUrl}/${lang}/cards/${slug}`,
       languages: {

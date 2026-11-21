@@ -23,6 +23,9 @@ export async function generateMetadata({
     description: isEn
       ? 'Draw 1 to 6 cards freely from the classic 78 Rider-Waite tarot deck to reflect your present subconscious thoughts.'
       : '自由设定抽取 1 至 6 张经典韦特塔罗牌，沉淀当下思绪，映照深层潜意识。',
+    keywords: isEn
+      ? ['Free tarot draw', '1-6 card spread', 'Online tarot reading', 'Daily tarot card', 'Intuitive card picker', 'YiTatro Draw']
+      : ['自由抽牌', '自选塔罗牌', '1到6张抽牌', '在线塔罗抽取', '潜意识直觉选牌', 'YiTatro 抽牌'],
     alternates: {
       canonical: `${siteUrl}/${currentLang}/draw`,
       languages: {

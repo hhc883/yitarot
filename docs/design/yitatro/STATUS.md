@@ -43,10 +43,21 @@
 | G | 正统京房纳甲六爻数理排盘与铜钱视觉规范化重构：四柱干支时空提纲（月建/日辰/旬空）、京房八宫世应、纳甲六亲、六神排布、乾隆通宝正反面分明与本变卦对照盘面。 | 本地通过（发布就绪） |
 | H | 修复首页吸顶导航与 3D 悬浮塔罗卡牌层叠穿透 bug：建立 `isolation: isolate` 局部层叠孤立域，梳理全局 z-index 阶梯（导航栏 z-[100]），彻底消除卡牌遮盖顶栏与残留金边。 | 本地通过（发布就绪） |
 | I | 预留易学专业 Skill 插件插槽、接入 DeepSeek 降本适配器、六爻 2 积分多轮追问与 7 天生命周期数据存储架构。 | 本地通过（发布就绪） |
+| J | 全站多语言 TDK 关键词继承修复：彻底解决 Next.js App Router 根布局 keywords 向英文页面渗透下沉问题，全站动态与静态路由精准匹配双语 SEO 词库。 | 本地验收通过（发布就绪） |
 
 ## 交接记录
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- J（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 关键词全绿验收通过）：
+  1. **多语言 TDK 关键词隔离与继承修复（Stage J.1）**：
+     - **根源定位**：Next.js App Router 的 Metadata 机制存在向上逐级继承逻辑。当子路由只声明 `title`、`description` 和 `openGraph` 而未明确指定 `keywords` 时，Next.js 会自动向上继承根布局 `src/app/layout.tsx` 中写死的中文关键词数组（`['YiTatro', '周易起卦', '八字排盘', ...]`）。
+     - **语言层级布局兜底覆盖**：在 `src/app/[lang]/layout.tsx` 中基于 `isEn` 动态注入英文专属顶级关键词（`['YiTatro', 'I Ching divination', 'BaZi astrology', 'Liu Yao coin oracle', 'Four Pillars of Destiny', 'AI tarot reading', ...]`），彻底阻断根布局中文关键词的向下渗透。
+     - **核心子路由英文关键词精细化**：全面更新了 `east`、`west`、`draw`、`cards/[slug]`、`blog`、`blog/[slug]`、`relationship/[type]` 等页面的动态元数据生成器，英文页面下输出精准英文专业术语（如塔罗牌义大阿卡纳、八字合盘等）。
+  2. **构建与验证**：
+     - `npm run lint`：0 errors, 0 warnings；
+     - `npm run build`：336 条路由全部构建通过；
+     - 生产环境实时抓取检验：`/en`、`/en/west`、`/en/cards/the-fool` 等英文页面 `<meta name="keywords">` 100% 呈现纯正英文关键词，`/zh` 下保持完整中文易学词库。
 
 - I（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 全绿验收通过）：
   1. **易学专业 Skill 插件插槽架构（Stage I.1）**：

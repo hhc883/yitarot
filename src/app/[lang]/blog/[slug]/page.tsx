@@ -43,6 +43,7 @@ export async function generateMetadata({
   return {
     title,
     description,
+    keywords: post.tags.concat(['YiTatro', post.category, lang === 'en' ? 'Article' : '研习文章']),
     alternates: {
       canonical: `${siteUrl}/${lang}/blog/${post.slug}`,
       languages: {
