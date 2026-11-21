@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { CONTAINER } from '@/components/site/constants';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 export const instant = false;
 
@@ -134,8 +135,42 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     }
   ];
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const pageTitle = isEn ? 'Western Tarot Sanctuary' : '塔罗专厅｜自由抽牌·牌阵占卜·78张牌义';
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: isEn ? 'Home' : '首页',
+          item: `${siteUrl}/${lang}`
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: pageTitle,
+          item: `${siteUrl}/${lang}/west`
+        }
+      ]
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: pageTitle,
+      description: isEn
+        ? 'Western tarot sanctuary: 78 Rider-Waite card interpretations, free single and multi-card draws, Celtic Cross spread, love tarot, and daily fortunes.'
+        : 'YiTatro 塔罗专厅：78 张经典韦特塔罗牌义库、自由选牌、牌阵占卜、爱情塔罗、是否决断与每日一牌。',
+      url: `${siteUrl}/${lang}/west`
+    }
+  ];
+
   return (
     <div className="w-full bg-white text-[#171717]">
+      <JsonLd data={structuredData} />
       {/* 专厅首屏（Hero）：留白、标题、太阳牌静态视觉（本色保留）、一个实心主按钮与次入口 */}
       <section className="w-full border-b border-[#E4E4E7]" aria-label={isEn ? 'Tarot Hall' : '塔罗专厅'}>
         <div className={`${CONTAINER} py-14 sm:py-20 md:py-24`}>

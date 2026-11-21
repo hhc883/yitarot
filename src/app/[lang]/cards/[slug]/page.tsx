@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import { getAllCards, getCardBySlug } from '@/lib/tarot/deck';
 import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { IconLove, IconCareer } from '@/components/icons/QiIcons';
 
@@ -99,8 +100,63 @@ export default async function CardDetailPage({
   const symbolism = enDetail ? enDetail.symbolism : card.symbolism;
   const advice = enDetail ? enDetail.advice : card.advice;
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const cardName = lang === 'en' ? `${card.nameEn} (${card.nameZh})` : `${card.nameZh}（${card.nameEn}）`;
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: lang === 'en' ? 'Home' : '首页',
+          item: `${siteUrl}/${lang}`
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: lang === 'en' ? 'Tarot' : '塔罗专厅',
+          item: `${siteUrl}/${lang}/west`
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: lang === 'en' ? 'Tarot Cards' : '塔罗牌库',
+          item: `${siteUrl}/${lang}/cards`
+        },
+        {
+          '@type': 'ListItem',
+          position: 4,
+          name: cardName,
+          item: `${siteUrl}/${lang}/cards/${slug}`
+        }
+      ]
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: `${cardName} ${lang === 'en' ? 'Tarot Meaning & Archetype Interpretation' : '塔罗牌义详解与荣格原型解析'}`,
+      description: uprightMeaning,
+      image: `${siteUrl}/cards/${card.arcana === 'major' ? 'major-arcana' : 'minor-arcana'}/${card.slug}.webp`,
+      author: {
+        '@type': 'Organization',
+        name: 'YiTatro',
+        url: siteUrl
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'YiTatro',
+        url: siteUrl
+      },
+      mainEntityOfPage: `${siteUrl}/${lang}/cards/${slug}`
+    }
+  ];
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 lg:py-12">
+      <JsonLd data={structuredData} />
       {/* 返回牌库 */}
       <div className="mb-6 sm:mb-8">
         <Link

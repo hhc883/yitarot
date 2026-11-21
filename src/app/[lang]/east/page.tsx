@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { CONTAINER } from '@/components/site/constants';
 import { HexagramGraphic } from '@/components/site/HexagramGraphic';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 export const instant = false;
 
@@ -134,8 +135,42 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     }
   ];
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const pageTitle = isEn ? 'I Ching & BaZi East Metaphysics Portal' : '东方专厅｜周易六爻·四柱八字·紫微斗数';
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: isEn ? 'Home' : '首页',
+          item: `${siteUrl}/${lang}`
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: pageTitle,
+          item: `${siteUrl}/${lang}/east`
+        }
+      ]
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: pageTitle,
+      description: isEn
+        ? 'Explore traditional Eastern metaphysics: Liu Yao coin oracle, Four Pillars of Destiny (BaZi), Zi Wei Dou Shu, and relationship synastry.'
+        : 'YiTatro 东方专厅：周易六爻神谕、四柱八字排盘、紫微斗数、梅花易数及生肖干支关系合盘。',
+      url: `${siteUrl}/${lang}/east`
+    }
+  ];
+
   return (
     <div className="w-full bg-white text-[#171717]">
+      <JsonLd data={structuredData} />
       {/* 专厅首屏（Hero）：留白、标题、六爻静态视觉、一个实心主按钮与次入口 */}
       <section className="w-full border-b border-[#E4E4E7]" aria-label={isEn ? 'I Ching & BaZi Hall' : '易经与八字专厅'}>
         <div className={`${CONTAINER} py-14 sm:py-20 md:py-24`}>

@@ -1,8 +1,32 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { PointsGateProvider } from '@/components/site/PointsGateProvider';
+import { JsonLd } from '@/components/seo/JsonLd';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+
+const globalStructuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'YiTatro',
+    url: siteUrl,
+    description:
+      'YiTatro 汇聚东方周易（八字排盘、六爻铜钱神谕、生肖纳音）与西方经典韦特塔罗，提供即时命理解读与自我认知镜像。'
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'YiTatro',
+    url: siteUrl,
+    inLanguage: ['zh-CN', 'en-US'],
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${siteUrl}/zh/cards?q={search_term_string}`,
+      'query-input': 'required name=search_term_string'
+    }
+  }
+];
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -65,6 +89,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-white text-ink selection:bg-ink selection:text-white">
+        <JsonLd data={globalStructuredData} />
         <PointsGateProvider>{children}</PointsGateProvider>
       </body>
     </html>

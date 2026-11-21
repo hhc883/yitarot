@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { RELATIONSHIP_CONFIGS, RelationshipType } from '@/lib/metaphysics/relationship';
 import { RelationshipSynastryWidget } from '@/components/fatemaster/RelationshipSynastryWidget';
+import { JsonLd } from '@/components/seo/JsonLd';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
@@ -80,8 +81,63 @@ export default async function SpecificRelationshipPage({
     notFound();
   }
 
+  const config = RELATIONSHIP_CONFIGS[type];
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const pageTitle = lang === 'en' ? `${config.titleEn} - BaZi Synastry` : `${config.titleZh} - 生肖干支八字合盘`;
+
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: lang === 'en' ? 'Home' : '首页',
+          item: `${siteUrl}/${lang}`
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: lang === 'en' ? 'Eastern Metaphysics' : '东方专厅',
+          item: `${siteUrl}/${lang}/east`
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: lang === 'en' ? 'Relationships' : '关系合盘',
+          item: `${siteUrl}/${lang}/fatemaster/relationship`
+        },
+        {
+          '@type': 'ListItem',
+          position: 4,
+          name: pageTitle,
+          item: `${siteUrl}/${lang}/fatemaster/relationship/${type}`
+        }
+      ]
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: pageTitle,
+      description: lang === 'en' ? config.summaryEn : config.summaryZh,
+      author: {
+        '@type': 'Organization',
+        name: 'YiTatro',
+        url: siteUrl
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'YiTatro',
+        url: siteUrl
+      },
+      mainEntityOfPage: `${siteUrl}/${lang}/fatemaster/relationship/${type}`
+    }
+  ];
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 pt-8 pb-16 sm:pt-10 sm:pb-20 text-[#171717]">
+      <JsonLd data={structuredData} />
       {/* 返回全系中心导航 */}
       <div className="mb-6">
         <Link
