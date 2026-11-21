@@ -42,10 +42,27 @@
 | F | 多模态视觉识卦系统（Gemini 4 Vision）：六爻页面新增「截图/拍照解卦」双模式、剪贴板 Ctrl+V 秒速粘贴排盘图、流式辨爻与深度解卦。 | 本地通过（发布就绪） |
 | G | 正统京房纳甲六爻数理排盘与铜钱视觉规范化重构：四柱干支时空提纲（月建/日辰/旬空）、京房八宫世应、纳甲六亲、六神排布、乾隆通宝正反面分明与本变卦对照盘面。 | 本地通过（发布就绪） |
 | H | 修复首页吸顶导航与 3D 悬浮塔罗卡牌层叠穿透 bug：建立 `isolation: isolate` 局部层叠孤立域，梳理全局 z-index 阶梯（导航栏 z-[100]），彻底消除卡牌遮盖顶栏与残留金边。 | 本地通过（发布就绪） |
+| I | 预留易学专业 Skill 插件插槽、接入 DeepSeek 降本适配器、六爻 2 积分多轮追问与 7 天生命周期数据存储架构。 | 本地通过（发布就绪） |
 
 ## 交接记录
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- I（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 全绿验收通过）：
+  1. **易学专业 Skill 插件插槽架构（Stage I.1）**：
+     - **标准插槽设计**：在 `src/lib/metaphysics/skills/` 封装 `types.ts`、注册中心 `registry.ts`、默认基准 `default-skill/`，并专属预留 `custom/` 插槽；
+     - **极简热插拔**：用户未来找到合适的 Skill（如 prompt、断卦要诀），只需将文件放入 `src/lib/metaphysics/skills/custom/`，系统无需改动任何业务代码即可全自动接管！
+  2. **多模型适配器与 DeepSeek 极低成本接入（Stage I.2）**：
+     - 封装 `src/lib/llm/adapter.ts`，原生支持 DeepSeek V3 / R1（兼容 OpenAI 协议流式输出）；
+     - 单次追问成本大幅降低至不足半分钱（~0.003元），提供 `METAPHYSICS_LLM_PROVIDER=auto|deepseek|gemini` 自动热切换与容灾逃生。
+  3. **数据存储与 7 天生命周期管理（Stage I.3）**：
+     - 新增数据库脚本 `supabase/migrations/20261121000001_liuyao_chat_history.sql`，建立 `liuyao_sessions` 与 `liuyao_messages` 表；
+     - 普通用户设置 `expires_at = now() + interval '7 days'` 自动物理级联清理，会员用户永久留存（`expires_at = null`）。
+  4. **六爻 2 积分多轮追问模式（Stage I.4）**：
+     - 后端新增 `/api/fatemaster/liuyao/follow-up` 流式追答接口，配置追问固定消耗 2 积分（`FOLLOWUP_COST = 2`）；
+     - 追问自动携带本卦与变卦数理图谱、时空提纲与当前 Skill 宗纲，严禁另起新卦，紧扣用神动爻深层答疑；
+     - 前端开发 `LiuYaoFollowUpWidget.tsx`，提供灵感预设标签、气泡流与 7 天保存规则提示。
+  5. **构建与验证**：全仓 `npm run build` 生成 336 条路由全部通过，`npm run lint` 达成 0 errors, 0 warnings，本地生产服务稳定运行。
 
 - H（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 全绿验收通过）：
   1. **层叠穿透与 z-index 体系重构**：

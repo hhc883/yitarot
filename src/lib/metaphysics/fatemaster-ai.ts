@@ -1,6 +1,8 @@
 import { GoogleGenAI } from '@google/genai';
 import { BaZiCalculationResult } from './bazi';
 import { IChingReading } from './iching';
+import { getActiveLiuYaoSkill } from './skills/registry';
+import { streamLLM } from '@/lib/llm/adapter';
 
 export interface BaziAiRequest {
   year: number;
@@ -318,29 +320,18 @@ ${t ? `---
  * 流式输出适配器
  */
 export async function* streamLiuYaoReading(req: LiuYaoAiRequest): AsyncGenerator<string, void, unknown> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const activeSkill = getActiveLiuYaoSkill();
+  const systemInstruction = `${req.lang === 'en' ? LIUYAO_TABLE_RULE_EN : LIUYAO_TABLE_RULE}\n\n${activeSkill.systemInstruction}`;
+  const userPrompt = buildLiuYaoPrompt(req);
 
-  if (apiKey) {
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const systemInstruction = req.lang === 'en' ? LIUYAO_TABLE_RULE_EN : LIUYAO_TABLE_RULE;
-      const userPrompt = buildLiuYaoPrompt(req);
-      const stream = await ai.interactions.create({
-        model: 'gemini-4-hydrogen',
-        system_instruction: systemInstruction,
-        input: userPrompt,
-        stream: true
-      });
-
-      for await (const event of stream) {
-        if (event.event_type === 'step.delta' && event.delta?.type === 'text') {
-          yield event.delta.text ?? '';
-        }
-      }
-      return;
-    } catch (err) {
-      console.warn('Gemini 4 Hydrogen 调用受限，平滑切换至内置易经专家引擎:', err);
-    }
+  try {
+    yield* streamLLM({
+      systemInstruction,
+      messages: [{ role: 'user', content: userPrompt }]
+    });
+    return;
+  } catch (err) {
+    console.warn('大模型（DeepSeek/Gemini）调用受限，平滑切换至内置易经专家引擎:', err);
   }
 
   // 本地专家引擎流式输出

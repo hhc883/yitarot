@@ -16,6 +16,7 @@ import {
 } from '@/lib/metaphysics/najia';
 import { Sparkles, RotateCcw, CheckCircle2, Clock } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
+import { LiuYaoFollowUpWidget } from './LiuYaoFollowUpWidget';
 
 gsap.registerPlugin(useGSAP);
 
@@ -733,8 +734,17 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
           </div>
 
           {aiReport ? (
-            <div className="prose prose-stone max-w-none text-[#171717] text-xs sm:text-sm leading-relaxed space-y-4 whitespace-pre-line animate-in fade-in">
-              {aiReport}
+            <div className="space-y-6">
+              <div className="prose prose-stone max-w-none text-[#171717] text-xs sm:text-sm leading-relaxed space-y-4 whitespace-pre-line animate-in fade-in">
+                {aiReport}
+              </div>
+
+              {/* 针对当前卦象的 2 积分多轮追问组件 */}
+              <LiuYaoFollowUpWidget
+                reading={reading}
+                initialQuestion={question}
+                lang={lang === 'en' ? 'en' : 'zh'}
+              />
             </div>
           ) : (
             <div className="p-8 text-center text-xs text-[#52525B]">

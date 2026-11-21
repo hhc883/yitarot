@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { createSupabaseServerClient, getSupabaseUser } from '@/lib/supabase/server';
-import { READING_COST, isReadingType } from '@/lib/points/constants';
+import { READING_COST, getCostForType, isReadingType } from '@/lib/points/constants';
 
 /**
  * POST /api/readings/consume —— 测算前扣 10 积分（幂等）。
@@ -37,9 +37,11 @@ export async function POST(req: NextRequest) {
 
   const supabase = await createSupabaseServerClient();
 
+  const cost = getCostForType(type);
+
   // 1. 扣分（数据库函数内含事务、行锁与幂等检查）
   const { data, error } = await supabase.rpc('spend_reading_points', {
-    p_amount: READING_COST,
+    p_amount: cost,
     p_ref: refId
   });
 
@@ -82,7 +84,7 @@ export async function POST(req: NextRequest) {
     await supabase.from('readings').insert({
       user_id: user.id,
       type,
-      points_spent: READING_COST
+      points_spent: cost
     });
   }
 
