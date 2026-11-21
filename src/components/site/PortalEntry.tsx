@@ -28,23 +28,23 @@ export function PortalEntry({ lang = 'zh' }: { lang?: string }) {
         <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x md:divide-[#E4E4E7]">
           {/* 左侧入口：东方 · 易经与八字 */}
           <div className="flex flex-col justify-between pb-8 md:pb-0 md:pr-8 lg:pr-12">
-            <div className="w-full max-w-[380px] lg:max-w-[420px] mx-auto flex flex-row md:flex-col items-start gap-5 sm:gap-6">
-              {/* 视觉舞台：严格固定对齐高度，桌面底部对齐基准线 */}
+            <div className="w-full max-w-[380px] lg:max-w-[420px] mx-auto flex flex-row md:flex-col items-start md:items-center gap-5 sm:gap-6">
+              {/* 视觉舞台：严格固定对齐高度，桌面底部对齐基准线，水平垂直轴线居中 */}
               <div className="flex w-[60px] sm:w-[72px] shrink-0 items-start justify-center pt-1 md:h-[180px] md:w-full md:items-end md:justify-center md:pb-3 md:pt-0">
                 <HexagramGraphic className="w-[56px] sm:w-[68px] md:w-[104px] h-auto drop-shadow-2xs" />
               </div>
 
-              {/* 文本与按钮区：严格对齐基准线 */}
-              <div className="flex-1 min-w-0 md:w-full flex flex-col items-start">
+              {/* 文本与按钮区：移动端靠左，PC 视图图片与文本绝对垂直居中对齐 */}
+              <div className="flex-1 min-w-0 md:w-full flex flex-col items-start md:items-center md:text-center">
                 <h2 className="font-serif text-[22px] sm:text-[26px] md:text-[30px] font-normal tracking-tight text-[#171717]">
                   {isEn ? 'I Ching & BaZi' : '易经与八字'}
                 </h2>
-                <p className="mt-1.5 md:mt-2 text-[13px] sm:text-[14px] leading-relaxed text-[#52525B] md:min-h-[2.75rem] flex items-center">
+                <p className="mt-1.5 md:mt-2 text-[13px] sm:text-[14px] leading-relaxed text-[#52525B] md:min-h-[2.75rem] flex items-center md:justify-center">
                   {isEn
                     ? 'Cast a hexagram or explore your birth chart.'
                     : '起一卦，或查看八字命盘。'}
                 </p>
-                <div className="mt-4 md:mt-6">
+                <div className="mt-4 md:mt-6 w-full flex justify-start md:justify-center">
                   <Link
                     href={`/${lang}/east`}
                     prefetch={false}
@@ -61,8 +61,8 @@ export function PortalEntry({ lang = 'zh' }: { lang?: string }) {
 
           {/* 右侧入口：西方 · 塔罗 */}
           <div className="flex flex-col justify-between pt-8 border-t border-[#E4E4E7] md:border-t-0 md:pt-0 md:pl-8 lg:pl-12">
-            <div className="w-full max-w-[380px] lg:max-w-[420px] mx-auto flex flex-row md:flex-col items-start gap-5 sm:gap-6">
-              {/* 视觉舞台：与左侧完全相同的 180px 高度与底部基线对齐 */}
+            <div className="w-full max-w-[380px] lg:max-w-[420px] mx-auto flex flex-row md:flex-col items-start md:items-center gap-5 sm:gap-6">
+              {/* 视觉舞台：与左侧完全相同的 180px 高度与底部基准线对齐 */}
               <div className="flex w-[60px] sm:w-[72px] shrink-0 items-start justify-center pt-1 md:h-[180px] md:w-full md:items-end md:justify-center md:pb-3 md:pt-0">
                 <Image
                   src="/cards/major-arcana/the-sun.webp"
@@ -74,17 +74,17 @@ export function PortalEntry({ lang = 'zh' }: { lang?: string }) {
                 />
               </div>
 
-              {/* 文本与按钮区：与左侧完全对齐 */}
-              <div className="flex-1 min-w-0 md:w-full flex flex-col items-start">
+              {/* 文本与按钮区：与左侧完全对称对齐 */}
+              <div className="flex-1 min-w-0 md:w-full flex flex-col items-start md:items-center md:text-center">
                 <h2 className="font-serif text-[22px] sm:text-[26px] md:text-[30px] font-normal tracking-tight text-[#171717]">
                   {isEn ? 'Tarot' : '塔罗'}
                 </h2>
-                <p className="mt-1.5 md:mt-2 text-[13px] sm:text-[14px] leading-relaxed text-[#52525B] md:min-h-[2.75rem] flex items-center">
+                <p className="mt-1.5 md:mt-2 text-[13px] sm:text-[14px] leading-relaxed text-[#52525B] md:min-h-[2.75rem] flex items-center md:justify-center">
                   {isEn
                     ? 'Draw cards to reflect on a question.'
                     : '带着一个问题来抽牌。'}
                 </p>
-                <div className="mt-4 md:mt-6">
+                <div className="mt-4 md:mt-6 w-full flex justify-start md:justify-center">
                   <Link
                     href={`/${lang}/west`}
                     prefetch={false}
@@ -100,11 +100,11 @@ export function PortalEntry({ lang = 'zh' }: { lang?: string }) {
           </div>
         </div>
 
-        {/* 底部轻量链接：双栏对齐与中缝延伸 */}
+        {/* 底部轻量链接：双栏居中对齐与中缝延伸 */}
         <div className="mt-12 sm:mt-16 border-t border-[#E4E4E7] pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x md:divide-[#E4E4E7]">
             <div className="pb-3 md:pb-0 md:pr-8 lg:pr-12">
-              <div className="w-full max-w-[380px] lg:max-w-[420px] mx-auto flex items-center text-[13px]">
+              <div className="w-full max-w-[380px] lg:max-w-[420px] mx-auto flex items-center justify-start md:justify-center text-[13px]">
                 <Link
                   href={`/${lang}/fortune/daily`}
                   prefetch={false}
@@ -117,7 +117,7 @@ export function PortalEntry({ lang = 'zh' }: { lang?: string }) {
             </div>
 
             <div className="pt-3 md:pt-0 md:pl-8 lg:pl-12">
-              <div className="w-full max-w-[380px] lg:max-w-[420px] mx-auto flex items-center text-[13px]">
+              <div className="w-full max-w-[380px] lg:max-w-[420px] mx-auto flex items-center justify-start md:justify-center text-[13px]">
                 <Link
                   href={`/${lang}/blog`}
                   prefetch={false}
