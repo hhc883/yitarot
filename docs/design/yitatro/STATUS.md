@@ -38,10 +38,26 @@
 | B2 | 延迟加载首页旧塔罗互动区，消除抽牌布局跳动，补齐 56 张小阿卡纳英文牌义，接入 Gemini 官方 SDK。 | 本地验收通过 |
 | C | 应用到剩余设计稿，统一视觉规范，补齐加载、404、Error 边界与品牌收口。 | 本地验收通过 |
 | D | 发布前检查：多语言 SEO（hreflang/canonical/OG/Twitter）、动态路由元数据、全仓杂色零残留、全站生产构建。 | 本地通过（发布就绪） |
+| E | 博客与内容营销 SEO 系统：双语博客聚合页、动态文章路由、Markdown 渲染与目录提取、Schema.org BlogPosting、工具转化漏斗与 Sitemap 全量索引。 | 本地通过（发布就绪） |
 
 ## 交接记录
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- E（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 全绿验收通过）：
+  1. **双语博客与内容营销 SEO 架构（Stage E.1）**：
+     - **聚合列表页（`/[lang]/blog`）**：支持分类筛选（全部、塔罗研习、东方数术、心学与心理、实战案例）、关键词即时搜索、头条精选（Featured Hero）、标签云检索；并保留原便签式《心法手册（Handbook）》模式切换，兼顾常青知识库与动态文章。
+     - **动态文章详情路由（`/[lang]/blog/[slug]`）**：预渲染（SSG）中英文独立路径，注入动态 `generateMetadata`、OpenGraph、Twitter Card、`alternates.canonical` 与跨语言 `hreflang`（含 `x-default`）。
+     - **轻量零依赖 Markdown 与目录引擎**：封装 `src/lib/blog/markdown.ts`，支持标题、段落、列表、代码、引用及分隔线语义化渲染，并自动提取 H2/H3 生成右侧粘性目录（`BlogToc`），桌面端支持滚动自动高亮小节，移动端提供顶栏阅读进度指示（`BlogReadingProgress`）。
+  2. **SEO 结构化数据与转化漏斗闭环（Stage E.2）**：
+     - **Schema.org 全量富文本摘要**：详情页自动注入 `BlogPosting` + `BreadcrumbList` + `Author (Person)`，满足 Google E-E-A-T 专业资质要求；博客聚合页自动注入 `CollectionPage` 与 `ItemList`。
+     - **文末转化 CTA 机制**：每篇文章关联专属工具深链（如死神牌关联 `/draw`、十神关联 `/fatemaster/bazi`、共时性关联 `/reading`），形成「长尾搜索获客 -> 深度心学阅读 -> 实时起卦/抽牌推演」的高转化闭环。
+     - **全量 Sitemap 动态聚合**：更新 `src/app/sitemap.ts`，博客文章自动以 0.85 权重注入站点地图供搜索引擎优先爬取。
+  3. **初始标杆 SEO 支柱文章（Bilingual Pillars）**：
+     - 塔罗深度：《死神牌（Death）真正教会我们的事：告别执念、心理蜕变与生命重构》（中/英）
+     - 东方命理：《八字十神看职业发展：正官、偏财、食神如何指引现代人生涯抉择？》（中/英）
+     - 心学机制：《为什么占卜总能说中内心？荣格「共时性」与周易塔罗的深层心理机制》（中/英）
+  4. **构建与验证**：全仓 `npm run build` 生成 334 条静态与动态路由用时 4.6s（Exit code 0），`npm run seo:verify` 全绿，本地生产服务正常运行。
 
 - D（Antigravity 实现、本地生产构建、ESLint 0 报警、SEO 全绿验收通过）：
   1. **全站 SEO 多语言元数据治理（Stage D.1）**：
@@ -56,11 +72,6 @@
      - `next build` 编译 325 条静态与动态路由用时 4.8s，全部通过（Exit code 0）。
      - `node scripts/verify-seo.mjs` 验证 300 条可检索 URL 与 144 组生肖纳音合盘全绿。
      - 启动生产守护进程 `next start`，服务在 `http://localhost:3000` 正常运行，由浏览器 Agent 真实巡检通过。
-
-## 交接记录
-
-每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
-
 - C（Antigravity 实现、本地生产构建、ESLint 0 报警与 SEO 验收通过）：
   1. **全站品牌名收口为 YiTatro**：清洗了根元数据（`src/app/layout.tsx`、`src/app/[lang]/layout.tsx`）、多语言字典（`dict.ts`）、隐私政策（`privacy/page.tsx`）、登录存储键（`LoginForm.tsx`）、门楼组件（`MasterPortalHero.tsx`、`MasterScrollytellingHero.tsx`）、分享海报（`ShareCardModal.tsx`）及 AI 系统 Prompt（`fatemaster-ai.ts`）中残留的旧版品牌称谓，全站对齐为统一规范「YiTatro」。
   2. **剩余设计稿视觉规范与代币统一（Stage C.1）**：

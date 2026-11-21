@@ -34,6 +34,8 @@ console.log(`✓ Total Search-Indexable URLs: ${totalIndexedUrls}`);
 
 // 3. Schema Structured Data Check
 console.log(`✓ Schema.org JSON-LD Types Supported:`);
+console.log(`  - BlogPosting (for in-depth metaphysical & tarot articles)`);
+console.log(`  - CollectionPage (for the blog hub with ItemList)`);
 console.log(`  - Article (for knowledge articles and compatibility guides)`);
 console.log(`  - Organization & Author E-E-A-T`);
 console.log(`  - BreadcrumbList`);

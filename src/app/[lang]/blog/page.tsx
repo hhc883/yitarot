@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { TarotHandbook } from '@/components/tarot/TarotHandbook';
+import { getAllPosts } from '@/lib/blog/posts';
+import { BlogIndexClient } from '@/components/blog/BlogIndexClient';
 import { JsonLd } from '@/components/seo/JsonLd';
 
 export const instant = false;
@@ -19,11 +20,16 @@ export async function generateMetadata({
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
   const currentLang = isEn ? 'en' : 'zh';
 
+  const title = isEn
+    ? 'Metaphysical Insights & Guides - Tarot, BaZi & I Ching | YiTatro'
+    : '研习洞察与心学指南｜塔罗牌义、八字命理与周易智慧 - YiTatro';
+  const description = isEn
+    ? 'Deep dives into 78 tarot archetypes, BaZi elemental dynamics, Jungian synchronicity, and real-world reflective case studies.'
+    : '涵盖78张塔罗原型深度剖析、四柱八字五行生克、荣格共时性心理学与真实推演复盘，将古老数术转化为清醒的自我赋权工具。';
+
   return {
-    title: isEn ? 'Tarot & I Ching Study Guide - Beginner Handbook | YiTatro' : '心法指南｜周易与塔罗心学实修手册 - YiTatro',
-    description: isEn
-      ? 'A clean, notes-style handbook covering classic tarot card archetypes, I Ching hexagram principles, and Jungian depth psychology.'
-      : '极简便签风格的心学指南：涵盖经典韦特塔罗原型、周易数术入门心法与荣格深度心理学实修。',
+    title,
+    description,
     alternates: {
       canonical: `${siteUrl}/${currentLang}/blog`,
       languages: {
@@ -31,19 +37,33 @@ export async function generateMetadata({
         en: `${siteUrl}/en/blog`,
         'x-default': `${siteUrl}/zh/blog`
       }
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${siteUrl}/${currentLang}/blog`,
+      siteName: 'YiTatro',
+      locale: isEn ? 'en_US' : 'zh_CN',
+      type: 'website'
     }
   };
 }
 
 export default async function BlogPage({
-  params,
+  params
 }: {
   params: Promise<{ lang: string }>;
 }) {
   const { lang: rawLang } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
-  const pageTitle = lang === 'en' ? 'Tarot & I Ching Study Guide' : '心法指南｜周易与塔罗心学实修手册';
+  const posts = getAllPosts(lang);
+
+  const pageTitle = lang === 'en' ? 'Metaphysical Insights & Guides' : '研习洞察与心学指南';
+  const pageDescription =
+    lang === 'en'
+      ? 'Deep dives into 78 tarot archetypes, BaZi elemental dynamics, Jungian synchronicity, and real-world reflective case studies.'
+      : '涵盖78张塔罗原型深度剖析、四柱八字五行生克、荣格共时性心理学与真实推演复盘，将古老数术转化为清醒的自我赋权工具。';
 
   const structuredData = [
     {
@@ -66,23 +86,24 @@ export default async function BlogPage({
     },
     {
       '@context': 'https://schema.org',
-      '@type': 'Article',
-      headline: pageTitle,
-      description:
-        lang === 'en'
-          ? 'A clean, notes-style handbook covering classic tarot card archetypes, I Ching hexagram principles, and Jungian depth psychology.'
-          : '极简便签风格的心学指南：涵盖经典韦特塔罗原型、周易数术入门心法与荣格深度心理学实修。',
-      author: {
-        '@type': 'Organization',
-        name: 'YiTatro',
-        url: siteUrl
-      },
+      '@type': 'CollectionPage',
+      name: pageTitle,
+      description: pageDescription,
+      url: `${siteUrl}/${lang}/blog`,
       publisher: {
         '@type': 'Organization',
         name: 'YiTatro',
         url: siteUrl
       },
-      mainEntityOfPage: `${siteUrl}/${lang}/blog`
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: posts.map((post, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          url: `${siteUrl}/${lang}/blog/${post.slug}`,
+          name: post.title
+        }))
+      }
     }
   ];
 
@@ -92,11 +113,11 @@ export default async function BlogPage({
       <Suspense
         fallback={
           <div className="py-20 text-center text-xs font-serif text-[#52525B] animate-pulse">
-            {lang === 'en' ? 'Loading Beginner Handbook...' : '加载新手指南...'}
+            {lang === 'en' ? 'Loading articles...' : '加载研习文章...'}
           </div>
         }
       >
-        <TarotHandbook lang={lang} />
+        <BlogIndexClient posts={posts} lang={lang} />
       </Suspense>
     </div>
   );

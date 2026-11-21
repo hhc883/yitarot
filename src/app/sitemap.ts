@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getAllCards } from '@/lib/tarot/deck';
+import { BLOG_POSTS } from '@/lib/blog/posts';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
@@ -71,6 +72,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: 'weekly',
       priority: card.arcana === 'major' ? 0.7 : 0.5
+    });
+  }
+
+  // 博客与深度研习文章（高权重 SEO，每日/每周更新）
+  for (const post of BLOG_POSTS) {
+    sitemapEntries.push({
+      url: `${baseUrl}/${post.lang}/blog/${post.slug}`,
+      lastModified: new Date(post.modifiedAt || post.publishedAt),
+      changeFrequency: 'weekly',
+      priority: post.featured ? 0.85 : 0.75
     });
   }
 
