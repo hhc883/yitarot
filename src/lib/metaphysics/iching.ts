@@ -5,6 +5,11 @@ import {
   lookupEntryByBinary,
   type HexagramSeed
 } from './hexagrams64';
+import {
+  buildNajiaChart,
+  type FullNajiaChart,
+  type LiuYaoTimeInfo
+} from './najia';
 
 export type HexagramData = HexagramSeed;
 
@@ -22,6 +27,7 @@ export interface IChingReading {
   primaryHexagram: HexagramData;
   transformedHexagram: HexagramData | null;
   changingLineIndices: number[];
+  najia?: FullNajiaChart;
 }
 
 /**
@@ -56,20 +62,31 @@ export function lookupHexagramByLines(isYang: boolean[]): HexagramData {
   return getHexagramByBinary(isYang.map((yang) => (yang ? '1' : '0')).join(''));
 }
 
-/** 由爻线构造完整卦象：本卦、变卦、动爻全部由查表决定 */
-export function buildReadingFromLines(lines: CoinTossLine[]): IChingReading {
+/** 由爻线构造完整卦象：本卦、变卦、动爻与京房纳甲全部由查表决定 */
+export function buildReadingFromLines(lines: CoinTossLine[], timeInfo?: LiuYaoTimeInfo): IChingReading {
   const sorted = [...lines].sort((a, b) => a.lineIndex - b.lineIndex).slice(0, 6);
   if (sorted.length !== 6) {
     throw new Error(`六爻数量错误：${sorted.length}`);
   }
   const changingLineIndices = sorted.filter((l) => l.isChanging).map((l) => l.lineIndex);
+  const primaryHex = lookupHexagramByLines(sorted.map((l) => l.isYang));
+  const transformedHex = changingLineIndices.length
+    ? lookupHexagramByLines(sorted.map((l) => l.changedYang))
+    : null;
+
+  const primaryBinary = sorted.map((l) => (l.isYang ? '1' : '0')).join('');
+  const transformedBinary = transformedHex
+    ? sorted.map((l) => (l.changedYang ? '1' : '0')).join('')
+    : null;
+
+  const najia = buildNajiaChart(primaryBinary, transformedBinary, sorted, timeInfo);
+
   return {
     lines: sorted,
-    primaryHexagram: lookupHexagramByLines(sorted.map((l) => l.isYang)),
-    transformedHexagram: changingLineIndices.length
-      ? lookupHexagramByLines(sorted.map((l) => l.changedYang))
-      : null,
-    changingLineIndices
+    primaryHexagram: primaryHex,
+    transformedHexagram: transformedHex,
+    changingLineIndices,
+    najia
   };
 }
 
@@ -78,7 +95,7 @@ export function buildReadingFromLines(lines: CoinTossLine[]): IChingReading {
  * 卦名、卦符、卦辞一律丢弃重建，避免「乾健生生卦」之类的伪卦名混入。
  */
 export function normalizeIChingReading(reading: IChingReading): IChingReading {
-  return buildReadingFromLines(reading.lines);
+  return buildReadingFromLines(reading.lines, reading.najia?.timeInfo);
 }
 
 /**

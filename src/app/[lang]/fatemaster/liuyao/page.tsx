@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { LiuYaoContainer } from '@/components/fatemaster/LiuYaoContainer';
 
 export const instant = false;
@@ -29,7 +29,15 @@ export default async function FateMasterLiuYaoPage({
         </p>
       </div>
 
-      <LiuYaoContainer lang={lang} />
+      <Suspense
+        fallback={
+          <div className="py-20 text-center text-xs font-serif text-[#52525B] animate-pulse">
+            {isEn ? 'Loading I Ching Sanctuary...' : '正在排定六爻时空象数场...'}
+          </div>
+        }
+      >
+        <LiuYaoContainer lang={lang} />
+      </Suspense>
     </div>
   );
 }

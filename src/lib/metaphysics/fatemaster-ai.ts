@@ -94,12 +94,17 @@ export function buildLiuYaoPrompt(req: LiuYaoAiRequest): string {
   const { question, reading, lang } = req;
   const p = reading.primaryHexagram;
   const t = reading.transformedHexagram;
+  const n = reading.najia;
 
   if (lang === 'en') {
-    return `You are a revered scholar of the classical I Ching 64 Hexagrams and contemporary strategic decision-making.
+    return `You are a revered scholar of the classical I Ching 64 Hexagrams, Liu Yao Najia divination, and contemporary strategic decision-making.
 ${LIUYAO_TABLE_RULE_EN}
 Inquiry: "${question}"
 Cast Result (from lookup table):
+${n ? `- 【Divination Timing】: Year ${n.timeInfo.yearGanzhi}, Month ${n.timeInfo.monthGanzhi} (${n.timeInfo.monthZhi} Month Leader), Day ${n.timeInfo.dayGanzhi} (${n.timeInfo.dayZhi} Day Governor), Hour ${n.timeInfo.timeGanzhi}. Day Void (Xun Kong): ${n.timeInfo.xunKong}.
+- 【Hexagram Palace】: ${n.palace} Palace (${n.palaceElement} Element) · ${n.generationName}. Shi (Self) on Line ${n.shiIndex}, Ying (Other) on Line ${n.yingIndex}.
+- 【Six Lines Najia Structure (Bottom to Top)】:
+${n.lines.map(l => `  * ${l.lineNameZh} [${l.sixBeast}] ${l.relative} ${l.branch}${l.element} ${l.isYang ? '⚊' : '⚋'} ${l.isShi ? '[Shi/Self]' : ''}${l.isYing ? '[Ying/Other]' : ''}${l.isChanging ? ` (Moving ⚡ -> Transforms into ${l.transformed?.relative} ${l.transformed?.branch}${l.transformed?.element})` : ''}`).join('\n')}` : ''}
 - 【Primary Hexagram】: King Wen No. ${p.number} · ${p.nameZh} / ${p.nameEn} ${p.symbol} (lower ${p.lowerTrigramEn} / upper ${p.upperTrigramEn})
 - Canonical judgment (Chinese, from table): ${p.judgmentZh}
 - Canonical image (Chinese, from table): ${p.imageZh}
@@ -115,10 +120,14 @@ Please generate an elegant, rigorous, and insightful I Ching oracle in English, 
 # ✨ Universal Wisdom & Axiom`;
   }
 
-  return `你是一位精通周易六十四卦、纳甲六爻与时代决断的易学智者。
+  return `你是一位精通周易六十四卦、纳甲六爻、八宫世应与时代决断的易学智者。
 ${LIUYAO_TABLE_RULE}
 求问者所决之事：“${question}”
-起卦结果（标准六十四卦查表）：
+起卦结果（标准六十四卦查表与纳甲排盘）：
+${n ? `- 【起卦时空提纲】：${n.timeInfo.yearGanzhi}年 ${n.timeInfo.monthGanzhi}月 ${n.timeInfo.dayGanzhi}日 ${n.timeInfo.timeGanzhi}时（月建：${n.timeInfo.monthZhi}，日辰：${n.timeInfo.dayZhi}，旬空：${n.timeInfo.xunKong}）
+- 【卦宫体用】：${n.palace}宫${n.palaceElement}（${n.generationName}），世在第 ${n.shiIndex} 爻，应在第 ${n.yingIndex} 爻
+- 【纳甲六爻图谱（自初爻至上爻）】：
+${n.lines.map(l => `  * ${l.lineNameZh} [${l.sixBeast}] ${l.relative}${l.branch}${l.element} ${l.isYang ? '⚊' : '⚋'} ${l.isShi ? '【世】' : ''}${l.isYing ? '【应】' : ''}${l.isChanging ? ` (动爻○ -> 化出 ${l.transformed?.relative}${l.transformed?.branch}${l.transformed?.element})` : ''}`).join('\n')}` : ''}
 - 【本卦】：第 ${p.number} 卦 · ${p.nameZh} ${p.symbol}（下${p.lowerTrigram}上${p.upperTrigram}）
 - 卦辞：${p.judgmentZh}
 - 大象传：${p.imageZh}
@@ -128,7 +137,7 @@ ${t ? `- 【变卦】：第 ${t.number} 卦 · ${t.nameZh} ${t.symbol}（下${t.
 
 请为求问者生成结构严谨、辞章典雅的六爻神谕解析，且只引用上表：
 # ${p.symbol} 卦象全景与当下时势
-# 🔍 卦爻辞深层映射
+# 🔍 卦爻辞深层映射（重点结合世应关系、日月生克与动爻转化）
 # ⚖️ 本卦与变卦的转机因果
 # 🧭 破局行动指南（应为之事 Do & 当避之戒 Don't）
 # ✨ 易道天心箴言`;
@@ -220,27 +229,37 @@ export function generateLocalLiuYaoReport(req: LiuYaoAiRequest): string {
   const { question, reading, lang } = req;
   const p = reading.primaryHexagram;
   const t = reading.transformedHexagram;
+  const n = reading.najia;
 
   if (lang === 'en') {
-    return `Regarding your inquiry: **“${question}”**, the six coins have completed their oracle casting.
+    return `Regarding your inquiry: **“${question}”**, the six coins have completed their classical oracle casting.
 
 ---
 
-### ${p.symbol} Primary Hexagram: 【${p.nameEn}】
+### ⏳ Divination Timing & Astronomical Pillars
+${n ? `- Date & Time: ${n.timeInfo.solarDate} (${n.timeInfo.lunarDate})
+- Four Pillars: ${n.timeInfo.yearGanzhi} Year, ${n.timeInfo.monthGanzhi} Month, ${n.timeInfo.dayGanzhi} Day, ${n.timeInfo.timeGanzhi} Hour
+- Month Leader (Yue Jian): **${n.timeInfo.monthZhi}** | Day Governor (Ri Chen): **${n.timeInfo.dayZhi}** | Day Void (Xun Kong): **${n.timeInfo.xunKong}**
+- Hexagram Palace: **${n.palace} Palace (${n.palaceElement} Element)** · ${n.generationName} | Shi Line: **Line ${n.shiIndex}** · Ying Line: **Line ${n.yingIndex}**` : ''}
+
+---
+
+### ${p.symbol} Primary Hexagram: 【${p.nameEn}】 (${p.nameZh})
 Hexagram **【${p.nameEn}】** ${p.symbol} (lower ${p.lowerTrigramEn} / upper ${p.upperTrigramEn}).
 > *“${p.judgmentEn}”*
 Image Commentary: *“${p.imageEn}”*
-Your situation vibrates with the rhythm of 【${p.nameEn}】. Internal energy is consolidating, prompting deliberate calibration.
 
 ---
 
-### 🔍 Line Cast Progression
-${reading.lines.map(l => `- Line ${l.lineIndex} (${l.isYang ? 'Yang ⚊' : 'Yin ⚋'}${l.isChanging ? ' · Moving Line ⚡' : ''}): Sum ${l.sum}, ${l.isChanging ? 'marks a decisive pivot in this stage' : 'stable baseline'}.`).join('\n')}
+### 🔍 Classical Najia Lines Progression
+${n ? n.lines.map(l => `- **${l.lineNameEn}** [${l.sixBeast}] ${l.relative} ${l.branch}${l.element} (${l.isYang ? 'Yang ⚊' : 'Yin ⚋'})${l.isShi ? ' 【Shi/Self】' : ''}${l.isYing ? ' 【Ying/Other】' : ''}${l.isChanging ? ` ⚡ (Moving -> Transforms into ${l.transformed?.relative} ${l.transformed?.branch}${l.transformed?.element})` : ''}`).join('\n') : reading.lines.map(l => `- Line ${l.lineIndex}: ${l.isYang ? 'Yang ⚊' : 'Yin ⚋'}${l.isChanging ? ' ⚡' : ''}`).join('\n')}
 
-${t ? `### ⚡ Transformed Hexagram: 【${t.nameEn}】
+${t ? `---
+
+### ⚡ Transformed Hexagram: 【${t.nameEn}】 (${t.nameZh}) ${t.symbol}
 Moving lines catalyze evolution into Hexagram **【${t.nameEn}】**.
 > *“${t.judgmentEn}”*
-Following initial friction, matters will mature in the direction governed by ${t.nameEn}.` : 'All six lines are peaceful; adhere strictly to the foundation of the Primary Hexagram.'}
+Following transitional friction, matters will mature in the direction governed by ${t.nameEn}.` : 'All six lines are peaceful; adhere strictly to the foundation of the Primary Hexagram.'}
 
 ---
 
@@ -254,24 +273,33 @@ Following initial friction, matters will mature in the direction governed by ${t
 > *Act in accordance with ${p.nameEn}. The lookup table above is the sole authority on the name, symbol and judgment.*`;
   }
 
-  return `针对你所叩问之事：**“${question}”**，铜钱六掷，神谕已成。
+  return `针对你所叩问之事：**“${question}”**，铜钱六掷，京房纳甲神谕已成。
 
 ---
 
-### ${p.symbol} 卦象全景与当下时势
-本卦得**【${p.nameZh}】 ${p.symbol}**（下${p.lowerTrigram}上${p.upperTrigram}）。
-> *“${p.judgmentZh}”*
+### ⏳ 起卦时空提纲
+${n ? `- 公历时间：${n.timeInfo.solarDate} （农历：${n.timeInfo.lunarDate}）
+- 四柱干支：**${n.timeInfo.yearGanzhi}年 ${n.timeInfo.monthGanzhi}月 ${n.timeInfo.dayGanzhi}日 ${n.timeInfo.timeGanzhi}时**
+- 月令提纲：**${n.timeInfo.monthZhi}水（月建）** | 日辰主宰：**${n.timeInfo.dayZhi}火（日辰）** | 空亡：**${n.timeInfo.xunKong}空**
+- 卦宫归属：**${n.palace}宫【${n.palaceElement}】· ${n.generationName}**（世在第 **${n.shiIndex}** 爻，应在第 **${n.yingIndex}** 爻）` : ''}
+
+---
+
+### ${p.symbol} 本卦全景：【${p.nameZh}】 ${p.symbol}
+本卦得**【${p.nameZh}】**（下${p.lowerTrigram}上${p.upperTrigram}）。
+> 卦辞：*“${p.judgmentZh}”*
 大象传云：*“${p.imageZh}”*
-当前事情正处于【${p.nameZh}】的节律之中，整体气场反映出内在能量正在蓄势或面临方向上的重新校准。
 
 ---
 
-### 🔍 卦爻辞深层映射
-${reading.lines.map(l => `- 第 ${l.lineIndex} 爻（${l.isYang ? '阳' : '阴'}${l.isChanging ? ' · 动爻 ⚡' : ''}）：得数 ${l.sum}，${l.isChanging ? '主此阶段发生核心转折' : '气象平稳'}。`).join('\n')}
+### 🔍 纳甲六爻全图谱
+${n ? n.lines.map(l => `- **${l.lineNameZh}**【${l.sixBeast}】 ${l.relative}${l.branch}${l.element} （${l.isYang ? '阳 ⚊' : '阴 ⚋'}）${l.isShi ? ' 【世】' : ''}${l.isYing ? ' 【应】' : ''}${l.isChanging ? ` ⚡ (动爻○ -> 化出 ${l.transformed?.relative}${l.transformed?.branch}${l.transformed?.element})` : ''}`).join('\n') : reading.lines.map(l => `- 第 ${l.lineIndex} 爻：${l.isYang ? '阳 ⚊' : '阴 ⚋'}${l.isChanging ? ' ⚡' : ''}`).join('\n')}
 
-${t ? `### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
+${t ? `---
+
+### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
 动爻引动气场流转，变卦显化为**【${t.nameZh}】 ${t.symbol}**（下${t.lowerTrigram}上${t.upperTrigram}）。
-> *“${t.judgmentZh}”*
+> 变卦卦辞：*“${t.judgmentZh}”*
 这预示着经过初期的磨合与动荡后，事情将朝着${t.nameZh}所示的方向演进。` : '六爻安静，纯守本卦，宜稳扎稳打。'}
 
 ---
