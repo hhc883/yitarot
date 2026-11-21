@@ -113,7 +113,7 @@ export function PointsGateProvider({ children }: { children: React.ReactNode }) 
 
       {modal ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 px-6"
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-ink/40 px-6"
           onClick={close}
           role="dialog"
           aria-modal="true"

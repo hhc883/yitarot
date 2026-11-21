@@ -140,7 +140,7 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
       <header
         className={`${
           isHome ? 'fixed inset-x-0' : 'sticky'
-        } top-0 z-50 border-b border-[#E4E4E7] bg-white/90 backdrop-blur-md transition-transform duration-300 ease-out ${
+        } top-0 z-[100] border-b border-[#E4E4E7] bg-white/95 backdrop-blur-md transition-transform duration-300 ease-out ${
           visible ? 'translate-y-0' : '-translate-y-full pointer-events-none'
         }`}
         inert={!visible ? true : undefined}
@@ -195,7 +195,7 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
               </button>
 
               {langMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-28 rounded border border-[#E4E4E7] bg-white py-1 shadow-xs z-50">
+                <div className="absolute right-0 top-full mt-1 w-28 rounded border border-[#E4E4E7] bg-white py-1 shadow-xs z-[105]">
                   <Suspense fallback={<DesktopLangMenuLinksFallback pathname={pathname} isEn={isEn} onSelect={() => setLangMenuOpen(false)} />}>
                     <DesktopLangMenuLinks pathname={pathname} isEn={isEn} onSelect={() => setLangMenuOpen(false)} />
                   </Suspense>
@@ -261,7 +261,7 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
         role="dialog"
         aria-modal="true"
         aria-label={isEn ? 'Mobile navigation' : '移动端导航'}
-        className={`fixed inset-x-0 top-16 bottom-0 z-40 overflow-y-auto bg-white px-6 pb-12 pt-6 lg:hidden ${
+        className={`fixed inset-x-0 top-16 bottom-0 z-[110] overflow-y-auto bg-white px-6 pb-12 pt-6 lg:hidden ${
           menuOpen ? 'block' : 'hidden'
         }`}
       >

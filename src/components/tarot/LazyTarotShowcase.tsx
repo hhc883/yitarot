@@ -160,7 +160,7 @@ export function LazyTarotShowcase({ lang = 'zh' }: { lang?: string }) {
   }, []);
 
   return (
-    <div ref={containerRef} className="w-full">
+    <div ref={containerRef} className="relative isolate w-full">
       {shouldLoadInteractive ? (
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
           <HeroFloatingCards />

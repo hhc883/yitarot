@@ -26,7 +26,7 @@ export function ShareCardModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
       <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-[#E4E4E7] flex flex-col items-center">
         {/* 关闭按钮 */}
         <button

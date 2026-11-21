@@ -77,12 +77,12 @@ export function HeroFloatingCards() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-xl mx-auto flex flex-col items-center justify-center py-4 select-none overflow-visible"
+      className="relative isolate w-full max-w-xl mx-auto flex flex-col items-center justify-center py-4 select-none overflow-visible"
     >
       {/* 典雅黑白与灰阶中性氛围背景（严格遵循 YiTatro 视觉规范） */}
-      <div className="absolute -left-10 -top-8 w-64 h-64 rounded-full bg-[#C8A858]/14 blur-3xl pointer-events-none" />
-      <div className="absolute -right-10 -bottom-8 w-72 h-72 rounded-full bg-[#D4AF37]/14 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 h-84 rounded-full bg-[#FFE59A]/18 blur-3xl pointer-events-none" />
+      <div className="absolute -left-10 -top-8 w-64 h-64 rounded-full bg-[#171717]/4 blur-3xl pointer-events-none" />
+      <div className="absolute -right-10 -bottom-8 w-72 h-72 rounded-full bg-[#171717]/3 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 h-84 rounded-full bg-[#171717]/2 blur-3xl pointer-events-none" />
 
       {/* 3张扇形叠放与悬浮展开卡牌容器（用户提供的 Glass Stack 交互形态） */}
       <div
@@ -102,7 +102,7 @@ export function HeroFloatingCards() {
               data-text={`${item.card.nameZh} · ${item.card.nameEn}`}
               style={{
                 '--r': item.rotation,
-                zIndex: isActive ? 35 : item.zIndex
+                zIndex: isActive ? 25 : item.zIndex
               } as React.CSSProperties}
               onClick={() => handleSelectCard(idx, item.insight)}
               onKeyDown={(e) => {
@@ -154,7 +154,7 @@ export function HeroFloatingCards() {
       {/* 底部神谕动态提示胶囊 */}
       <div
         ref={insightPillRef}
-        className="mt-3 z-40 px-4 py-2 rounded-full bg-white/95 backdrop-blur-md ring-1 ring-[#E4E4E7] shadow-lg text-xs font-serif text-[#171717] flex items-center gap-2 max-w-[92%] text-center"
+        className="mt-3 z-10 px-4 py-2 rounded-full bg-white/95 backdrop-blur-md ring-1 ring-[#E4E4E7] shadow-lg text-xs font-serif text-[#171717] flex items-center gap-2 max-w-[92%] text-center"
       >
         <Sparkles className="w-3.5 h-3.5 text-[#171717] shrink-0" />
         <span className="font-medium tracking-wide">{activeInsight}</span>

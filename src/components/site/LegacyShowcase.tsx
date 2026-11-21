@@ -87,7 +87,7 @@ export function LegacyShowcase({ lang = 'zh' }: { lang?: string }) {
       </section>
 
       {/* 西方塔罗（交互原样保留：点牌 / 翻牌 / 重抽 / 每日一句） */}
-      <section className="w-full border-t border-[#E4E4E7]">
+      <section className="relative isolate w-full border-t border-[#E4E4E7]">
         <div className={`${CONTAINER} py-20 lg:py-[110px]`}>
           <div className="mb-8 flex items-baseline justify-between">
             <h2 className="font-serif text-[22px] font-black tracking-[-0.01em] text-[#171717]">
