@@ -263,7 +263,6 @@ export function calculateZiwei(
   const eightChar = lunar.getEightChar();
 
   const yearStem = eightChar.getYearGan();
-  const yearBranch = eightChar.getYearZhi();
   const lunarMonth = Math.abs(lunar.getMonth());
   const lunarDay = lunar.getDay();
 
@@ -469,9 +468,7 @@ export function analyzeZiweiMarriage(
   nameB: string = "女方"
 ): ZiweiMarriageResult {
   const palaceA_Life = chartA.palaces.find(p => p.isLifePalace);
-  const palaceA_Spouse = chartA.palaces.find(p => p.name === "夫妻宫");
   const palaceB_Life = chartB.palaces.find(p => p.isLifePalace);
-  const palaceB_Spouse = chartB.palaces.find(p => p.name === "夫妻宫");
 
   const starsA_Life = palaceA_Life?.majorStars.map(s => s.name).join(" ") || "天梁";
   const starsB_Life = palaceB_Life?.majorStars.map(s => s.name).join(" ") || "天相";

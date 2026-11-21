@@ -22,7 +22,7 @@
   --font-serif-sc: 'Noto Serif SC', 'Source Han Serif SC', 'Source Han Serif CN', 'Cinzel', 'STSong', 'Songti SC', Georgia, serif;
   --font-mono: 'JetBrains Mono', monospace;
   
-  /* QiCosmos 典雅东方宋宣与曜石玄墨设计系统 Tokens */
+  /* YiTatro 典雅黑白与灰阶中性设计系统 Tokens */
   --paper: #F7F3EF;          /* 温润古绢/宣纸白底 */
   --cream: #FFFDF9;          /* 素宣卡片纯白 */
   --subtle-paper: #F0EAE1;   /* 宣纸淡折痕暗纹 */
@@ -107,7 +107,7 @@ body {
   border: 1px solid var(--card-border-gold);
 }
 
-/* QiCosmos 核心浮动与转场动效 */
+/* YiTatro 核心浮动与转场动效 */
 @keyframes floaty {
   0%, 100% {
     transform: translateY(0px) rotate(var(--r, 0deg));

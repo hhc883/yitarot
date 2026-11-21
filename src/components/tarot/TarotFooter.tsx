@@ -10,51 +10,51 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
   const f = d.footer;
 
   return (
-    <footer className="w-full bg-[#F0EAE1]/80 border-t border-[#111111]/8 text-[#524B40] mt-20">
+    <footer className="w-full bg-white border-t border-[#E4E4E7] text-[#52525B] mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* 品牌简介 */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-[#FFFDF9] border border-[#E8CF86]/60 flex items-center justify-center shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-white border border-[#E4E4E7] flex items-center justify-center shadow-xs">
                 <YinYangFish size={20} spin={false} glow={false} />
               </div>
-              <span className="font-serif font-black text-xl text-[#1E1B18]">QiCosmos</span>
+              <span className="font-serif font-black text-xl text-[#171717]">YiTatro</span>
             </div>
-            <p className="text-xs leading-relaxed text-[#736B5E]">
+            <p className="text-xs leading-relaxed text-[#52525B]">
               {f.brandDesc}
             </p>
-            <div className="text-[11px] text-[#8C6D23] font-serif">
+            <div className="text-[11px] text-[#171717] font-serif">
               {f.intuition}
             </div>
           </div>
 
           {/* 占卜模式 */}
           <div>
-            <h4 className="font-serif font-bold text-sm text-[#1E1B18] mb-3">{f.channels}</h4>
+            <h4 className="font-serif font-bold text-sm text-[#171717] mb-3">{f.channels}</h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link href={`/${lang}/reading`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/reading`} className="hover:text-[#171717] transition-colors">
                   {f.reading}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/yes-no`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/yes-no`} className="hover:text-[#171717] transition-colors">
                   {f.yesNo}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/love`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/love`} className="hover:text-[#171717] transition-colors">
                   {f.love}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/fortune/daily`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/fortune/daily`} className="hover:text-[#171717] transition-colors">
                   {f.dailyFortune}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/fortune/seasonal`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/fortune/seasonal`} className="hover:text-[#171717] transition-colors">
                   {f.seasonalSpread}
                 </Link>
               </li>
@@ -63,25 +63,25 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
 
           {/* 塔罗知识库 */}
           <div>
-            <h4 className="font-serif font-bold text-sm text-[#1E1B18] mb-3">{f.knowledge}</h4>
+            <h4 className="font-serif font-bold text-sm text-[#171717] mb-3">{f.knowledge}</h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link href={`/${lang}/cards`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/cards`} className="hover:text-[#171717] transition-colors">
                   {f.deck78}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/spreads`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/spreads`} className="hover:text-[#171717] transition-colors">
                   {f.spreads}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/draw`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/draw`} className="hover:text-[#171717] transition-colors">
                   {f.freeDraw}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/blog`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/blog`} className="hover:text-[#171717] transition-colors">
                   {f.handbook}
                 </Link>
               </li>
@@ -90,30 +90,30 @@ export function TarotFooter({ lang = 'zh' }: { lang?: string }) {
 
           {/* 会员与支持 */}
           <div>
-            <h4 className="font-serif font-bold text-sm text-[#1E1B18] mb-3">{f.membership}</h4>
+            <h4 className="font-serif font-bold text-sm text-[#171717] mb-3">{f.membership}</h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link href={`/${lang}/pricing`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/pricing`} className="hover:text-[#171717] transition-colors">
                   {f.pricing}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/privacy`} className="hover:text-[#1E1B18] transition-colors">
+                <Link href={`/${lang}/privacy`} className="hover:text-[#171717] transition-colors">
                   {lang === 'en' ? 'Privacy Policy' : '隐私政策'}
                 </Link>
               </li>
               <li>
-                <span className="text-[#A59E92]">{f.terms}</span>
+                <span className="text-[#8A8A91]">{f.terms}</span>
               </li>
               <li>
-                <span className="text-[#A59E92]">{f.contact}</span>
+                <span className="text-[#8A8A91]">{f.contact}</span>
               </li>
             </ul>
           </div>
         </div>
 
         {/* 底部版权与免责 */}
-        <div className="mt-12 pt-6 border-t border-[#1E1B18]/10 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#A59E92] gap-3">
+        <div className="mt-12 pt-6 border-t border-[#E4E4E7] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#8A8A91] gap-3">
           <p>{f.copyright}</p>
           <p className="text-center sm:text-right max-w-md">
             {lang === 'en'

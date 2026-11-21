@@ -9,7 +9,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /** 验证码位数与重发冷却（秒） */
 const CODE_LENGTH = 8;
 const RESEND_COOLDOWN = 60;
-const RESEND_UNTIL_KEY = 'qicosmos:otp-resend-until';
+const RESEND_UNTIL_KEY = 'yitatro:otp-resend-until';
 
 /** 读取剩余冷却秒数；sessionStorage 让刷新页面无法绕过倒计时 */
 function readResendSeconds(): number {

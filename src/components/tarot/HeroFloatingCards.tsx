@@ -79,7 +79,7 @@ export function HeroFloatingCards() {
       ref={containerRef}
       className="relative w-full max-w-xl mx-auto flex flex-col items-center justify-center py-4 select-none overflow-visible"
     >
-      {/* 典雅暖宣纸与泥金流光氛围背景（严格遵循 QiCosmos 东方宋宣与曜石玄墨设计规范） */}
+      {/* 典雅黑白与灰阶中性氛围背景（严格遵循 YiTatro 视觉规范） */}
       <div className="absolute -left-10 -top-8 w-64 h-64 rounded-full bg-[#C8A858]/14 blur-3xl pointer-events-none" />
       <div className="absolute -right-10 -bottom-8 w-72 h-72 rounded-full bg-[#D4AF37]/14 blur-3xl pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 h-84 rounded-full bg-[#FFE59A]/18 blur-3xl pointer-events-none" />

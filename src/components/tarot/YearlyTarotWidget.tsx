@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
+import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
@@ -42,6 +43,16 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
   const annualCard = cards[0];
   const quarterCards = cards.slice(1);
 
+  const getMeaning = (dc: DrawnCard): string => {
+    if (isEn) {
+      const en = ALL_CARD_DETAIL_EN[dc.card.slug];
+      if (en) {
+        return dc.isReversed ? en.reversedMeaning : en.uprightMeaning;
+      }
+    }
+    return dc.isReversed ? dc.card.reversedMeaning : dc.card.uprightMeaning;
+  };
+
   return (
     <div className="w-full max-w-5xl mx-auto">
       {/* 极简标题 */}
@@ -54,24 +65,24 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
               onClick={() => setSelectedYear(yr)}
               className={`px-3 py-1 rounded-lg text-xs font-serif transition-all cursor-pointer ${
                 selectedYear === yr
-                  ? 'bg-[#111111] text-[#FFFDF9]'
-                  : 'bg-[#FAF6ED] text-[#736B5E] hover:bg-[#F2ECE1]'
+                  ? 'bg-[#171717] text-white'
+                  : 'bg-[#F5F5F6] text-[#52525B] hover:bg-[#EBEBEF]'
               }`}
             >
               {isEn ? `${yr} Projection` : `${yr} 年度推演`}
             </button>
           ))}
         </div>
-        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
+        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#171717] tracking-tight">
           {selectedYear} {isEn ? 'Tarot Yearly Outlook' : '塔罗年运'}
         </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-2">
+        <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-2">
           {t.yearlySubtitle}
         </p>
       </div>
 
       {/* 核心卡片容器 */}
-      <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 sm:p-8 shadow-2xs space-y-8">
+      <div className="rounded-2xl bg-white border border-[#E4E4E7] p-6 sm:p-8 shadow-2xs space-y-8">
         {/* 全年大牌 + 四季卡片横排 */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* 年度灵魂主轴卡 */}
@@ -79,13 +90,13 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
             onClick={() => setActiveTab('annual')}
             className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-between ${
               activeTab === 'annual'
-                ? 'bg-[#111111] text-[#FFFDF9] border-[#111111]'
-                : 'bg-[#FAF6ED] text-[#111111] border-[#111111]/10 hover:bg-[#F2ECE1]'
+                ? 'bg-[#171717] text-white border-[#171717]'
+                : 'bg-[#F5F5F6] text-[#171717] border-[#E4E4E7] hover:bg-[#EBEBEF]'
             }`}
           >
             <div className="text-center">
               <span className={`text-[10px] font-mono uppercase tracking-wider block ${
-                activeTab === 'annual' ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
+                activeTab === 'annual' ? 'text-white/60' : 'text-[#52525B]'
               }`}>
                 Year Master
               </span>
@@ -108,7 +119,7 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                 {isEn ? annualCard.card.nameEn : annualCard.card.nameZh}
               </span>
               <span className={`text-[10px] font-serif block ${
-                activeTab === 'annual' ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
+                activeTab === 'annual' ? 'text-white/60' : 'text-[#52525B]'
               }`}>
                 {isEn ? (annualCard.isReversed ? 'Reversed' : 'Upright') : (annualCard.isReversed ? '逆位' : '正位')}
               </span>
@@ -126,13 +137,13 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                 onClick={() => setActiveTab(idx)}
                 className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-between ${
                   isSelected
-                    ? 'bg-[#111111] text-[#FFFDF9] border-[#111111]'
-                    : 'bg-[#FAF6ED] text-[#111111] border-[#111111]/10 hover:bg-[#F2ECE1]'
+                    ? 'bg-[#171717] text-white border-[#171717]'
+                    : 'bg-[#F5F5F6] text-[#171717] border-[#E4E4E7] hover:bg-[#EBEBEF]'
                 }`}
               >
                 <div className="text-center">
                   <span className={`text-[10px] font-mono tracking-wider block ${
-                    isSelected ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
+                    isSelected ? 'text-white/60' : 'text-[#52525B]'
                   }`}>
                     {isEn ? q.timeframeEn : q.timeframeZh}
                   </span>
@@ -155,7 +166,7 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                     {isEn ? drawn.card.nameEn : drawn.card.nameZh}
                   </span>
                   <span className={`text-[10px] font-serif block ${
-                    isSelected ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
+                    isSelected ? 'text-white/60' : 'text-[#52525B]'
                   }`}>
                     {isEn ? (drawn.isReversed ? 'Reversed' : 'Upright') : (drawn.isReversed ? '逆位' : '正位')}
                   </span>
@@ -166,37 +177,37 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
         </div>
 
         {/* 详情解读面板 */}
-        <div className="p-6 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 space-y-4">
+        <div className="p-6 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] space-y-4">
           {activeTab === 'annual' ? (
             <div>
-              <div className="pb-3 border-b border-[#111111]/8 flex items-baseline justify-between">
+              <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between">
                 <div>
-                  <span className="text-[11px] font-mono tracking-widest text-[#736B5E] uppercase block">
+                  <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
                     {selectedYear} SOUL ARCHETYPE
                   </span>
-                  <h3 className="font-serif font-black text-lg text-[#111111]">
+                  <h3 className="font-serif font-black text-lg text-[#171717]">
                     {isEn ? 'Annual Soul Archetype' : '年度核心原型'} · {isEn ? annualCard.card.nameEn : annualCard.card.nameZh}（{isEn ? (annualCard.isReversed ? 'Reversed' : 'Upright') : (annualCard.isReversed ? '逆位' : '正位')}）
                   </h3>
                 </div>
-                <span className="text-xs font-serif text-[#736B5E]">
+                <span className="text-xs font-serif text-[#52525B]">
                   {isEn ? 'Yearlong Spiritual Bedrock' : '全年生命能量基底'}
                 </span>
               </div>
 
-              <div className="space-y-3 text-xs font-serif leading-relaxed text-[#111111] mt-4">
+              <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
                 <div>
-                  <span className="font-bold text-[#736B5E] block mb-0.5">
+                  <span className="font-bold text-[#52525B] block mb-0.5">
                     {isEn ? '【Annual Question & Deeper Calling】' : '【年度命题与深层呼唤】'}
                   </span>
-                  <p className="text-[#333333]">
-                    {annualCard.isReversed ? annualCard.card.reversedMeaning : annualCard.card.uprightMeaning}
+                  <p className="text-[#171717]">
+                    {getMeaning(annualCard)}
                   </p>
                 </div>
                 <div>
-                  <span className="font-bold text-[#736B5E] block mb-0.5">
+                  <span className="font-bold text-[#52525B] block mb-0.5">
                     {isEn ? '【Guiding Principle For The Year】' : '【全年贯穿性行事心法】'}
                   </span>
-                  <p className="text-[#333333]">
+                  <p className="text-[#171717]">
                     {isEn
                       ? 'Throughout the upcoming 365 days, regardless of external volatility, hold steadfast to the wisdom this archetype imparts. Do not let temporary plateaus induce anxiety, nor let brief successes spawn complacency. Cultivate yourself with a long-term, holistic perspective.'
                       : '在未来的 365 天中，无论外界环境如何变幻，始终守住这枚原型教导给你的智慧。不因一时的停滞而焦虑，亦不因短暂的顺境而自满，以整全长远的眼光经营自我。'}
@@ -211,34 +222,34 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                 const card = quarterCards[activeTab as number];
                 return (
                   <div>
-                    <div className="pb-3 border-b border-[#111111]/8 flex items-baseline justify-between">
+                    <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between">
                       <div>
-                        <span className="text-[11px] font-mono tracking-widest text-[#736B5E] uppercase block">
+                        <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
                           QUARTERLY WINDOW · {isEn ? q.timeframeEn : q.timeframeZh}
                         </span>
-                        <h3 className="font-serif font-black text-lg text-[#111111]">
+                        <h3 className="font-serif font-black text-lg text-[#171717]">
                           {isEn ? q.nameEn : q.nameZh} · {isEn ? card.card.nameEn : card.card.nameZh}（{isEn ? (card.isReversed ? 'Reversed' : 'Upright') : (card.isReversed ? '逆位' : '正位')}）
                         </h3>
                       </div>
-                      <span className="text-xs font-serif text-[#736B5E]">
+                      <span className="text-xs font-serif text-[#52525B]">
                         {isEn ? q.energyRoleEn : q.energyRoleZh}
                       </span>
                     </div>
 
-                    <div className="space-y-3 text-xs font-serif leading-relaxed text-[#111111] mt-4">
+                    <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
                       <div>
-                        <span className="font-bold text-[#736B5E] block mb-0.5">
+                        <span className="font-bold text-[#52525B] block mb-0.5">
                           {isEn ? '【Quarterly Energy State】' : '【季度态势呈现】'}
                         </span>
-                        <p className="text-[#333333]">
-                          {card.isReversed ? card.card.reversedMeaning : card.card.uprightMeaning}
+                        <p className="text-[#171717]">
+                          {getMeaning(card)}
                         </p>
                       </div>
                       <div>
-                        <span className="font-bold text-[#736B5E] block mb-0.5">
+                        <span className="font-bold text-[#52525B] block mb-0.5">
                           {isEn ? '【Tactical Focus】' : '【当季处事着力点】'}
                         </span>
-                        <p className="text-[#333333]">
+                        <p className="text-[#171717]">
                           {isEn
                             ? (activeTab === 0
                                 ? 'Spring centers on planting. Do not demand immediate blossoms; patiently nurture roots and establish clear alliances.'
@@ -265,13 +276,13 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
         </div>
 
         {/* 底部洗牌操作 */}
-        <div className="pt-2 border-t border-[#111111]/8 flex justify-center">
+        <div className="pt-2 border-t border-[#E4E4E7] flex justify-center">
           <button
             type="button"
             onClick={handleShuffle}
-            className="px-4 py-2 rounded-xl bg-[#FAF6ED] hover:bg-[#F2ECE1] text-xs font-serif text-[#111111] border border-[#111111]/10 transition-colors cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-[#F5F5F6] text-xs font-serif text-[#171717] border border-[#E4E4E7] transition-colors cursor-pointer flex items-center gap-1.5"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-[#736B5E]" />
+            <RotateCcw className="w-3.5 h-3.5 text-[#52525B]" />
             <span>{isEn ? 'Redraw Yearly Spread' : '重新推演年运牌阵'}</span>
           </button>
         </div>

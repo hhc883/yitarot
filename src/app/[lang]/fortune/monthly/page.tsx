@@ -19,8 +19,8 @@ export default async function MonthlyFortunePage({
     <div className="w-full max-w-5xl mx-auto px-4 py-8 sm:py-12">
       <Suspense
         fallback={
-          <div className="py-20 text-center text-xs font-serif text-[#736B5E] animate-pulse">
-            加载月运推演...
+          <div className="py-20 text-center text-xs font-serif text-[#52525B] animate-pulse">
+            {lang === 'en' ? 'Loading Monthly Tarot Projection...' : '加载月运推演...'}
           </div>
         }
       >

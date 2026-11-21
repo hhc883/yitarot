@@ -57,9 +57,6 @@ export interface QimenChartResult {
   strategicAdviceEn?: string;
 }
 
-// 洛书九宫原始配置
-const LO_SHU_ORDER = [4, 9, 2, 3, 5, 7, 8, 1, 6]; // 九宫格视觉排列（第一行：巽4 离9 坤2；第二行：震3 中5 兑7；第三行：艮8 坎1 乾6）
-
 const ORIGINAL_PALACE_CONFIGS: Record<number, { bagua: string; direction: string; element: string; star: string; gate: string }> = {
   1: { bagua: "坎", direction: "正北", element: "水", star: "天蓬", gate: "休门" },
   2: { bagua: "坤", direction: "西南", element: "土", star: "天芮", gate: "死门" },

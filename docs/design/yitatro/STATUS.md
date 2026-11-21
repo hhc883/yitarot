@@ -2,26 +2,26 @@
 
 更新日期：2026-11-21
 
-黑白设计已交付，A1–A8 静态骨架与专厅入口、B1 动效基线、B2 首页冷启动优化、56 张小阿卡纳英文牌义补齐与 Gemini 官方 SDK 全量升级已通过本地验收。[设计方案与图稿](README.md)是当前基准。
+黑白设计已交付，A1–A8 静态骨架与专厅入口、B1 动效基线、B2 首页冷启动优化、56 张小阿卡纳英文牌义补齐与 Gemini 官方 SDK 全量升级、C 阶段剩余页面视觉规范统一与边界异常状态治理已通过本地验收。[设计方案与图稿](README.md)是当前基准。
 
 - 交接分支：`codex/yitatro-design-handoff`
 - 改版前代码基线：`cdeeb52`
 - 设计稿与实施方案提交：`0dab1dd`
-- 当前阶段：B2 延迟加载首页旧塔罗区、消除抽牌布局跳动、补齐小阿卡纳英文牌义与接入 Gemini 官方 SDK 已完成，进入 C 阶段
+- 当前阶段：C 阶段视觉代币全量统一、全站品牌收口为 YiTatro、404/Error 异常边界与占位骨架已完成，进入 D 阶段
 
 ## 换电脑接手
 
 1. 克隆 GitHub 交接分支：`git clone --branch codex/yitatro-design-handoff https://github.com/hhc883/yitarot.git`。不要从 `main` 接着改。
 2. 按锁文件执行 `npm ci`。按 `.env.example` 从原服务重新取得配置，保存在本机 `.env.local`。连接现有 Supabase 项目时无需重建数据库；数据库记录和服务密钥不在 Git 仓库里。
-3. 执行 `npm run dev`，检查 `/zh` 和 `/en`，按下面的 C 阶段接着处理。
+3. 执行 `npm run dev`，检查 `/zh` 和 `/en`，按下面的 D 阶段接着处理。
 
 ## 下一项
 
-**下一项（C）：应用到剩余设计稿，统一视觉规范并检查每类页面的正常和关键异常状态。**
+**下一项（D）：发布前检查与最终上线核对。**
 
-1. 逐页核对剩余周易、算命与辅助页面（如知识库、关于、个人账户、价格与隐私条款等），应用黑白与灰阶设计代币，确保无残留旧版色彩或破坏性布局。
-2. 完善异常与边界状态反馈：离线断网、积分扣减失败、非法表单输入与慢网环境下的占位骨架。
-3. 检查内页导航高亮与跨页返回历史还原。
+1. 核对全站路由多语言声明（hreflang / canonical）、分享元数据（OpenGraph / Twitter card）与站点地图完整度。
+2. 在确定正式发布域名后缀及服务器后，统一处理绝对地址迁移与对外旧链接 301 重定向。
+3. 执行发布前依赖升级复测（Next.js 安全补丁升级验证）。
 
 ## 后续顺序
 
@@ -37,12 +37,23 @@
 | A8 | 每日八字、奇门遁甲与东方专厅对应入口。 | 中英文生产构建本地验收通过 |
 | B1 | 首页原生基线与 GSAP 试验。 | 对照后撤回，保留原生上滑 |
 | B2 | 延迟加载首页旧塔罗互动区，消除抽牌布局跳动，补齐 56 张小阿卡纳英文牌义，接入 Gemini 官方 SDK。 | 本地验收通过 |
-| C | 应用到剩余设计稿，检查每类页面的正常和关键异常状态。 | 下一项 |
-| D | 核对品牌、多语言、深链接与生产性能。域名迁移项待最终域名确定。 | 待做 |
+| C | 应用到剩余设计稿，统一视觉规范，补齐加载、404、Error 边界与品牌收口。 | 本地验收通过 |
+| D | 核对品牌、多语言、深链接与生产性能。域名迁移项待最终域名确定。 | 下一项 |
 
 ## 交接记录
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- C（Antigravity 实现、本地生产构建、ESLint 0 报警与 SEO 验收通过）：
+  1. **全站品牌名收口为 YiTatro**：清洗了根元数据（`src/app/layout.tsx`、`src/app/[lang]/layout.tsx`）、多语言字典（`dict.ts`）、隐私政策（`privacy/page.tsx`）、登录存储键（`LoginForm.tsx`）、门楼组件（`MasterPortalHero.tsx`、`MasterScrollytellingHero.tsx`）、分享海报（`ShareCardModal.tsx`）及 AI 系统 Prompt（`fatemaster-ai.ts`）中残留的旧版品牌称谓，全站对齐为统一规范「YiTatro」。
+  2. **剩余设计稿视觉规范与代币统一（Stage C.1）**：
+     - **东方命理主页与子工具**：重构 `fatemaster/page.tsx`、`RelationshipNetworkWidget.tsx`、`ZiweiMarriageWidget.tsx`，彻底移除了旧版泥金（`#8C6D23`）、宣纸米褐（`#FAF6ED`、`#FFFDF9`、`#5C5549`）等杂色，全面适配近黑（`#171717`）、深灰（`#52525B`）、边框（`#E4E4E7`）、浅灰底（`#F5F5F6`）及纯白卡片，并调优了 SVG 拓扑图谱的连接线与选中态。
+     - **心法手册与塔罗运势组件**：重构 `TarotHandbook.tsx`、`MonthlyTarotWidget.tsx`、`SeasonalSpreadWidget.tsx`、`YearlyTarotWidget.tsx`、`TarotFooter.tsx`，将其与全站中性现代设计系统无缝缝合。
+     - **多语言运势牌义串联**：将月运、四季、年运组件与 B2 阶段产出的 `ALL_CARD_DETAIL_EN` 全量 78 张牌英文字典深度联动，使英文环境下的月运课题、当周践行、四季位阶与年度灵魂原型均具备地道的英文原版深度解析。
+  3. **异常与边界状态治理（Stage C.2）**：
+     - **404 与全局错误边界**：新增全局 `src/app/not-found.tsx`、本地化 `src/app/[lang]/not-found.tsx` 以及全局 `'use client'` 错误捕获恢复边界 `src/app/error.tsx`，在路由失效或渲染异常时呈现极简黑白交互并提供重试与东西双专厅返回通道。
+     - **慢网占位骨架统一**：统一了 `blog/page.tsx`、`monthly/page.tsx`、`seasonal/page.tsx`、`yearly/page.tsx` 的 Suspense 异步骨架占位，消除了单语文字硬编码，统一采用双语淡雅脉冲指示器。
+  4. **代码质量全绿**：清理了各组件内未引用的冗余图标与变量，全仓 `npm run lint` 达成 **0 errors, 0 warnings**；`next build`（325 条路由）及 `seo:verify`（300 条可索引 URL 与 144 组生肖纳音合盘）全绿通过。
 
 - B2（Antigravity 实现、本地生产构建与 SEO 验收通过）：
   1. **Gemini API 官方 SDK 升级与实装**：安装官方 `@google/genai` (^3.6.1) SDK，将原代码中过时的 `gemini-2.5-flash` 原始请求升级为 `gemini-4-hydrogen`；实装了「AI 塔罗多轮灵犀追问」真机流式交互路由（`/api/tarot/follow-up`），替换了前端原有的 dummy `setTimeout` 假逻辑，支持上下文记忆与平滑离线降级。

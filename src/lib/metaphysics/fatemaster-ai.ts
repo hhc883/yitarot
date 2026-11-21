@@ -29,7 +29,7 @@ export interface LiuYaoAiRequest {
  */
 export function buildBaziPrompt(data: BaZiCalculationResult, req: BaziAiRequest): string {
   if (req.lang === 'en') {
-    return `You are a master of classical Zi Ping BaZi metaphysics and modern Jungian archetypal psychology (QiCosmos Architecture).
+    return `You are a master of classical Zi Ping BaZi metaphysics and modern Jungian archetypal psychology (YiTatro Architecture).
 Querent: ${req.name || 'Querent'}, Gender: ${req.gender}
 Solar Birth: ${data.birthSolar.year}-${data.birthSolar.month}-${data.birthSolar.day} ${data.birthSolar.hour}:00, Lunar: ${data.lunarString}
 【Four Pillars】:
@@ -51,7 +51,7 @@ Please write an objective, profound, and modern 【AI BaZi Holographic Insight�
 # 🧭 Action Strategy & Cosmic Balance`;
   }
 
-  return `你是一位兼具正统子平八字命理精髓与现代荣格心理学视角的资深命理宗师（QiCosmos 天仪灵图全息推演架构）。
+  return `你是一位兼具正统子平八字命理精髓与现代荣格心理学视角的资深命理宗师（YiTatro 全息推演架构）。
 求问者：${req.name || '求问者'}，性别：${req.gender === 'male' ? '男（乾造）' : '女（坤造）'}
 公历出生：${data.birthSolar.year}年${data.birthSolar.month}月${data.birthSolar.day}日${data.birthSolar.hour}时，农历：${data.lunarString}
 【四柱八字】：

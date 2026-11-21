@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
+import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
@@ -107,6 +108,16 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
     setSelectedIdx(0);
   };
 
+  const getMeaning = (dc: DrawnCard): string => {
+    if (isEn) {
+      const en = ALL_CARD_DETAIL_EN[dc.card.slug];
+      if (en) {
+        return dc.isReversed ? en.reversedMeaning : en.uprightMeaning;
+      }
+    }
+    return dc.isReversed ? dc.card.reversedMeaning : dc.card.uprightMeaning;
+  };
+
   const currentPos = POSITIONS[selectedIdx];
   const currentCard = cards[selectedIdx];
   const posTitle = isEn ? currentPos.titleEn : currentPos.titleZh;
@@ -121,19 +132,19 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
     <div className="w-full max-w-5xl mx-auto">
       {/* 极简标题 */}
       <div className="text-center mb-8">
-        <span className="text-[11px] font-mono tracking-widest text-[#736B5E] uppercase block mb-1">
+        <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block mb-1">
           SOLSTICE & EQUINOX SACRED GEOMETRY
         </span>
-        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
+        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#171717] tracking-tight">
           {t.seasonalTitle}
         </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-2">
+        <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-2">
           {t.seasonalSubtitle}
         </p>
       </div>
 
       {/* 核心卡片容器 */}
-      <div className="rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 sm:p-8 shadow-2xs space-y-8">
+      <div className="rounded-2xl bg-white border border-[#E4E4E7] p-6 sm:p-8 shadow-2xs space-y-8">
         {/* 经典十字几何阵列 */}
         <div className="flex flex-col items-center">
           {/* 上：火元素 */}
@@ -191,45 +202,45 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
         </div>
 
         {/* 详情解读面板 */}
-        <div className="p-6 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 space-y-4">
-          <div className="pb-3 border-b border-[#111111]/8 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+        <div className="p-6 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] space-y-4">
+          <div className="pb-3 border-b border-[#E4E4E7] flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
             <div>
-              <span className="text-[11px] font-mono tracking-widest text-[#736B5E] uppercase block">
+              <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
                 {currentPos.element} · {posDirection}
               </span>
-              <h3 className="font-serif font-black text-lg text-[#111111]">
+              <h3 className="font-serif font-black text-lg text-[#171717]">
                 {posTitle}（{posElement}）· {cardName}（{orientationStr}）
               </h3>
             </div>
-            <span className="text-xs font-serif text-[#736B5E]">
+            <span className="text-xs font-serif text-[#52525B]">
               {isEn ? currentPos.governanceEn : currentPos.governanceZh}
             </span>
           </div>
 
-          <div className="space-y-3 text-xs font-serif leading-relaxed text-[#111111]">
+          <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717]">
             <div>
-              <span className="font-bold text-[#736B5E] block mb-0.5">
+              <span className="font-bold text-[#52525B] block mb-0.5">
                 {isEn ? '【Placement Definition & Mapping】' : '【位阶定义与映射】'}
               </span>
-              <p className="text-[#333333]">
+              <p className="text-[#171717]">
                 {isEn ? currentPos.descriptionEn : currentPos.descriptionZh}
               </p>
             </div>
 
             <div>
-              <span className="font-bold text-[#736B5E] block mb-0.5">
+              <span className="font-bold text-[#52525B] block mb-0.5">
                 {isEn ? '【Archetypal Insight】' : '【卡牌能量启示】'}
               </span>
-              <p className="text-[#333333]">
-                {currentCard.isReversed ? currentCard.card.reversedMeaning : currentCard.card.uprightMeaning}
+              <p className="text-[#171717]">
+                {getMeaning(currentCard)}
               </p>
             </div>
 
             <div>
-              <span className="font-bold text-[#736B5E] block mb-0.5">
+              <span className="font-bold text-[#52525B] block mb-0.5">
                 {isEn ? '【Seasonal Counsel】' : '【季内行事调候建议】'}
               </span>
-              <p className="text-[#333333]">
+              <p className="text-[#171717]">
                 {isEn
                   ? `In this element position, maintain mindful energetic moderation. ${
                       currentCard.isReversed
@@ -247,13 +258,13 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
         </div>
 
         {/* 底部洗牌操作 */}
-        <div className="pt-2 border-t border-[#111111]/8 flex justify-center">
+        <div className="pt-2 border-t border-[#E4E4E7] flex justify-center">
           <button
             type="button"
             onClick={handleShuffle}
-            className="px-4 py-2 rounded-xl bg-[#FAF6ED] hover:bg-[#F2ECE1] text-xs font-serif text-[#111111] border border-[#111111]/10 transition-colors cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-[#F5F5F6] text-xs font-serif text-[#171717] border border-[#E4E4E7] transition-colors cursor-pointer flex items-center gap-1.5"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-[#736B5E]" />
+            <RotateCcw className="w-3.5 h-3.5 text-[#52525B]" />
             <span>{isEn ? 'Redraw Seasonal Spread' : '重新起排四季阵盘'}</span>
           </button>
         </div>
@@ -289,16 +300,16 @@ function PositionBadge({
       onClick={onClick}
       className={`p-2 sm:p-3 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-between ${
         isSelected
-          ? 'bg-[#111111] text-[#FFFDF9] border-[#111111] shadow-md scale-105'
+          ? 'bg-[#171717] text-white border-[#171717] shadow-md scale-105'
           : isCenter
-          ? 'bg-[#FAF6ED] text-[#111111] border-[#C29026]/40 hover:bg-[#F2ECE1]'
-          : 'bg-[#FAF6ED] text-[#111111] border-[#111111]/10 hover:bg-[#F2ECE1]'
+          ? 'bg-[#F5F5F6] text-[#171717] border-[#171717]/40 hover:bg-[#EBEBEF]'
+          : 'bg-[#F5F5F6] text-[#171717] border-[#E4E4E7] hover:bg-[#EBEBEF]'
       } w-28 sm:w-36`}
     >
       <div className="text-center w-full">
         <span
           className={`text-[9px] font-mono tracking-wider block truncate ${
-            isSelected ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
+            isSelected ? 'text-white/60' : 'text-[#52525B]'
           }`}
         >
           {badgeElement}
@@ -323,7 +334,7 @@ function PositionBadge({
         </span>
         <span
           className={`text-[9px] font-serif block ${
-            isSelected ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
+            isSelected ? 'text-white/60' : 'text-[#52525B]'
           }`}
         >
           {orientationStr}

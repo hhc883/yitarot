@@ -10,11 +10,11 @@ export const instant = false;
 
 export const metadata: Metadata = {
   title: {
-    default: 'QiCosmos｜周易·八字·塔罗 AI 命理 - 在线占卜与自我认知镜像',
-    template: '%s | QiCosmos'
+    default: 'YiTatro｜周易·八字·塔罗 AI 命理 - 在线占卜与自我认知镜像',
+    template: '%s | YiTatro'
   },
   description:
-    'QiCosmos（天仪灵图）汇聚东方周易（八字排盘、六爻铜钱神谕、生肖纳音）与西方经典韦特塔罗，结合现代深度心理学，为你提供清澈、深邃的即时命理解读。',
+    'YiTatro 汇聚东方周易（八字排盘、六爻铜钱神谕、生肖纳音）与西方经典韦特塔罗，结合现代深度心理学，为你提供清澈、深邃的即时命理解读。',
   alternates: {
     canonical: 'https://qicosmos.com/zh',
     languages: {

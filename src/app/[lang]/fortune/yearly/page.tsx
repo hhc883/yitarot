@@ -19,8 +19,8 @@ export default async function YearlyFortunePage({
     <div className="w-full max-w-5xl mx-auto px-4 py-8 sm:py-12">
       <Suspense
         fallback={
-          <div className="py-20 text-center text-xs font-serif text-[#736B5E] animate-pulse">
-            加载年运推演...
+          <div className="py-20 text-center text-xs font-serif text-[#52525B] animate-pulse">
+            {lang === 'en' ? 'Loading Yearly Tarot Outlook...' : '加载年运推演...'}
           </div>
         }
       >

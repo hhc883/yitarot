@@ -6,11 +6,10 @@ import { useGSAP } from '@gsap/react';
 import {
   calculateBaZi,
   BaZiCalculationResult,
-  WuXing,
   ELEMENT_ZH_MAP,
   ELEMENT_COLORS
 } from '@/lib/metaphysics/bazi';
-import { Sparkles, Calendar, Compass } from 'lucide-react';
+import { Sparkles, Compass } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
 
 gsap.registerPlugin(useGSAP);

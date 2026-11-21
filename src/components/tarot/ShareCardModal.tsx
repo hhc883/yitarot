@@ -27,37 +27,37 @@ export function ShareCardModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-      <div className="relative w-full max-w-md bg-[#FFFDF9] rounded-3xl p-6 shadow-2xl border border-[#1E1B18]/15 flex flex-col items-center">
+      <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-[#E4E4E7] flex flex-col items-center">
         {/* 关闭按钮 */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#FAF6ED] text-[#736B5E] transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-[#F5F5F6] text-[#52525B] transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <h3 className="font-serif font-bold text-lg text-[#1E1B18] mb-1 flex items-center gap-1.5">
-          <Sparkles className="w-4 h-4 text-[#C29026]" /> 塔罗结缘分享卡
+        <h3 className="font-serif font-bold text-lg text-[#171717] mb-1 flex items-center gap-1.5">
+          <Sparkles className="w-4 h-4 text-[#171717]" /> 塔罗结缘分享卡
         </h3>
-        <p className="text-xs text-[#736B5E] mb-5">保存至相册，分享给挚友或记录今日顿悟</p>
+        <p className="text-xs text-[#52525B] mb-5">保存至相册，分享给挚友或记录今日顿悟</p>
 
         {/* 结缘海报本体 */}
         <div
           ref={cardRef}
-          className="w-full rounded-2xl bg-gradient-to-b from-[#FFFDF9] to-[#FAF5EC] border-2 border-[#D4AF37]/40 p-6 shadow-lg text-[#1E1B18] relative overflow-hidden"
+          className="w-full rounded-2xl bg-white border-2 border-[#171717]/15 p-6 shadow-lg text-[#171717] relative overflow-hidden"
         >
-          {/* 金色雅致底纹装饰 */}
-          <div className="absolute top-2 left-2 text-[#D4AF37]/30 text-xs">✦</div>
-          <div className="absolute top-2 right-2 text-[#D4AF37]/30 text-xs">✦</div>
-          <div className="absolute bottom-2 left-2 text-[#D4AF37]/30 text-xs">✦</div>
-          <div className="absolute bottom-2 right-2 text-[#D4AF37]/30 text-xs">✦</div>
+          {/* 雅致底纹装饰 */}
+          <div className="absolute top-2 left-2 text-[#171717]/20 text-xs">✦</div>
+          <div className="absolute top-2 right-2 text-[#171717]/20 text-xs">✦</div>
+          <div className="absolute bottom-2 left-2 text-[#171717]/20 text-xs">✦</div>
+          <div className="absolute bottom-2 right-2 text-[#171717]/20 text-xs">✦</div>
 
           <div className="text-center mb-4">
-            <span className="font-serif tracking-widest text-[11px] text-[#8C6D23] uppercase">
-              QICOSMOS · 心灵神谕
+            <span className="font-serif tracking-widest text-[11px] text-[#52525B] uppercase">
+              YITATRO · 心灵神谕
             </span>
-            <div className="w-12 h-0.5 bg-[#C29026]/40 mx-auto mt-1 mb-3" />
-            <h4 className="font-serif font-bold text-base text-[#1E1B18] line-clamp-2 px-2">
+            <div className="w-12 h-0.5 bg-[#171717]/20 mx-auto mt-1 mb-3" />
+            <h4 className="font-serif font-bold text-base text-[#171717] line-clamp-2 px-2">
               “{question}”
             </h4>
           </div>
@@ -67,17 +67,15 @@ export function ShareCardModal({
             {drawnCards.map((c, i) => (
               <div
                 key={i}
-                className="flex-1 max-w-[100px] flex flex-col items-center p-2 rounded-xl bg-white/80 border border-[#D4AF37]/30 shadow-xs text-center"
+                className="flex-1 max-w-[100px] flex flex-col items-center p-2 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] shadow-xs text-center"
               >
-                <span className="text-[9px] text-[#8C6D23] font-medium line-clamp-1">{c.positionName}</span>
-                <div className="my-1.5 flex items-center justify-center text-[#8C6D23]">
+                <span className="text-[9px] text-[#52525B] font-medium line-clamp-1">{c.positionName}</span>
+                <div className="my-1.5 flex items-center justify-center text-[#171717]">
                   {c.card.arcana === 'major' ? <IconCrystalBall size={18} /> : <span className="text-base font-serif">✦</span>}
                 </div>
-                <span className="font-serif font-bold text-xs text-[#1E1B18]">{c.card.nameZh}</span>
+                <span className="font-serif font-bold text-xs text-[#171717]">{c.card.nameZh}</span>
                 <span
-                  className={`text-[9px] px-1 rounded-sm mt-0.5 ${
-                    c.isReversed ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
-                  }`}
+                  className="text-[9px] px-1 rounded-sm mt-0.5 bg-neutral-200 text-neutral-800"
                 >
                   {c.isReversed ? '逆位' : '正位'}
                 </span>
@@ -86,14 +84,14 @@ export function ShareCardModal({
           </div>
 
           {/* 塔罗师指引金句 */}
-          <div className="mt-4 p-3 rounded-xl bg-[#F5ECE0]/60 border border-[#C29026]/20 text-center">
-            <p className="font-serif italic text-xs text-[#5C5549] leading-relaxed">
+          <div className="mt-4 p-3 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] text-center">
+            <p className="font-serif italic text-xs text-[#52525B] leading-relaxed">
               “{drawnCards[0]?.card.advice || '静心听从内心的回响，所有答案都早已在你心中。'}”
             </p>
           </div>
 
           {/* 底部水印与时间 */}
-          <div className="mt-5 pt-3 border-t border-[#1E1B18]/10 flex items-center justify-between text-[10px] text-[#736B5E]">
+          <div className="mt-5 pt-3 border-t border-[#E4E4E7] flex items-center justify-between text-[10px] text-[#52525B]">
             <div className="flex items-center gap-1.5">
               <span>{reader.avatarIcon}</span>
               <span>解牌：{reader.name}</span>
@@ -108,7 +106,7 @@ export function ShareCardModal({
             onClick={() => {
               alert('结缘卡已就绪！你可以使用手机或电脑截图保存此卡片分享至小红书/朋友圈。');
             }}
-            className="flex-1 py-3 rounded-2xl bg-[#1E1B18] hover:bg-[#38332D] text-[#FFFDF9] text-xs sm:text-sm font-medium flex items-center justify-center gap-2 shadow-sm transition-colors"
+            className="flex-1 py-3 rounded-2xl bg-[#171717] hover:bg-[#333333] text-white text-xs sm:text-sm font-medium flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4" />
             保存结缘卡

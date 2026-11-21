@@ -1,5 +1,5 @@
 import { Solar } from "lunar-typescript";
-import { calculateBaZi, BaZiCalculationResult, WuXing, ELEMENT_ZH_MAP, STEMS_MAP, BRANCHES_MAP } from "./bazi";
+import { calculateBaZi, WuXing, ELEMENT_ZH_MAP, STEMS_MAP, BRANCHES_MAP } from "./bazi";
 
 export interface HourlyFortune {
   hourIndex: number;

@@ -3,7 +3,7 @@ export type Locale = 'zh' | 'en';
 export const i18nDict = {
   zh: {
     common: {
-      siteName: 'QiCosmos',
+      siteName: 'YiTatro',
       siteSubtitle: '周易·八字·塔罗 AI 命理与自我觉察镜像',
       oracleBtn: '起卦',
       menu: '菜单',
@@ -29,7 +29,7 @@ export const i18nDict = {
       codex: '典藏知识',
     },
     footer: {
-      brandDesc: '心里有件事，问问牌吧。QiCosmos 是你的专属 AI 命理与塔罗导师，结合荣格共时性心理学与东西方玄学精髓，为你带来温润治愈的即时解答。',
+      brandDesc: '心里有件事，问问牌吧。YiTatro 是你的专属 AI 命理与塔罗导师，结合荣格共时性心理学与东西方玄学精髓，为你带来温润治愈的即时解答。',
       intuition: '✦ 凭直觉抽牌 · 探寻潜意识指引 ✦',
       channels: '占卜频道',
       reading: 'AI 塔罗综合占卜',
@@ -50,7 +50,7 @@ export const i18nDict = {
       privacy: '隐私政策与使用条款',
       terms: '退款与服务保障',
       contact: '联系客服支持',
-      copyright: '© 2026 QiCosmos. 探寻潜意识的真实之光。',
+      copyright: '© 2026 YiTatro. 探寻潜意识的真实之光。',
     },
     yesNo: {
       title: '是否塔罗',
@@ -124,7 +124,7 @@ export const i18nDict = {
       freePeriod: '/ 永久免费',
       freeDesc: '适合日常快速启示、每日抽牌与牌义查阅。',
       freeBtn: '直接开始使用',
-      plusTitle: 'QiCosmos Plus 会员',
+      plusTitle: 'YiTatro Plus 会员',
       plusPrice: '¥39',
       plusPeriod: '/ 月（或 ¥298 / 年）',
       plusDesc: '为深度探索者打造，解锁无限制深度推演与高阶全景大阵。',
@@ -133,7 +133,7 @@ export const i18nDict = {
   },
   en: {
     common: {
-      siteName: 'QiCosmos',
+      siteName: 'YiTatro',
       siteSubtitle: 'I Ching · BaZi · Tarot Metaphysics & Psychological Mirror',
       oracleBtn: 'Oracle',
       menu: 'MENU',
@@ -159,7 +159,7 @@ export const i18nDict = {
       codex: 'Wisdom Codex',
     },
     footer: {
-      brandDesc: 'When uncertain, consult the cards. QiCosmos is your dedicated AI metaphysical mentor, uniting Jungian synchronicity with classic Eastern & Western wisdom to provide lucid, grounding guidance.',
+      brandDesc: 'When uncertain, consult the cards. YiTatro is your dedicated AI metaphysical mentor, uniting Jungian synchronicity with classic Eastern & Western wisdom to provide lucid, grounding guidance.',
       intuition: '✦ Follow Intuition · Explore Subconscious Guidance ✦',
       channels: 'Divination Channels',
       reading: 'AI Comprehensive Reading',
@@ -180,7 +180,7 @@ export const i18nDict = {
       privacy: 'Privacy & Terms of Service',
       terms: 'Refund Guarantee & FAQ',
       contact: 'Customer Support',
-      copyright: '© 2026 QiCosmos. Illuminate your inner truth.',
+      copyright: '© 2026 YiTatro. Illuminate your inner truth.',
     },
     yesNo: {
       title: 'Yes or No Tarot',
@@ -254,7 +254,7 @@ export const i18nDict = {
       freePeriod: '/ Forever Free',
       freeDesc: 'Perfect for daily draws, Yes/No oracles, and encyclopedia lookup.',
       freeBtn: 'Start Free Reading',
-      plusTitle: 'QiCosmos Plus Member',
+      plusTitle: 'YiTatro Plus Member',
       plusPrice: '$5.9',
       plusPeriod: '/ Month (or $49 / Year)',
       plusDesc: 'For dedicated seekers: unlimited multi-turn readings and advanced full spreads.',

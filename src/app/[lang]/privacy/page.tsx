@@ -26,7 +26,7 @@ const CONTENT: Record<'zh' | 'en', PrivacyContent> = {
     eyebrow: 'PRIVACY',
     title: '隐私政策',
     updated: '最后更新日期：2026-11-12',
-    intro: '本页说明 QiCosmos 收集哪些信息、如何使用，以及你拥有哪些权利。',
+    intro: '本页说明 YiTatro 收集哪些信息、如何使用，以及你拥有哪些权利。',
     sections: [
       {
         heading: '我们收集什么信息',
@@ -68,7 +68,7 @@ const CONTENT: Record<'zh' | 'en', PrivacyContent> = {
     eyebrow: 'PRIVACY',
     title: 'Privacy Policy',
     updated: 'Last updated: 2026-11-12',
-    intro: 'This page explains what QiCosmos collects, how it is used, and the rights you have.',
+    intro: 'This page explains what YiTatro collects, how it is used, and the rights you have.',
     sections: [
       {
         heading: 'What we collect',

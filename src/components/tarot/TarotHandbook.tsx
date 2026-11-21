@@ -134,13 +134,13 @@ export function TarotHandbook({ lang = 'zh' }: { lang?: string }) {
     <div className="w-full max-w-5xl mx-auto">
       {/* 极简标题 */}
       <div className="text-center mb-10">
-        <span className="text-[11px] font-mono tracking-widest text-[#736B5E] uppercase block mb-1">
+        <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block mb-1">
           {isEn ? 'PRACTITIONER\'S NOTEBOOK' : '心法备忘录'}
         </span>
-        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
+        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#171717] tracking-tight">
           {isEn ? 'Tarot Beginner Handbook' : '塔罗新手指南'}
         </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#736B5E] mt-2 max-w-lg mx-auto">
+        <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-2 max-w-lg mx-auto">
           {isEn
             ? 'Lucid principles for the modern seeker. Stripping away superstition to explore the psychological architecture of the 78 archetypes.'
             : '极简清晰的心法手记。剥离迷信神秘色彩，以现代心理学与符号学透视 78 张卡牌的内在逻辑。'}
@@ -151,7 +151,7 @@ export function TarotHandbook({ lang = 'zh' }: { lang?: string }) {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* 左侧章节索引 */}
         <div className="md:col-span-4 space-y-2">
-          <span className="text-[11px] font-serif text-[#736B5E] px-2 block mb-1">
+          <span className="text-[11px] font-serif text-[#52525B] px-2 block mb-1">
             {isEn ? 'TABLE OF CONTENTS' : '指南目录'}
           </span>
           <div className="space-y-1.5">
@@ -166,13 +166,13 @@ export function TarotHandbook({ lang = 'zh' }: { lang?: string }) {
                   onClick={() => setActiveChapterId(chap.id)}
                   className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer flex items-baseline gap-3 ${
                     isSelected
-                      ? 'bg-[#111111] text-[#FFFDF9] border-[#111111] shadow-2xs'
-                      : 'bg-[#FFFDF9] text-[#111111] border-[#111111]/10 hover:bg-[#FAF6ED]'
+                      ? 'bg-[#171717] text-white border-[#171717] shadow-2xs'
+                      : 'bg-white text-[#171717] border-[#E4E4E7] hover:bg-[#F5F5F6]'
                   }`}
                 >
                   <span
                     className={`text-xs font-mono font-bold shrink-0 ${
-                      isSelected ? 'text-[#FFFDF9]/60' : 'text-[#736B5E]'
+                      isSelected ? 'text-white/60' : 'text-[#52525B]'
                     }`}
                   >
                     {chap.number}
@@ -188,11 +188,11 @@ export function TarotHandbook({ lang = 'zh' }: { lang?: string }) {
           </div>
 
           {/* 快捷跳转实操 */}
-          <div className="p-4 rounded-xl bg-[#FAF6ED] border border-[#111111]/10 mt-6 space-y-2">
-            <span className="text-[11px] font-serif font-bold text-[#111111] block">
+          <div className="p-4 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] mt-6 space-y-2">
+            <span className="text-[11px] font-serif font-bold text-[#171717] block">
               {isEn ? 'Ready to Consult the Cards?' : '准备好开始推演了吗？'}
             </span>
-            <p className="text-[11px] font-serif text-[#736B5E] leading-relaxed">
+            <p className="text-[11px] font-serif text-[#52525B] leading-relaxed">
               {isEn
                 ? 'After grasping the fundamentals, practical drawing is the quickest teacher.'
                 : '理论领会之后，最好的学习即是上手抽出一张牌。'}
@@ -200,37 +200,37 @@ export function TarotHandbook({ lang = 'zh' }: { lang?: string }) {
             <div className="pt-2 flex flex-col gap-1.5">
               <Link
                 href={`/${lang}/fortune/daily`}
-                className="text-xs font-serif text-[#111111] hover:underline flex items-center gap-1"
+                className="text-xs font-serif text-[#171717] hover:underline flex items-center gap-1"
               >
                 <span>{isEn ? 'Draw Daily Energy Card' : '抽取今日运势灵感牌'}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#736B5E]" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#52525B]" />
               </Link>
               <Link
                 href={`/${lang}/cards`}
-                className="text-xs font-serif text-[#111111] hover:underline flex items-center gap-1"
+                className="text-xs font-serif text-[#171717] hover:underline flex items-center gap-1"
               >
                 <span>{isEn ? 'Browse 78 Card Codex' : '查阅 78 张经典牌义字典'}</span>
-                <ArrowRight className="w-3.5 h-3.5 text-[#736B5E]" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#52525B]" />
               </Link>
             </div>
           </div>
         </div>
 
         {/* 右侧正文精读区 */}
-        <div className="md:col-span-8 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 p-6 sm:p-10 shadow-2xs">
-          <div className="pb-6 border-b border-[#111111]/8">
-            <span className="text-[11px] font-mono tracking-widest text-[#736B5E] uppercase block mb-1">
+        <div className="md:col-span-8 rounded-2xl bg-white border border-[#E4E4E7] p-6 sm:p-10 shadow-2xs">
+          <div className="pb-6 border-b border-[#E4E4E7]">
+            <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block mb-1">
               CHAPTER {activeChapter.number}
             </span>
-            <h2 className="font-serif font-black text-xl sm:text-2xl text-[#111111] tracking-tight">
+            <h2 className="font-serif font-black text-xl sm:text-2xl text-[#171717] tracking-tight">
               {isEn ? activeChapter.titleEn : activeChapter.titleZh}
             </h2>
-            <p className="text-xs font-serif text-[#736B5E] mt-2 italic leading-relaxed">
+            <p className="text-xs font-serif text-[#52525B] mt-2 italic leading-relaxed">
               “{isEn ? activeChapter.summaryEn : activeChapter.summaryZh}”
             </p>
           </div>
 
-          <div className="mt-6 space-y-4 text-xs sm:text-sm font-serif leading-relaxed text-[#222222]">
+          <div className="mt-6 space-y-4 text-xs sm:text-sm font-serif leading-relaxed text-[#171717]">
             {(isEn ? activeChapter.contentEn : activeChapter.contentZh).map((paragraph, pIdx) => (
               <p key={pIdx} className="leading-relaxed">
                 {paragraph}

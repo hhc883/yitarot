@@ -18,7 +18,7 @@ export function YinYangFish({
   className = '',
   spin = false,
   glow = true,
-  accentColor = '#8C6D23'
+  accentColor = '#171717'
 }: YinYangFishProps) {
   return (
     <div
@@ -42,8 +42,8 @@ export function YinYangFish({
           {/* 阳鱼宣纸微光渐变 */}
           <radialGradient id="yang-paper-grad" cx="30%" cy="30%" r="70%">
             <stop offset="0%" stopColor="#FFFFFF" />
-            <stop offset="70%" stopColor="#FFFDF9" />
-            <stop offset="100%" stopColor="#F5EFE6" />
+            <stop offset="70%" stopColor="#FAFAFA" />
+            <stop offset="100%" stopColor="#F5F5F6" />
           </radialGradient>
 
           {/* 阴鱼墨韵渐变 */}

@@ -19,8 +19,8 @@ export default async function SeasonalFortunePage({
     <div className="w-full max-w-5xl mx-auto px-4 py-8 sm:py-12">
       <Suspense
         fallback={
-          <div className="py-20 text-center text-xs font-serif text-[#736B5E] animate-pulse">
-            加载四季牌阵...
+          <div className="py-20 text-center text-xs font-serif text-[#52525B] animate-pulse">
+            {lang === 'en' ? 'Loading Seasonal Solstice Spread...' : '加载四季牌阵...'}
           </div>
         }
       >

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-import { Sparkles, ArrowRight, Compass, ShieldCheck, ChevronDown, SkipForward } from 'lucide-react';
+import { ArrowRight, SkipForward } from 'lucide-react';
 import Link from 'next/link';
 import { YinYangFish } from '@/components/common/YinYangFish';
 import { IconCrystalBall } from '@/components/icons/QiIcons';
@@ -189,11 +189,11 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
         {/* 顶部简明标识 */}
         <div className="relative z-30 max-w-7xl mx-auto w-full px-5 pt-6 flex items-center justify-between">
           <span className="text-xs font-serif font-bold tracking-widest uppercase opacity-70">
-            QiCosmos
+            YiTatro
           </span>
           <button
             onClick={handleSkip}
-            className="text-xs font-serif tracking-wider text-[#6E675B] hover:text-[#111111] transition-colors"
+            className="text-xs font-serif tracking-wider text-[#52525B] hover:text-[#171717] transition-colors"
           >
             {lang === 'en' ? 'Skip to Content ↓' : '跳过开幕 ↓'}
           </button>
@@ -205,7 +205,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             <div key={item.step} className="flex items-center gap-2.5 justify-end">
               <span
                 className={`text-[11px] font-serif transition-opacity duration-300 ${
-                  activeStep === item.step ? 'opacity-100 font-bold text-[#8C6D23]' : 'opacity-0'
+                  activeStep === item.step ? 'opacity-100 font-bold text-[#171717]' : 'opacity-0'
                 }`}
               >
                 {lang === 'zh' ? item.nameZh : item.nameEn}
@@ -213,8 +213,8 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
               <div
                 className={`w-2.5 h-2.5 rounded-full border transition-all duration-300 ${
                   activeStep === item.step
-                    ? 'bg-[#E8CF86] border-[#8C6D23] scale-135 shadow-sm'
-                    : 'bg-transparent border-[#8C6D23]/40'
+                    ? 'bg-[#171717] border-[#171717] scale-135 shadow-sm'
+                    : 'bg-transparent border-[#171717]/40'
                 }`}
               />
             </div>
@@ -228,7 +228,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             ref={centralSymbolRef}
             className="absolute flex items-center justify-center select-none filter drop-shadow-2xl"
           >
-            <YinYangFish size={150} spin={true} glow={true} accentColor="#8C6D23" />
+            <YinYangFish size={150} spin={true} glow={true} accentColor="#171717" />
           </div>
 
           {/* 阶段 1 文案：混沌无极 */}
@@ -348,28 +348,28 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
             </div>
 
             {/* 西方塔罗门 */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#FFFDF9] border border-[#111111]/10 shadow-sm flex flex-col justify-between text-left hover:border-[#111111]/30 transition-all duration-300">
+            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[#171717]/10 shadow-sm flex flex-col justify-between text-left hover:border-[#171717]/30 transition-all duration-300">
               <div>
                 <div className="mb-3">
-                  <IconCrystalBall size={26} className="text-[#8C6D23]" />
+                  <IconCrystalBall size={26} className="text-[#171717]" />
                 </div>
-                <h3 className="font-serif font-black text-xl sm:text-2xl text-[#111111] mb-2">
+                <h3 className="font-serif font-black text-xl sm:text-2xl text-[#171717] mb-2">
                   {lang === 'zh' ? '韦特塔罗 · 78 牌' : 'Waite Tarot 78 Cards'}
                 </h3>
-                <p className="text-xs text-[#5C5549] leading-relaxed">
+                <p className="text-xs text-[#52525B] leading-relaxed">
                   {lang === 'zh'
                     ? '78 张经典大阿卡纳与小阿卡纳，GSAP 3D 切牌抽牌，三位 AI 导师沉浸式陪伴流式解牌。'
                     : 'Full 78 Rider-Waite cards, GSAP 3D deck shuffler, and 3 AI Reader personas with SSE streaming.'}
                 </p>
               </div>
 
-              <div className="pt-4 mt-6 border-t border-[#111111]/8">
+              <div className="pt-4 mt-6 border-t border-[#171717]/8">
                 <Link
                   href={`/${lang}/reading`}
-                  className="w-full py-3 rounded-xl bg-[#8C6D23] hover:bg-[#A37F29] text-[#FFFDF9] text-xs font-serif tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-[#171717] hover:bg-[#333333] text-white text-xs font-serif tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
                 >
                   <span>{lang === 'zh' ? '进入塔罗专厅' : 'Enter Western Tarot'}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#FFFDF9]" />
+                  <ArrowRight className="w-3.5 h-3.5 text-white" />
                 </Link>
               </div>
             </div>

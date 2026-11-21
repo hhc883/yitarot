@@ -1,4 +1,4 @@
-import { calculateBaZi, BaZiCalculationResult, WuXing, ELEMENT_ZH_MAP, STEMS_MAP, BRANCHES_MAP } from "./bazi";
+import { calculateBaZi, BaZiCalculationResult, WuXing, ELEMENT_ZH_MAP } from "./bazi";
 
 export type RelationshipType =
   | "marriage"        // 八字合婚

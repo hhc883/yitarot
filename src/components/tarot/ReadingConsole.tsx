@@ -214,7 +214,7 @@ function ReadingConsoleInner({
           }
         }
       }
-    } catch (_err: unknown) {
+    } catch {
       setInterpretationText('解牌生成遇到了短暂网络波动，请点击右上角重试。');
     } finally {
       setIsStreaming(false);
