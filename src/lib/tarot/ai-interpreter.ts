@@ -1,7 +1,7 @@
-import { GoogleGenAI } from '@google/genai';
 import { DrawnCard } from './deck';
 import { TarotReader } from './readers';
 import { TarotSpread } from './spreads';
+import { streamLLM } from '@/lib/llm/adapter';
 
 export interface InterpretationRequest {
   question: string;
@@ -201,22 +201,17 @@ ${cardsBreakdown}
  * 流式输出适配器（调用官方 @google/genai SDK，采用 gemini-4-hydrogen 模型，支持优雅本地降级）
  */
 export async function* streamTarotReading(req: InterpretationRequest): AsyncGenerator<string, void, unknown> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   const isEn = req.lang === 'en';
-
-  if (apiKey) {
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const systemPrompt = buildTarotSystemPrompt(req.reader, req.lang);
-      const userPrompt = isEn
-        ? `Querent Inquiry: ${req.question}
+  const systemPrompt = buildTarotSystemPrompt(req.reader, req.lang);
+  const userPrompt = isEn
+    ? `Querent Inquiry: ${req.question}
 Category: ${req.category}
 Spread: ${req.spread.nameEn} (${req.drawnCards.length} cards)
 Drawn Cards Details:
 ${req.drawnCards.map((c, i) => `Position ${i + 1} [${c.positionName} - ${c.positionDesc}]: ${c.card.nameEn || c.card.nameZh} (${c.isReversed ? 'Reversed' : 'Upright'}), Keywords: ${(c.isReversed ? c.card.reversedKeywords : c.card.uprightKeywords).join(', ')}`).join('\n')}
 
 Please act as the Tarot reader and craft a profound, empathetic, and structurally comprehensive interpretation in English.`
-        : `求问者问题：${req.question}
+    : `求问者问题：${req.question}
 求问类别：${req.category}
 所用牌阵：${req.spread.nameZh}（共 ${req.drawnCards.length} 张）
 牌阵站位与抽出卡牌详情：
@@ -224,22 +219,14 @@ ${req.drawnCards.map((c, i) => `站位 ${i + 1}【${c.positionName} - ${c.positi
 
 请作为塔罗师为求问者做出完整且富有温度的深度解读。`;
 
-      const stream = await ai.interactions.create({
-        model: 'gemini-4-hydrogen',
-        system_instruction: systemPrompt,
-        input: userPrompt,
-        stream: true
-      });
-
-      for await (const event of stream) {
-        if (event.event_type === 'step.delta' && event.delta?.type === 'text') {
-          yield event.delta.text ?? '';
-        }
-      }
-      return;
-    } catch (err) {
-      console.warn('Gemini 4 Hydrogen 调用受限，平滑回退至内置高精塔罗专家引擎:', err);
-    }
+  try {
+    yield* streamLLM({
+      systemInstruction: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    });
+    return;
+  } catch (err) {
+    console.warn('大模型（DeepSeek/Gemini）调用受限，平滑回退至内置高精塔罗专家引擎:', err);
   }
 
   // 本地高精合成引擎模拟流式打字效果
@@ -307,14 +294,9 @@ export function generateLocalTarotFollowUp(req: TarotFollowUpRequest): string {
  * 塔罗多轮深解追问流式适配器（基于 @google/genai SDK 与 gemini-4-hydrogen）
  */
 export async function* streamTarotFollowUp(req: TarotFollowUpRequest): AsyncGenerator<string, void, unknown> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   const isEn = req.lang === 'en';
-
-  if (apiKey) {
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const systemPrompt = isEn
-        ? `You are the AI Tarot reader and spiritual mentor (${req.reader.name}).
+  const systemPrompt = isEn
+    ? `You are the AI Tarot reader and spiritual mentor (${req.reader.name}).
 ${req.reader.systemPromptAddon}
 
 Original Querent Inquiry: "${req.question}"
@@ -326,7 +308,7 @@ Guidelines for Follow-Up Inquiries:
 1. Ground your answers deeply in the cards that were drawn and their symbolic synergy.
 2. Embody the persona of ${req.reader.name}—speak with personal presence, psychological insight, and practical clarity.
 3. Keep the answer structured, thoughtful, and articulate in English Markdown.`
-        : `你是专属 AI 塔罗占卜导师（${req.reader.name}）。
+    : `你是专属 AI 塔罗占卜导师（${req.reader.name}）。
 ${req.reader.systemPromptAddon}
 
 求问者原问题：“${req.question}”
@@ -340,28 +322,20 @@ ${req.initialInterpretation.slice(0, 800)}
 2. 保持【${req.reader.name}】一贯的说话风格与专业素养，给出深刻洞察与具体行动点。
 3. 请使用清晰美观的 Markdown 进行分段输出。`;
 
-      const conversationHistoryText = req.followUpHistory.length > 0
-        ? req.followUpHistory.map(h => `${h.role === 'user' ? '求问者' : req.reader.name}：${h.content}`).join('\n\n') + '\n\n'
-        : '';
+  const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+  for (const h of req.followUpHistory) {
+    messages.push({ role: h.role, content: h.content });
+  }
+  messages.push({ role: 'user', content: req.followUpQuestion });
 
-      const userPrompt = `${conversationHistoryText}求问者最新追问：“${req.followUpQuestion}”\n\n请作为塔罗师为求问者深入剖析并指引方向。`;
-
-      const stream = await ai.interactions.create({
-        model: 'gemini-4-hydrogen',
-        system_instruction: systemPrompt,
-        input: userPrompt,
-        stream: true
-      });
-
-      for await (const event of stream) {
-        if (event.event_type === 'step.delta' && event.delta?.type === 'text') {
-          yield event.delta.text ?? '';
-        }
-      }
-      return;
-    } catch (err) {
-      console.warn('Gemini 4 Hydrogen 追问调用受限，平滑切换至本地高精导师引擎:', err);
-    }
+  try {
+    yield* streamLLM({
+      systemInstruction: systemPrompt,
+      messages
+    });
+    return;
+  } catch (err) {
+    console.warn('大模型（DeepSeek/Gemini）追问调用受限，平滑切换至本地高精导师引擎:', err);
   }
 
   // 本地高精引擎降级流式输出

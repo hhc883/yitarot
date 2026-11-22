@@ -1,4 +1,3 @@
-import { GoogleGenAI } from '@google/genai';
 import { BaZiCalculationResult } from './bazi';
 import { IChingReading } from './iching';
 import { getActiveLiuYaoSkill } from './skills/registry';
@@ -347,27 +346,18 @@ export async function* streamLiuYaoReading(req: LiuYaoAiRequest): AsyncGenerator
  * 八字命理流式输出适配器
  */
 export async function* streamBaziReading(data: BaZiCalculationResult, req: BaziAiRequest): AsyncGenerator<string, void, unknown> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const userPrompt = buildBaziPrompt(data, req);
 
-  if (apiKey) {
-    try {
-      const ai = new GoogleGenAI({ apiKey });
-      const userPrompt = buildBaziPrompt(data, req);
-      const stream = await ai.interactions.create({
-        model: 'gemini-4-hydrogen',
-        input: userPrompt,
-        stream: true
-      });
-
-      for await (const event of stream) {
-        if (event.event_type === 'step.delta' && event.delta?.type === 'text') {
-          yield event.delta.text ?? '';
-        }
-      }
-      return;
-    } catch (err) {
-      console.warn('Gemini 4 Hydrogen 调用受限，平滑切换至内置八字命理引擎:', err);
-    }
+  try {
+    yield* streamLLM({
+      systemInstruction: req.lang === 'en'
+        ? 'You are a master of classical Zi Ping BaZi metaphysics and modern psychological counseling (YiTatro Architecture).'
+        : '你是一位兼具正统子平八字命理精髓与现代心理学视角的资深命理宗师（YiTatro 全息推演架构）。',
+      messages: [{ role: 'user', content: userPrompt }]
+    });
+    return;
+  } catch (err) {
+    console.warn('大模型（DeepSeek/Gemini）调用受限，平滑切换至内置八字命理引擎:', err);
   }
 
   // 本地专家引擎流式输出
