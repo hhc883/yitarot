@@ -61,19 +61,82 @@ You are inspecting a user-uploaded image containing a hexagram screenshot or nat
 # ✨ I Ching Axiom
 (An uplifting aphorism to cultivate composure and clarity)`;
 
+async function* streamDeepSeekVision(opts: {
+  apiKey: string;
+  systemInstruction: string;
+  promptText: string;
+  imageBase64: string;
+  mimeType: string;
+}): AsyncGenerator<string, void, unknown> {
+  const model = process.env.DEEPSEEK_VISION_MODEL || 'deepseek-flash';
+  const url = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/chat/completions';
+  const mime = opts.mimeType || 'image/png';
+  const dataUrl = `data:${mime};base64,${opts.imageBase64}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${opts.apiKey}`
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: opts.systemInstruction },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: opts.promptText },
+            { type: 'image_url', image_url: { url: dataUrl } }
+          ]
+        }
+      ],
+      temperature: 0.5,
+      stream: true
+    })
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => '');
+    throw new Error(`DeepSeek Vision API 请求失败 [HTTP ${res.status}]: ${errorText}`);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('DeepSeek 流式响应不可用');
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data: ')) continue;
+      const dataStr = trimmed.slice(6).trim();
+      if (dataStr === '[DONE]') return;
+
+      try {
+        const parsed = JSON.parse(dataStr);
+        const delta = parsed.choices?.[0]?.delta?.content;
+        if (delta) {
+          yield delta;
+        }
+      } catch {
+        // ignore chunk parsing error
+      }
+    }
+  }
+}
+
 export async function* streamVisionLiuYaoReading(
   req: VisionLiuYaoRequest
 ): AsyncGenerator<string, void, unknown> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-
-  if (!apiKey) {
-    yield req.lang === 'en'
-      ? 'Vision reading requires an active GEMINI_API_KEY. Please verify your system configuration.'
-      : '视觉识卦功能需配置有效的 GEMINI_API_KEY。请检查系统环境变量配置。';
-    return;
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
   const isEn = req.lang === 'en';
   const systemInstruction = isEn ? VISION_LIUYAO_SYSTEM_PROMPT_EN : VISION_LIUYAO_SYSTEM_PROMPT_ZH;
 
@@ -87,34 +150,65 @@ export async function* streamVisionLiuYaoReading(
     ? `Querent Inquiry / Focus: "${userQuestion}"\n\nPlease examine the attached image, extract all hexagram lines, and produce the comprehensive I Ching oracle according to the mandatory structure.`
     : `求问者关切之事：“${userQuestion}”\n\n请仔细观察所附截图中展示的卦象、爻位、动爻与排盘数据，严格按照规范的格式输出详尽严谨的六爻解卦报告。`;
 
-  try {
-    const stream = await ai.interactions.create({
-      model: 'gemini-4-hydrogen',
-      system_instruction: systemInstruction,
-      input: [
-        {
-          type: 'image',
-          mime_type: req.mimeType || 'image/png',
-          data: req.imageBase64
-        },
-        {
-          type: 'text',
-          text: promptText
-        }
-      ],
-      stream: true
-    });
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
-    for await (const event of stream) {
-      if (event.event_type === 'step.delta' && event.delta?.type === 'text') {
-        yield event.delta.text ?? '';
-      }
-    }
-  } catch (err: unknown) {
-    console.error('Vision Liu Yao AI error:', err);
-    const msg = err instanceof Error ? err.message : String(err);
+  if (!deepseekKey && !geminiKey) {
     yield isEn
-      ? `\n\n[Vision Interpretation Notice]: Encountered a temporary processing error: ${msg}. Please ensure the screenshot clearly displays the six hexagram lines.`
-      : `\n\n【视觉识卦提示】：处理图片时遇到异常（${msg}）。请确认截图清晰包含六爻卦象信息后重试。`;
+      ? 'Vision reading requires an active API key (DEEPSEEK_API_KEY or GEMINI_API_KEY). Please verify your system configuration.'
+      : '视觉识卦功能需配置有效的 API 密钥（DEEPSEEK_API_KEY 或 GEMINI_API_KEY）。请检查系统环境变量配置。';
+    return;
   }
+
+  // 1. 优先尝试 DeepSeek 视觉模型 (deepseek-flash)
+  if (deepseekKey) {
+    try {
+      yield* streamDeepSeekVision({
+        apiKey: deepseekKey,
+        systemInstruction,
+        promptText,
+        imageBase64: req.imageBase64,
+        mimeType: req.mimeType || 'image/png'
+      });
+      return;
+    } catch (err) {
+      console.warn('DeepSeek 视觉识卦调用受限，平滑切换备选通道:', err);
+    }
+  }
+
+  // 2. 备选通道：Google Gemini
+  if (geminiKey) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: geminiKey });
+      const stream = await ai.interactions.create({
+        model: 'gemini-4-hydrogen',
+        system_instruction: systemInstruction,
+        input: [
+          {
+            type: 'image',
+            mime_type: req.mimeType || 'image/png',
+            data: req.imageBase64
+          },
+          {
+            type: 'text',
+            text: promptText
+          }
+        ],
+        stream: true
+      });
+
+      for await (const event of stream) {
+        if (event.event_type === 'step.delta' && event.delta?.type === 'text') {
+          yield event.delta.text ?? '';
+        }
+      }
+      return;
+    } catch (err: unknown) {
+      console.error('Gemini 视觉识卦异常:', err);
+    }
+  }
+
+  yield isEn
+    ? '\n\n[Vision Interpretation Notice]: Encountered a temporary processing error. Please ensure the screenshot clearly displays the six hexagram lines.'
+    : '\n\n【视觉识卦提示】：视觉大模型处理图片时遇到异常。请确认截图清晰包含六爻卦象信息后重试。';
 }
