@@ -15,7 +15,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang } = await params;
   const isEn = rawLang === 'en';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const currentLang = isEn ? 'en' : 'zh';
 
   return {

@@ -29,7 +29,7 @@ export async function generateMetadata({
   const lang = rawLang === 'en' ? 'en' : 'zh';
   const type = rawType as RelationshipType;
   const config = RELATIONSHIP_CONFIGS[type];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
 
   if (!config) {
     return { title: lang === 'en' ? 'Relationship Not Found | YiTatro' : '未找到合盘模型 | YiTatro' };
@@ -85,7 +85,7 @@ export default async function SpecificRelationshipPage({
   }
 
   const config = RELATIONSHIP_CONFIGS[type];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const pageTitle = lang === 'en' ? `${config.titleEn} - BaZi Synastry` : `${config.titleZh} - 生肖干支八字合盘`;
 
   const structuredData = [

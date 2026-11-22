@@ -17,7 +17,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang } = await params;
   const isEn = rawLang === 'en';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const currentLang = isEn ? 'en' : 'zh';
 
   const title = isEn
@@ -59,7 +59,7 @@ export default async function BlogPage({
 }) {
   const { lang: rawLang } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const posts = getAllPosts(lang);
 
   const pageTitle = lang === 'en' ? 'Metaphysical Insights & Guides' : '研习洞察与心学指南';

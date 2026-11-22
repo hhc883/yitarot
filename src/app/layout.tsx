@@ -3,7 +3,7 @@ import './globals.css';
 import { PointsGateProvider } from '@/components/site/PointsGateProvider';
 import { JsonLd } from '@/components/seo/JsonLd';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
 
 const globalStructuredData = [
   {

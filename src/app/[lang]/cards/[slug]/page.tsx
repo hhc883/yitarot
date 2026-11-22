@@ -28,7 +28,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang, slug } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const card = getCardBySlug(slug);
   if (!card) return { title: lang === 'en' ? 'Card Not Found | YiTatro' : '未找到卡牌 | YiTatro' };
 
@@ -105,7 +105,7 @@ export default async function CardDetailPage({
   const symbolism = enDetail ? enDetail.symbolism : card.symbolism;
   const advice = enDetail ? enDetail.advice : card.advice;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const cardName = lang === 'en' ? `${card.nameEn} (${card.nameZh})` : `${card.nameZh}（${card.nameEn}）`;
 
   const structuredData = [

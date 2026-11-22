@@ -28,7 +28,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang, slug } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const post = getPostBySlug(slug, lang);
 
   if (!post) {
@@ -79,7 +79,7 @@ export default async function BlogPostPage({
 }) {
   const { lang: rawLang, slug } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const post = getPostBySlug(slug, lang);
 
   if (!post) {

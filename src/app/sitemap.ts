@@ -3,7 +3,7 @@ import { getAllCards } from '@/lib/tarot/deck';
 import { BLOG_POSTS } from '@/lib/blog/posts';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitatro.com';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const now = new Date();
 
   const coreRoutes = [
