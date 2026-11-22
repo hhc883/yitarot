@@ -35,6 +35,30 @@ export function useUser() {
     try {
       const res = await fetch('/api/me', { cache: 'no-store' });
       if (res.status === 401) {
+        // 客户端兜底校验：若服务端未携带 cookie，尝试确认客户端 Supabase 会话
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user) {
+          const u = authData.user;
+          setState({
+            loading: false,
+            user: {
+              id: u.id,
+              email: u.email ?? '',
+              display_name:
+                (u.user_metadata?.full_name as string) ||
+                (u.user_metadata?.name as string) ||
+                u.email?.split('@')[0] ||
+                'User',
+              avatar_url:
+                (u.user_metadata?.avatar_url as string) ||
+                (u.user_metadata?.picture as string) ||
+                ''
+            },
+            balance: 10,
+            dailyClaimed: false
+          });
+          return;
+        }
         setState({ loading: false, user: null, balance: 0, dailyClaimed: false });
         return;
       }
@@ -48,10 +72,17 @@ export function useUser() {
             user: {
               id: u.id,
               email: u.email ?? '',
-              display_name: (u.user_metadata?.full_name as string) || (u.user_metadata?.name as string) || u.email?.split('@')[0] || 'User',
-              avatar_url: (u.user_metadata?.avatar_url as string) || (u.user_metadata?.picture as string) || ''
+              display_name:
+                (u.user_metadata?.full_name as string) ||
+                (u.user_metadata?.name as string) ||
+                u.email?.split('@')[0] ||
+                'User',
+              avatar_url:
+                (u.user_metadata?.avatar_url as string) ||
+                (u.user_metadata?.picture as string) ||
+                ''
             },
-            balance: 0,
+            balance: 10,
             dailyClaimed: false
           });
           return;
