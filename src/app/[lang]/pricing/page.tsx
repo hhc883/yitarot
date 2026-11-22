@@ -24,8 +24,8 @@ export default async function PricingPage({ params }: { params: Promise<{ lang: 
           </h1>
           <p className="mt-6 max-w-[56ch] text-[15px] leading-[1.7] text-soft">
             {lang === 'en'
-              ? '10 points per deep AI reading, 2 points per follow-up inquiry. Seamless checkout via Stripe, Visa, Mastercard, WeChat Pay, and Alipay. Points never expire.'
-              : '每次 AI 完整解卦推演消耗 10 积分，追问仅需 2 积分。双轨通道支持微信支付、支付宝扫码与海外 Stripe / 国际信用卡，积分长期有效。'}
+              ? 'Secure checkout via Payhip — PayPal and major credit/debit cards.'
+              : '通过 Payhip 安全结算，支持 PayPal 与国际信用卡，积分长期有效。'}
           </p>
         </div>
       </section>

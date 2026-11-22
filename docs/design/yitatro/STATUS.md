@@ -47,10 +47,27 @@
 | K | 全站多语言纯正度与中英文混入治理：彻底消除英文模式下的中文残留（首页3D展台、每日一签、自由抽牌、卡牌百科、专厅工具卡、八字纳音与紫微宫位），实现全站英文页面 0 中文混入。 | 本地验收通过（发布就绪） |
 | L | 竞品命名与历史痕迹彻底脱敏治理：将旧竞品前缀 fatemaster 全量重构为 YiTatro 原生架构（/[lang]/east/*、/api/east/*、components/east/、east-ai.ts），配置 301 永久重定向并更正包名与配置注释。 | 全量重构验收通过（发布就绪） |
 | M | 双轨支付结算体系：海外 Stripe 国际信用卡/Apple Pay 接入、国内微信/支付宝扫码通道适配、防伪卡密/兑换码秒充系统与多语言定价收银台。 | 本地验收通过（发布就绪） |
+| N | Payhip / PayPal 支付体系接入：Webhook 自动核验加分/退款（POST /api/payhip-webhook）、Supabase credit_purchase_points 事务 RPC 与 orders.payhip_transaction_id、定价页直链挂载与 Stripe 痕迹彻底脱敏。 | 全量重构验收通过（发布就绪） |
 
 ## 交接记录
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- N（Antigravity 实现、全量生产构建通过、Payhip 自动加分与直链上线）：
+  1. **Payhip Webhook 自动加分与退款系统（Stage N.1）**：
+     - 新建数据库迁移 `supabase/migrations/20261122000001_payhip_purchase.sql`，定义安全提权函数 `public.credit_purchase_points`（支持并发行级锁、负数账本退款与已记幂等），并在 `public.orders` 表增加 `payhip_transaction_id` 唯一索引列；
+     - 新建服务端路由 `src/app/api/payhip-webhook/route.ts`：
+       - `SHA-256(PAYHIP_API_KEY)` 定长安全签名防篡改核验（401）；
+       - 监听 `paid` 与 `refunded` 核心事件；
+       - 商品规格精准映射：`6gkYN`（100 积分 $4.99）、`6wc09`（500 积分 $19.99）、`cKoqG`（2000 积分 $59.99）；
+       - 买家邮箱匹配本站账号，未匹配记 warn 日志返回 200 供人工补分；匹配成功调用 RPC 秒级到账并记入 orders 表；
+       - 全程绝不向日志输出密钥与签名明文。
+  2. **定价页全面对接 Payhip 与 Stripe 彻底脱敏（Stage N.2）**：
+     - 重构 `src/components/site/PricingCards.tsx`：为三大套餐挂载 Payhip 直链（`https://payhip.com/b/6gkYN`、`https://payhip.com/b/6wc09`、`https://payhip.com/b/cKoqG`）；
+     - 未登录用户点击提示跳登录页，已登录用户直开 Payhip 新标签页完成结算；
+     - 按钮文字更新为 `Pay $X.XX with PayPal / Card`，卡片下方增加“请使用与本站账号相同的邮箱购买，积分将自动到账”中英双语提示；
+     - 全站彻底消除 Stripe 遗留字样，安全标语更换为 `Payhip 安全结算 · 支持 PayPal 与国际信用卡`；
+     - 同步更新 `src/app/[lang]/pricing/page.tsx` 页面文案为 Payhip 专属标语。
 
 - M（Antigravity 实现、全量生产构建通过、双轨支付接口上线）：
   1. **海外支付体系（Stripe 全球结算）**：

@@ -9,6 +9,7 @@ interface Plan {
   points: number;
   usdPrice: string;
   cnyPrice: string;
+  payhipUrl: string;
   popular?: boolean;
   bestValue?: boolean;
   descZh: string;
@@ -22,6 +23,7 @@ const PLANS: Plan[] = [
     points: 100,
     usdPrice: '$4.99',
     cnyPrice: '¥29.9',
+    payhipUrl: 'https://payhip.com/b/6gkYN',
     descZh: '约 10 次 AI 深度卦象推演或塔罗全解析',
     descEn: '≈ 10 deep AI hexagram or tarot interpretations',
     perReadingZh: '单次约 ¥2.99',
@@ -31,6 +33,7 @@ const PLANS: Plan[] = [
     points: 500,
     usdPrice: '$19.99',
     cnyPrice: '¥99.0',
+    payhipUrl: 'https://payhip.com/b/6wc09',
     popular: true,
     descZh: '约 50 次深度推演与连贯追问，最受欢迎',
     descEn: '≈ 50 readings & continuous follow-ups (Most popular)',
@@ -41,6 +44,7 @@ const PLANS: Plan[] = [
     points: 2000,
     usdPrice: '$59.99',
     cnyPrice: '¥299.0',
+    payhipUrl: 'https://payhip.com/b/cKoqG',
     bestValue: true,
     descZh: '约 200 次专业级全息推演，永久有效',
     descEn: '≈ 200 readings, maximum value & never expire',
@@ -114,44 +118,14 @@ export function PricingCards({ lang = 'zh' }: { lang?: string }) {
     }
   }, [isEn, lang, refresh]);
 
-  // 处理海外 Stripe 结账
-  const handleStripeCheckout = async (points: number) => {
+  // 处理海外 Payhip / PayPal 结账
+  const handleOverseasCheckout = (plan: Plan) => {
     if (!user) {
       router.push(`/${lang}/login?from=pricing`);
       return;
     }
 
-    setLoadingPoints(points);
-    setActionError('');
-
-    try {
-      const res = await fetch('/api/checkout/stripe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ points })
-      });
-
-      const data = await res.json();
-      if (res.status === 401) {
-        router.push(`/${lang}/login?from=pricing`);
-        return;
-      }
-
-      if (data.ok && data.checkout_url) {
-        window.location.assign(data.checkout_url);
-      } else {
-        setActionError(
-          data.message ||
-            (isEn
-              ? 'Failed to start Stripe checkout session.'
-              : 'Stripe 支付通道暂不可用，建议使用国内通道或卡密充值。')
-        );
-      }
-    } catch {
-      setActionError(isEn ? 'Network error, please retry.' : '网络连接失败，请稍后重试。');
-    } finally {
-      setLoadingPoints(null);
-    }
+    window.open(plan.payhipUrl, '_blank', 'noopener,noreferrer');
   };
 
   // 处理国内微信/支付宝支付
@@ -306,7 +280,7 @@ export function PricingCards({ lang = 'zh' }: { lang?: string }) {
             }`}
           >
             <span>🌏</span>
-            <span>{isEn ? 'Global (USD $)' : '海外支付 (Stripe / 信用卡)'}</span>
+            <span>{isEn ? 'Global (USD $)' : '海外支付 (PayPal / 信用卡)'}</span>
           </button>
         </div>
 
@@ -319,8 +293,8 @@ export function PricingCards({ lang = 'zh' }: { lang?: string }) {
                 ? 'Instant credit · Secure checkout · 24/7 Support'
                 : '微信/支付宝安全结算 · 充值即时到账 · 积分永久有效'
               : isEn
-                ? '256-bit SSL encrypted · Powered by Stripe'
-                : 'PCI-DSS 一级安全认证 · Stripe 全球结算通道'}
+                ? 'Secure checkout by Payhip · PayPal & cards'
+                : 'Payhip 安全结算 · 支持 PayPal 与国际信用卡'}
           </span>
         </div>
       </div>
@@ -398,23 +372,25 @@ export function PricingCards({ lang = 'zh' }: { lang?: string }) {
               {/* 底部购买按钮 */}
               <div className="mt-auto pt-2">
                 {region === 'overseas' ? (
-                  <button
-                    type="button"
-                    onClick={() => handleStripeCheckout(plan.points)}
-                    disabled={isLoading}
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink text-[13px] font-medium text-white transition-all hover:bg-neutral-800 disabled:opacity-50"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-white" />
-                    ) : (
-                      <>
-                        <CreditCard className="h-3.5 w-3.5" />
-                        <span>
-                          {isEn ? `Pay ${plan.usdPrice} with Stripe` : `Stripe 支付 ${plan.usdPrice}`}
-                        </span>
-                      </>
-                    )}
-                  </button>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => handleOverseasCheckout(plan)}
+                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink text-[13px] font-medium text-white transition-all hover:bg-neutral-800"
+                    >
+                      <CreditCard className="h-3.5 w-3.5" />
+                      <span>
+                        {isEn
+                          ? `Pay ${plan.usdPrice} with PayPal / Card`
+                          : `使用 PayPal / 信用卡支付 ${plan.usdPrice}`}
+                      </span>
+                    </button>
+                    <p className="mt-2 text-center text-[11px] leading-[1.4] text-whisper">
+                      {isEn
+                        ? 'Use the same email as your yitarot.net account — points are credited automatically.'
+                        : '请使用与本站账号相同的邮箱购买，积分将自动到账'}
+                    </p>
+                  </div>
                 ) : (
                   <div className="flex flex-col gap-2">
                     <button
@@ -452,11 +428,11 @@ export function PricingCards({ lang = 'zh' }: { lang?: string }) {
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-2 font-mono">
+            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">PayPal</span>
             <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">Visa</span>
             <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">Mastercard</span>
             <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">American Express</span>
             <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">Apple Pay</span>
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">Google Pay</span>
           </div>
         )}
       </div>
