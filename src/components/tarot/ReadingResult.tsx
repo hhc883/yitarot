@@ -7,7 +7,7 @@ import { TarotCardView } from './TarotCardView';
 import { Share2, MessageCircle, Send, RotateCcw, Copy, Check, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { ReaderAvatarIcon } from '@/components/icons/QiIcons';
 import { MarkdownView } from '@/components/common/MarkdownView';
-import { saveReading } from '@/lib/storage/reading-history';
+import { saveReading, getSavedReadings } from '@/lib/storage/reading-history';
 
 interface ReadingResultProps {
   question: string;
@@ -36,6 +36,18 @@ export function ReadingResult({
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
   const [isAskingFollowUp, setIsAskingFollowUp] = useState(false);
   const savedIdRef = React.useRef<string>('');
+
+  // 若从历史会话进入，还原当时的多轮追问对话
+  React.useEffect(() => {
+    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (!rawSessionId) return;
+    savedIdRef.current = rawSessionId;
+    const list = getSavedReadings();
+    const found = list.find(r => r.id === rawSessionId);
+    if (found?.chatHistory && found.chatHistory.length > 0) {
+      setChatHistory(found.chatHistory);
+    }
+  }, []);
 
   // 自动将本次解读与追问会话持久化保存到本地档案
   React.useEffect(() => {

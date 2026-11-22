@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { UploadCloud, Image as ImageIcon, X, Sparkles, RotateCcw, AlertCircle, ArrowRight } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
 import { MarkdownView } from '@/components/common/MarkdownView';
+import { saveReading } from '@/lib/storage/reading-history';
 
 interface HexagramVisionWidgetProps {
   lang?: string;
@@ -24,6 +25,19 @@ export function HexagramVisionWidget({ lang = 'zh' }: HexagramVisionWidgetProps)
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // 识图解卦完成自动存入用户档案
+  useEffect(() => {
+    if (readingResult && !isReading && !readingResult.includes('失败')) {
+      saveReading({
+        type: 'liuyao',
+        title: isEn ? 'Vision I Ching Oracle' : '视觉识图六爻解卦',
+        question: question || (isEn ? 'Hexagram chart image analysis' : '卦象排盘图解析'),
+        summary: readingResult.slice(0, 140) + '...',
+        fullContent: readingResult
+      });
+    }
+  }, [readingResult, isReading, question, isEn]);
 
   // 处理文件读取
   const handleFile = useCallback((file: File) => {

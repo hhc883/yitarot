@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import {
@@ -12,6 +12,7 @@ import {
 import { Sparkles, Compass } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
 import { MarkdownView } from '@/components/common/MarkdownView';
+import { saveReading, getSavedReadings } from '@/lib/storage/reading-history';
 
 gsap.registerPlugin(useGSAP);
 
@@ -97,6 +98,38 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
       );
     }
   }, { dependencies: [baziResult], scope: containerRef });
+
+  // 恢复历史八字档案
+  useEffect(() => {
+    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (!rawSessionId) return;
+    const list = getSavedReadings();
+    const found = list.find((r) => r.id === rawSessionId);
+    if (found && found.fullContent) {
+      setAiReport(found.fullContent);
+    }
+  }, []);
+
+  // 八字 AI 报告生成完成自动存入用户档案
+  useEffect(() => {
+    if (aiReport && !isGeneratingAi && baziResult) {
+      const yearGz = `${baziResult.pillars.year.gan}${baziResult.pillars.year.zhi}`;
+      const monthGz = `${baziResult.pillars.month.gan}${baziResult.pillars.month.zhi}`;
+      const dayGz = `${baziResult.pillars.day.gan}${baziResult.pillars.day.zhi}`;
+
+      saveReading({
+        type: 'bazi',
+        title: isEn
+          ? `BaZi Natal Chart (${yearGz} ${monthGz} ${dayGz})`
+          : `八字命理全息洞察（${yearGz}年 ${monthGz}月 ${dayGz}日）`,
+        question: isEn
+          ? `Birth: ${year}-${month}-${day} ${hour}:00 (${gender})`
+          : `出生公历：${year}年${month}月${day}日 ${hour}点（${gender === 'male' ? '乾造' : '坤造'}）`,
+        summary: aiReport.slice(0, 140) + '...',
+        fullContent: aiReport
+      });
+    }
+  }, [aiReport, isGeneratingAi, baziResult, year, month, day, hour, gender, isEn]);
 
   // 生成 AI 命理全息报告：先扣 10 积分（失败弹「积分不足」），再流式推演
   const handleGenerateAiReport = async () => {
