@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { streamLiuYaoReading, LiuYaoAiRequest } from '@/lib/metaphysics/east-ai';
 import { normalizeIChingReading } from '@/lib/metaphysics/iching';
 import { verifyReadingSpend, pointsErrorResponse } from '@/lib/points/server';
+import { createSupabaseServerClient, getSupabaseUser } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,13 +31,45 @@ export async function POST(req: NextRequest) {
     }
 
     const encoder = new TextEncoder();
+    let fullReportText = '';
+
     const stream = new ReadableStream({
       async start(controller) {
         try {
           for await (const chunk of streamLiuYaoReading(request)) {
+            fullReportText += chunk;
             const data = JSON.stringify({ text: chunk });
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           }
+
+          // 自动将 AI 解卦与卦象快照持久化到用户的个人账号（Supabase liuyao_sessions）
+          try {
+            const user = await getSupabaseUser();
+            if (user) {
+              const supabase = await createSupabaseServerClient();
+              const { data: sessionData, error: sessionErr } = await supabase
+                .from('liuyao_sessions')
+                .insert({
+                  user_id: user.id,
+                  question: request.question,
+                  reading_snapshot: {
+                    ...request.reading,
+                    ai_report: fullReportText
+                  }
+                })
+                .select('id')
+                .maybeSingle();
+
+              if (!sessionErr && sessionData?.id) {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ session_id: sessionData.id })}\n\n`)
+                );
+              }
+            }
+          } catch (saveErr) {
+            console.warn('Auto-save liuyao_session to Supabase warning:', saveErr);
+          }
+
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();
         } catch (err: unknown) {

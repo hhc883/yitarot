@@ -16,21 +16,31 @@ interface MessageItem {
 interface LiuYaoFollowUpWidgetProps {
   reading: IChingReading;
   initialQuestion: string;
+  sessionId?: string;
+  initialMessages?: MessageItem[];
   lang?: 'zh' | 'en';
 }
 
 export function LiuYaoFollowUpWidget({
   reading,
   initialQuestion,
+  sessionId,
+  initialMessages = [],
   lang = 'zh'
 }: LiuYaoFollowUpWidgetProps) {
   const isEn = lang === 'en';
   const pointsGate = usePointsGate();
 
   const [inputQuestion, setInputQuestion] = useState('');
-  const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [messages, setMessages] = useState<MessageItem[]>(initialMessages);
   const [isAnswering, setIsAnswering] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialMessages && initialMessages.length > 0) {
+      setMessages(initialMessages);
+    }
+  }, [initialMessages]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -84,6 +94,7 @@ export function LiuYaoFollowUpWidget({
           question: query,
           reading,
           previous_messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+          session_id: sessionId,
           points_ref: pointsRef,
           lang
         }),

@@ -18,7 +18,7 @@ import { Sparkles, RotateCcw, CheckCircle2, Clock, Copy, Check } from 'lucide-re
 import { usePointsGate } from '@/components/site/PointsGateProvider';
 import { LiuYaoFollowUpWidget } from './LiuYaoFollowUpWidget';
 import { MarkdownView } from '@/components/common/MarkdownView';
-import { saveReading } from '@/lib/storage/reading-history';
+import { saveReading, getSavedReadings } from '@/lib/storage/reading-history';
 
 gsap.registerPlugin(useGSAP);
 
@@ -49,6 +49,8 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
   const [aiReport, setAiReport] = useState<string>('');
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string>('');
+  const [restoredMessages, setRestoredMessages] = useState<Array<{ id: string; role: 'user' | 'assistant'; content: string; timestamp: string }>>([]);
   const pointsGate = usePointsGate();
 
   // 复制完整解卦与卦象报告
@@ -85,6 +87,57 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
       });
     }
   }, [aiReport, isGeneratingAi, reading, question, isEn]);
+
+  // 历史卦例回访入口：支持 ?session_id=xxx 直接恢复全盘卦象、深度解卦与追问历史，继续互动
+  useEffect(() => {
+    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (!rawSessionId) return;
+
+    // 1. 优先尝试从云端加载
+    fetch(`/api/east/liuyao/sessions?id=${encodeURIComponent(rawSessionId)}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data?.session) {
+          setSessionId(data.session.id);
+          if (data.session.question) setQuestion(data.session.question);
+          if (data.session.reading_snapshot) {
+            const snap = data.session.reading_snapshot;
+            setReading(snap);
+            if (snap.lines && Array.isArray(snap.lines)) {
+              setLines(snap.lines);
+              setCurrentLine(6);
+            }
+            if (snap.ai_report) {
+              setAiReport(snap.ai_report);
+            }
+          }
+          if (data.messages && Array.isArray(data.messages)) {
+            setRestoredMessages(data.messages);
+          }
+          return;
+        }
+
+        // 2. 本地档案兜底恢复
+        const localList = getSavedReadings();
+        const found = localList.find(r => r.id === rawSessionId);
+        if (found) {
+          setSessionId(found.id);
+          if (found.question) setQuestion(found.question);
+          if (found.fullContent) setAiReport(found.fullContent);
+          if (found.chatHistory) {
+            setRestoredMessages(
+              found.chatHistory.map((m, idx) => ({
+                id: String(idx),
+                role: m.role,
+                content: m.text,
+                timestamp: m.timestamp || ''
+              }))
+            );
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // 验收 / 复现入口：支持 ?lines=101011（0/1 阴阳）或 ?lines=978678（6=老阴, 7=少阳, 8=少阴, 9=老阳）
   useEffect(() => {
@@ -286,6 +339,9 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
                 const parsed = JSON.parse(data);
                 if (parsed.text) {
                   setAiReport(prev => prev + parsed.text);
+                }
+                if (parsed.session_id) {
+                  setSessionId(parsed.session_id);
                 }
               } catch {
                 // Ignore parse errors for keep-alive comments
@@ -796,6 +852,8 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
               <LiuYaoFollowUpWidget
                 reading={reading}
                 initialQuestion={question}
+                sessionId={sessionId}
+                initialMessages={restoredMessages}
                 lang={lang === 'en' ? 'en' : 'zh'}
               />
             </div>

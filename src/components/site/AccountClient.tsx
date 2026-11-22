@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { CONTAINER } from './constants';
 import { UserAvatar } from './UserAvatar';
 import { useUser } from '@/lib/auth/use-user';
@@ -49,8 +50,42 @@ export function AccountClient({ lang = 'zh' }: { lang?: string }) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
-    setSavedReadings(getSavedReadings());
-  }, []);
+    const local = getSavedReadings();
+    setSavedReadings(local);
+
+    // 若已登录，同步拉取云端保存的六爻会话，合并去重
+    fetch('/api/east/liuyao/sessions')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.sessions && Array.isArray(data.sessions)) {
+          const cloudReadings: SavedReading[] = data.sessions.map((s: { id: string; question: string; created_at: string; reading_snapshot?: any }) => ({
+            id: s.id,
+            type: 'liuyao',
+            title: isEn
+              ? `【${s.reading_snapshot?.primaryHexagram?.nameEn || 'I Ching'}】Reading`
+              : `【${s.reading_snapshot?.primaryHexagram?.nameZh || '纳甲六爻'}】神谕`,
+            question: s.question,
+            timestamp: s.created_at,
+            summary: s.reading_snapshot?.ai_report?.slice(0, 140) || (isEn ? 'I Ching divination' : '纳甲六爻神谕'),
+            fullContent: s.reading_snapshot?.ai_report || '',
+            hexagram: {
+              primary: s.reading_snapshot?.primaryHexagram?.nameZh || '',
+              transformed: s.reading_snapshot?.transformedHexagram?.nameZh || undefined
+            }
+          }));
+
+          setSavedReadings((prev) => {
+            const map = new Map<string, SavedReading>();
+            prev.forEach((r) => map.set(r.id, r));
+            cloudReadings.forEach((r) => map.set(r.id, r));
+            return Array.from(map.values()).sort(
+              (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            );
+          });
+        }
+      })
+      .catch(() => {});
+  }, [isEn]);
 
   const handleCopySaved = (reading: SavedReading) => {
     let full = isEn ? `【YiTarot · Divination Record】\n` : `【YiTarot · 测算档案】\n`;
@@ -272,6 +307,20 @@ export function AccountClient({ lang = 'zh' }: { lang?: string }) {
                       </div>
 
                       <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
+                        <Link
+                          href={
+                            item.type === 'liuyao'
+                              ? `/${lang}/east/liuyao?session_id=${encodeURIComponent(item.id)}`
+                              : item.type === 'tarot'
+                              ? `/${lang}/reading?session_id=${encodeURIComponent(item.id)}`
+                              : `/${lang}/east/bazi`
+                          }
+                          title={isEn ? 'Resume and continue follow-up' : '打开此卦例/牌例继续提问'}
+                          className="flex h-8 items-center gap-1 rounded-full border border-ink bg-ink text-white px-3 text-[12px] font-medium transition-opacity hover:opacity-85"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          <span className="hidden sm:inline">{isEn ? 'Resume' : '继续提问'}</span>
+                        </Link>
                         <button
                           type="button"
                           onClick={() => handleCopySaved(item)}

@@ -4,7 +4,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { TAROT_SPREADS, TarotSpread, getSpreadById } from '@/lib/tarot/spreads';
 import { TAROT_READERS, TarotReader } from '@/lib/tarot/readers';
-import { DrawnCard } from '@/lib/tarot/deck';
+import { DrawnCard, TAROT_DECK } from '@/lib/tarot/deck';
 import { DeckShuffler } from './DeckShuffler';
 import { ReadingResult } from './ReadingResult';
 import { ShareCardModal } from './ShareCardModal';
@@ -12,6 +12,7 @@ import { ArrowRight } from 'lucide-react';
 import { ReaderAvatarIcon } from '@/components/icons/QiIcons';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
 import { READING_COST } from '@/lib/points/constants';
+import { getSavedReadings } from '@/lib/storage/reading-history';
 
 interface CategoryItem {
   id: string;
@@ -134,6 +135,34 @@ function ReadingConsoleInner({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const pointsGate = usePointsGate();
   const hasConsumedRef = useRef(false);
+
+  // 恢复历史塔罗牌例，支持直接继续追问
+  React.useEffect(() => {
+    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (!rawSessionId) return;
+
+    const list = getSavedReadings();
+    const found = list.find((r) => r.id === rawSessionId);
+    if (found && found.type === 'tarot') {
+      if (found.question) setQuestion(found.question);
+      if (found.fullContent) setInterpretationText(found.fullContent);
+      if (found.cards && found.cards.length > 0) {
+        const rebuilt: DrawnCard[] = found.cards.map((c, i) => {
+          const cardData =
+            TAROT_DECK.find((cd) => cd.nameZh === c.name || cd.nameEn === c.name) ||
+            TAROT_DECK[0];
+          return {
+            card: cardData,
+            isReversed: Boolean(c.isReversed),
+            positionName: c.position || `Position ${i + 1}`,
+            positionDesc: ''
+          };
+        });
+        setDrawnCards(rebuilt);
+      }
+      setStep('result');
+    }
+  }, []);
 
   // 点击预设问题
   const handleSelectPreset = (q: string) => {
