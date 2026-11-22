@@ -11,6 +11,7 @@ import {
 } from '@/lib/metaphysics/bazi';
 import { Sparkles, Compass } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
+import { MarkdownView } from '@/components/common/MarkdownView';
 
 gsap.registerPlugin(useGSAP);
 
@@ -460,8 +461,11 @@ ${dm.cosmicAdviceZh}
         </div>
 
         {aiReport ? (
-          <div className="prose prose-neutral max-w-none text-[#171717] text-[13px] sm:text-[14px] leading-relaxed space-y-4 whitespace-pre-line border-t border-[#E4E4E7] pt-6 animate-in fade-in">
-            {aiReport}
+          <div className="border-t border-[#E4E4E7] pt-6 animate-in fade-in">
+            <MarkdownView
+              content={aiReport}
+              className="text-[13px] sm:text-[14px] leading-relaxed text-[#171717]"
+            />
           </div>
         ) : (
           <div className="py-8 text-center text-[13px] text-[#52525B] border-t border-[#E4E4E7]">

@@ -7,6 +7,9 @@ import { UserAvatar } from './UserAvatar';
 import { useUser } from '@/lib/auth/use-user';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { READING_COST } from '@/lib/points/constants';
+import { getSavedReadings, deleteSavedReading, type SavedReading } from '@/lib/storage/reading-history';
+import { MarkdownView } from '@/components/common/MarkdownView';
+import { ChevronDown, ChevronUp, Copy, Check, Trash2, MessageSquare, BookOpen } from 'lucide-react';
 
 interface LedgerEntry {
   id: number;
@@ -41,6 +44,41 @@ export function AccountClient({ lang = 'zh' }: { lang?: string }) {
   const [ledger, setLedger] = useState<LedgerEntry[] | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [claimError, setClaimError] = useState('');
+  const [savedReadings, setSavedReadings] = useState<SavedReading[]>([]);
+  const [expandedReadingId, setExpandedReadingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSavedReadings(getSavedReadings());
+  }, []);
+
+  const handleCopySaved = (reading: SavedReading) => {
+    let full = isEn ? `【YiTarot · Divination Record】\n` : `【YiTarot · 测算档案】\n`;
+    full += `${isEn ? 'Title' : '标题'}：${reading.title}\n`;
+    if (reading.question) full += `${isEn ? 'Inquiry' : '事项'}：${reading.question}\n`;
+    if (reading.cards?.length) {
+      full += `${isEn ? 'Spread' : '牌阵'}：${reading.cards.map(c => `${c.position} - ${c.name}${c.isReversed ? ' (逆位)' : ''}`).join('; ')}\n`;
+    }
+    if (reading.hexagram) {
+      full += `${isEn ? 'Hexagram' : '卦象'}：本卦 ${reading.hexagram.primary}${reading.hexagram.transformed ? ` -> 变卦 ${reading.hexagram.transformed}` : ''}\n`;
+    }
+    full += `\n【${isEn ? 'Report' : '解读正文'}】\n${reading.fullContent}\n`;
+    if (reading.chatHistory?.length) {
+      full += `\n【${isEn ? 'Follow-up Dialogues' : '追问对话'}】\n`;
+      reading.chatHistory.forEach(m => {
+        full += `${m.role === 'user' ? (isEn ? 'Q: ' : '问：') : (isEn ? 'A: ' : '答：')}${m.text}\n`;
+      });
+    }
+    navigator.clipboard.writeText(full);
+    setCopiedId(reading.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleDeleteSaved = (id: string) => {
+    deleteSavedReading(id);
+    setSavedReadings(prev => prev.filter(r => r.id !== id));
+    if (expandedReadingId === id) setExpandedReadingId(null);
+  };
 
   // 未登录 → 登录页
   useEffect(() => {
@@ -179,6 +217,121 @@ export function AccountClient({ lang = 'zh' }: { lang?: string }) {
                   ? `Claim ${READING_COST} points`
                   : `领取今日 ${READING_COST} 积分`}
           </button>
+        </div>
+      </div>
+
+      {/* 测算与会话档案 */}
+      <div className="mkt-rise mkt-rise-3 mt-12">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[16px] font-semibold text-ink">
+              {isEn ? 'Saved readings & conversations' : '测算与会话档案'}
+            </h2>
+            <p className="mt-1 text-[12.5px] text-whisper">
+              {isEn
+                ? 'Review your past I Ching, Tarot, and BaZi interpretations and follow-up dialogues.'
+                : '回顾你过往的六爻、塔罗与八字推演报告及追问问答。'}
+            </p>
+          </div>
+          <span className="text-[12px] font-mono text-soft tabular-nums">
+            {savedReadings.length} {isEn ? 'records' : '条档案'}
+          </span>
+        </div>
+
+        <div className="mt-4 border-t border-line">
+          {savedReadings.length === 0 ? (
+            <div className="py-10 text-center text-[13px] text-whisper">
+              <BookOpen className="mx-auto mb-2 h-5 w-5 text-whisper" />
+              <p>{isEn ? 'No saved divination dialogues yet. Start a reading to record.' : '暂无保存的测算对话。发起一次六爻或塔罗占卜后将自动在此归档。'}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-line">
+              {savedReadings.map((item) => {
+                const isExpanded = expandedReadingId === item.id;
+                const isCopied = copiedId === item.id;
+                return (
+                  <div key={item.id} className="py-4.5 transition-colors">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-block rounded-full bg-mist px-2.5 py-0.5 text-[11px] font-medium text-ink">
+                            {item.type === 'liuyao' ? (isEn ? 'I Ching' : '纳甲六爻') : item.type === 'tarot' ? (isEn ? 'Tarot' : '塔罗牌阵') : (isEn ? 'BaZi' : '八字命理')}
+                          </span>
+                          <h3 className="truncate font-serif text-[15px] font-medium text-ink">
+                            {item.title}
+                          </h3>
+                        </div>
+                        {item.question && (
+                          <p className="mt-1 truncate text-[12.5px] text-soft">
+                            {isEn ? 'Inquiry: ' : '事项：'}{item.question}
+                          </p>
+                        )}
+                        <p className="mt-1 text-[11px] font-mono text-whisper">
+                          {formatDateTime(item.timestamp)}
+                        </p>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handleCopySaved(item)}
+                          title={isEn ? 'Copy full record' : '复制完整档案'}
+                          className="flex h-8 items-center gap-1 rounded-full border border-line px-3 text-[12px] text-soft transition-colors hover:border-ink/30 hover:text-ink cursor-pointer"
+                        >
+                          {isCopied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                          <span className="hidden sm:inline">{isCopied ? (isEn ? 'Copied' : '已复制') : (isEn ? 'Copy' : '复制')}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSaved(item.id)}
+                          title={isEn ? 'Delete record' : '删除此记录'}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-whisper transition-colors hover:border-red-300 hover:text-red-600 cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedReadingId(isExpanded ? null : item.id)}
+                          className="flex h-8 items-center gap-1 rounded-full bg-ink px-3 text-[12px] text-white transition-opacity hover:opacity-80 cursor-pointer"
+                        >
+                          <span>{isExpanded ? (isEn ? 'Collapse' : '收起') : (isEn ? 'View' : '查看完整报告')}</span>
+                          {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="mt-4 rounded-xl border border-line bg-mist/30 p-5 animate-in fade-in space-y-4">
+                        <MarkdownView content={item.fullContent} className="text-[13px] sm:text-[13.5px] leading-relaxed text-ink" />
+
+                        {item.chatHistory && item.chatHistory.length > 0 && (
+                          <div className="border-t border-line pt-4 space-y-3">
+                            <h4 className="flex items-center gap-1.5 font-serif text-[13px] font-semibold text-ink">
+                              <MessageSquare className="h-3.5 w-3.5" />
+                              <span>{isEn ? 'Follow-up Dialogues' : '追问与问答记录'}</span>
+                            </h4>
+                            <div className="space-y-2.5">
+                              {item.chatHistory.map((m, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`rounded-lg p-3 text-xs leading-relaxed ${
+                                    m.role === 'user' ? 'bg-white border border-line text-ink font-medium' : 'bg-mist/80 text-soft'
+                                  }`}
+                                >
+                                  <span className="font-semibold text-ink mr-1.5">{m.role === 'user' ? (isEn ? 'Q: ' : '问：') : (isEn ? 'A: ' : '答：')}</span>
+                                  <MarkdownView content={m.text} className="inline text-xs" />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

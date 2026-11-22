@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { UploadCloud, Image as ImageIcon, X, Sparkles, RotateCcw, AlertCircle, ArrowRight } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
+import { MarkdownView } from '@/components/common/MarkdownView';
 
 interface HexagramVisionWidgetProps {
   lang?: string;
@@ -330,9 +331,10 @@ export function HexagramVisionWidget({ lang = 'zh' }: HexagramVisionWidgetProps)
             </button>
           </div>
 
-          <div className="prose prose-neutral max-w-none text-[#171717] text-xs sm:text-sm leading-relaxed space-y-4 whitespace-pre-line">
-            {readingResult}
-          </div>
+          <MarkdownView
+            content={readingResult}
+            className="text-xs sm:text-[13.5px] leading-relaxed text-[#171717]"
+          />
         </div>
       )}
     </div>

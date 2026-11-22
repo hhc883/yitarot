@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { DrawnCard } from '@/lib/tarot/deck';
 import { TarotReader } from '@/lib/tarot/readers';
 import { TarotCardView } from './TarotCardView';
-import { Share2, MessageCircle, Send, RotateCcw, Copy, Check, AlertCircle } from 'lucide-react';
+import { Share2, MessageCircle, Send, RotateCcw, Copy, Check, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { ReaderAvatarIcon } from '@/components/icons/QiIcons';
+import { MarkdownView } from '@/components/common/MarkdownView';
+import { saveReading } from '@/lib/storage/reading-history';
 
 interface ReadingResultProps {
   question: string;
@@ -33,11 +35,45 @@ export function ReadingResult({
   const [followUpInput, setFollowUpInput] = useState('');
   const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
   const [isAskingFollowUp, setIsAskingFollowUp] = useState(false);
+  const savedIdRef = React.useRef<string>('');
 
-  // 复制解读内容
+  // 自动将本次解读与追问会话持久化保存到本地档案
+  React.useEffect(() => {
+    if (interpretationText && !isStreaming && !interpretationText.includes('网络波动')) {
+      const entry = saveReading({
+        id: savedIdRef.current || undefined,
+        type: 'tarot',
+        title: question || (isEn ? 'Tarot Reading' : '塔罗牌阵占卜'),
+        question,
+        summary: interpretationText.slice(0, 140) + '...',
+        fullContent: interpretationText,
+        cards: drawnCards.map(c => ({
+          name: isEn ? c.card.nameEn : c.card.nameZh,
+          position: c.positionName || '',
+          isReversed: c.isReversed
+        })),
+        chatHistory: chatHistory.map(c => ({ role: c.role, text: c.text }))
+      });
+      savedIdRef.current = entry.id;
+    }
+  }, [interpretationText, isStreaming, question, drawnCards, chatHistory, isEn]);
+
+  // 完整复制档案（包含所问事项、牌阵卡牌、深度解读与追问对话）
   const handleCopy = () => {
     if (!interpretationText) return;
-    navigator.clipboard.writeText(interpretationText);
+    let fullLog = isEn ? `【YiTarot · Tarot Reading Record】\n` : `【YiTarot · 塔罗占卜档案】\n`;
+    if (question) fullLog += isEn ? `Inquiry: ${question}\n` : `所问事项：${question}\n`;
+    fullLog += isEn
+      ? `Spread Layout: ${drawnCards.map(c => `${c.positionName || ''} - ${c.card.nameEn}${c.isReversed ? ' (Reversed)' : ' (Upright)'}`).join('; ')}\n\n`
+      : `抽选牌阵：${drawnCards.map(c => `${c.positionName} - ${c.card.nameZh}${c.isReversed ? ' (逆位)' : ' (正位)'}`).join('；')}\n\n`;
+    fullLog += isEn ? `【Interpretation Report】\n${interpretationText}\n` : `【解读正文】\n${interpretationText}\n`;
+    if (chatHistory.length > 0) {
+      fullLog += isEn ? `\n【Follow-up Dialogues】\n` : `\n【追问对话记录】\n`;
+      chatHistory.forEach(m => {
+        fullLog += `\n${m.role === 'user' ? (isEn ? 'Q: ' : '问：') : (isEn ? 'A: ' : '答：')}${m.text}\n`;
+      });
+    }
+    navigator.clipboard.writeText(fullLog);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -161,13 +197,19 @@ export function ReadingResult({
 
         {/* 顶部操作区 */}
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-[#E4E4E7]">
+          {interpretationText && !isStreaming && (
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-[#52525B] mr-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{isEn ? 'Saved to history' : '已自动保存对话'}</span>
+            </span>
+          )}
           <button
             onClick={handleCopy}
             disabled={!interpretationText || isStreaming}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-[#F5F5F6] text-[#171717] transition-colors border border-[#8A8A91] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-[#171717]" /> : <Copy className="w-3.5 h-3.5" />}
-            {copied ? (isEn ? 'Copied' : '已复制') : (isEn ? 'Copy' : '复制解读')}
+            {copied ? (isEn ? 'Copied' : '已复制完整对话') : (isEn ? 'Copy Full Log' : '复制完整对话')}
           </button>
           <button
             onClick={onOpenShareModal}
@@ -277,9 +319,10 @@ export function ReadingResult({
 
         {/* 解读报告正文 */}
         {interpretationText && !isNetworkError && (
-          <div className="prose prose-stone max-w-none text-[#171717] font-sans leading-relaxed text-xs sm:text-sm lg:text-base space-y-4 whitespace-pre-line">
-            {interpretationText}
-          </div>
+          <MarkdownView
+            content={interpretationText}
+            className="text-xs sm:text-sm lg:text-[15px] leading-relaxed text-[#171717]"
+          />
         )}
       </div>
 
@@ -313,13 +356,17 @@ export function ReadingResult({
                         : 'bg-[#F5F5F6] text-[#171717] border border-[#E4E4E7]'
                     }`}
                   >
-                    {msg.text ? (
-                      msg.text
+                    {msg.role === 'assistant' ? (
+                      msg.text ? (
+                        <MarkdownView content={msg.text} className="text-xs sm:text-[13px]" />
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-[#52525B] animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#8A8A91] inline-block" />
+                          {isEn ? 'Connecting with the cards...' : '正在静心感应牌意...'}
+                        </span>
+                      )
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-[#52525B] animate-pulse">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#8A8A91] inline-block" />
-                        {isEn ? 'Connecting with the cards...' : '正在静心感应牌意...'}
-                      </span>
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
                     )}
                   </div>
                 </div>

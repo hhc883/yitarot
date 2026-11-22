@@ -14,9 +14,11 @@ import {
   formatLineName,
   type LiuYaoTimeInfo
 } from '@/lib/metaphysics/najia';
-import { Sparkles, RotateCcw, CheckCircle2, Clock } from 'lucide-react';
+import { Sparkles, RotateCcw, CheckCircle2, Clock, Copy, Check } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
 import { LiuYaoFollowUpWidget } from './LiuYaoFollowUpWidget';
+import { MarkdownView } from '@/components/common/MarkdownView';
+import { saveReading } from '@/lib/storage/reading-history';
 
 gsap.registerPlugin(useGSAP);
 
@@ -46,7 +48,43 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
   const [timeInfo, setTimeInfo] = useState<LiuYaoTimeInfo | null>(() => getCurrentLiuYaoTimeInfo());
   const [aiReport, setAiReport] = useState<string>('');
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
   const pointsGate = usePointsGate();
+
+  // 复制完整解卦与卦象报告
+  const handleCopyReport = () => {
+    if (!aiReport || !reading) return;
+    const title = isEn ? `【YiTarot · I Ching Oracle Report】\n` : `【YiTarot · 京房纳甲六爻解卦档案】\n`;
+    const q = question ? (isEn ? `Inquiry: ${question}\n` : `求问事项：${question}\n`) : '';
+    const hex = isEn
+      ? `Primary: ${reading.primaryHexagram.nameEn} (${reading.najia?.palace} Palace)\n`
+      : `本卦：${reading.primaryHexagram.nameZh}（${reading.najia?.palace}宫${reading.najia?.palaceElement}）${reading.transformedHexagram ? ` -> 变卦：${reading.transformedHexagram.nameZh}` : '（六爻安静）'}\n`;
+    const body = `\n【AI 神谕全息解读】\n${aiReport}\n`;
+    navigator.clipboard.writeText(title + q + hex + body);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // 自动将六爻卦象与 AI 解卦存入本地档案
+  useEffect(() => {
+    if (aiReport && !isGeneratingAi && reading) {
+      saveReading({
+        type: 'liuyao',
+        title: isEn
+          ? `【${reading.primaryHexagram.nameEn}】I Ching Reading`
+          : `【${reading.primaryHexagram.nameZh}】六爻神谕`,
+        question,
+        summary: aiReport.slice(0, 140) + '...',
+        fullContent: aiReport,
+        hexagram: {
+          primary: isEn ? reading.primaryHexagram.nameEn : reading.primaryHexagram.nameZh,
+          transformed: reading.transformedHexagram
+            ? (isEn ? reading.transformedHexagram.nameEn : reading.transformedHexagram.nameZh)
+            : undefined
+        }
+      });
+    }
+  }, [aiReport, isGeneratingAi, reading, question, isEn]);
 
   // 验收 / 复现入口：支持 ?lines=101011（0/1 阴阳）或 ?lines=978678（6=老阴, 7=少阳, 8=少阴, 9=老阳）
   useEffect(() => {
@@ -719,25 +757,40 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
               </h4>
             </div>
 
-            <button
-              onClick={handleGenerateAiReport}
-              disabled={isGeneratingAi}
-              className="px-6 py-2.5 rounded-full bg-[#171717] hover:bg-[#333333] text-white text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-white/80" />
-              <span>
-                {isGeneratingAi
-                  ? (isEn ? 'Consulting Lines & Moon/Day...' : 'AI 正在依纳甲断爻...')
-                  : (isEn ? 'Generate Comprehensive Reading' : '让 AI 深度解卦')}
-              </span>
-            </button>
+            <div className="flex items-center gap-2">
+              {aiReport && (
+                <button
+                  type="button"
+                  onClick={handleCopyReport}
+                  className="px-3.5 py-2 rounded-full border border-[#8A8A91] hover:bg-[#F5F5F6] text-[#171717] text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? (isEn ? 'Copied' : '已复制解卦') : (isEn ? 'Copy Full Report' : '复制解卦报告')}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleGenerateAiReport}
+                disabled={isGeneratingAi}
+                className="px-6 py-2.5 rounded-full bg-[#171717] hover:bg-[#333333] text-white text-xs font-medium flex items-center gap-1.5 transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-white/80" />
+                <span>
+                  {isGeneratingAi
+                    ? (isEn ? 'Consulting Lines & Moon/Day...' : 'AI 正在依纳甲断爻...')
+                    : (isEn ? 'Generate Comprehensive Reading' : '让 AI 深度解卦')}
+                </span>
+              </button>
+            </div>
           </div>
 
           {aiReport ? (
             <div className="space-y-6">
-              <div className="prose prose-stone max-w-none text-[#171717] text-xs sm:text-sm leading-relaxed space-y-4 whitespace-pre-line animate-in fade-in">
-                {aiReport}
-              </div>
+              <MarkdownView
+                content={aiReport}
+                className="text-xs sm:text-[13.5px] leading-relaxed text-[#171717] animate-in fade-in"
+              />
 
               {/* 针对当前卦象的 2 积分多轮追问组件 */}
               <LiuYaoFollowUpWidget

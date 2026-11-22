@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Clock, ShieldCheck, User } from 'lucide-react';
 import { IChingReading } from '@/lib/metaphysics/iching';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
+import { MarkdownView } from '@/components/common/MarkdownView';
 
 interface MessageItem {
   id: string;
@@ -198,14 +199,20 @@ export function LiuYaoFollowUpWidget({
                 className={`max-w-[85%] sm:max-w-[78%] rounded-2xl p-4 text-xs sm:text-[13px] leading-relaxed ${
                   msg.role === 'user'
                     ? 'bg-[#171717] text-white rounded-br-xs'
-                    : 'bg-white border border-[#E4E4E7] text-[#171717] rounded-bl-xs shadow-2xs whitespace-pre-wrap font-serif'
+                    : 'bg-white border border-[#E4E4E7] text-[#171717] rounded-bl-xs shadow-2xs'
                 }`}
               >
-                {msg.content || (
-                  <span className="flex items-center gap-1.5 text-[#71717A]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#71717A] animate-pulse" />
-                    <span>{isEn ? 'Synthesizing line changes & essence...' : '依卦象深层推演中...'}</span>
-                  </span>
+                {msg.role === 'assistant' ? (
+                  msg.content ? (
+                    <MarkdownView content={msg.content} className="text-xs sm:text-[13px]" />
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-[#71717A]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#71717A] animate-pulse" />
+                      <span>{isEn ? 'Synthesizing line changes & essence...' : '依卦象深层推演中...'}</span>
+                    </span>
+                  )
+                ) : (
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
                 )}
                 <div
                   className={`mt-1.5 text-[9px] font-mono text-right ${
