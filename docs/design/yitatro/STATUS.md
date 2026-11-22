@@ -45,10 +45,27 @@
 | I | 预留易学专业 Skill 插件插槽、接入 DeepSeek 降本适配器、六爻 2 积分多轮追问与 7 天生命周期数据存储架构。 | 本地通过（发布就绪） |
 | J | 全站多语言 TDK 关键词继承修复：彻底解决 Next.js App Router 根布局 keywords 向英文页面渗透下沉问题，全站动态与静态路由精准匹配双语 SEO 词库。 | 本地验收通过（发布就绪） |
 | K | 全站多语言纯正度与中英文混入治理：彻底消除英文模式下的中文残留（首页3D展台、每日一签、自由抽牌、卡牌百科、专厅工具卡、八字纳音与紫微宫位），实现全站英文页面 0 中文混入。 | 本地验收通过（发布就绪） |
+| L | 竞品命名与历史痕迹彻底脱敏治理：将旧竞品前缀 fatemaster 全量重构为 YiTatro 原生架构（/[lang]/east/*、/api/east/*、components/east/、east-ai.ts），配置 301 永久重定向并更正包名与配置注释。 | 全量重构验收通过（发布就绪） |
 
 ## 交接记录
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- L（Antigravity 实现、全量路由重构、ESLint 0 报警、全站 333+ 路由构建验收通过）：
+  1. **路由与页面架构重构（Stage L.1）**：
+     - 将原竞品残留路径 `/[lang]/fatemaster/*`（八字、六爻、紫微、梅花、奇门、合盘等 22 个工具目录）全量平移并入 `/[lang]/east/*` 东方专厅原生子路由体系下；
+     - 彻底删除旧版过渡页 `src/app/[lang]/fatemaster/page.tsx`，由统一规范设计的东方专厅总览页 `/[lang]/east` 作为唯一样板与入口；
+     - 在 `next.config.ts` 中配置 `/:lang/fatemaster/:path*` -> `/:lang/east/:path*` 的 301 永久重定向，保证外部旧链接与历史搜索引擎书签 100% 自动无缝流转。
+  2. **组件与服务端 API 解耦重命名（Stage L.2）**：
+     - 组件目录由 `src/components/fatemaster` 重命名为 `src/components/east`，与西厅 `src/components/tarot` 形成对仗工整的架构体系；
+     - 服务端 API 路由由 `/api/fatemaster/*` 重命名为 `/api/east/*`，在 `next.config.ts` 中同步配置了 `/api/fatemaster/:path*` 到 `/api/east/:path*` 的安全重定向映射；
+     - 易学推演库由 `src/lib/metaphysics/fatemaster-ai.ts` 重命名为 `src/lib/metaphysics/east-ai.ts`；
+     - 修复 `MeihuaDecisionWidget.tsx` 中的旧版竞品 UI 文案 `FateMaster Console`，更正为 `Eastern Metaphysics Hall`（东方专厅总览）；
+     - 将 `package.json` 中的遗留包名 `suanming-html` 更正为官方品牌 `yitarot`，将 `.env.example` 注释更正为 `YiTatro 环境变量配置示例`。
+  3. **自动化测试与重定向验证（Stage L.3）**：
+     - `npm run lint` 验证通过（0 errors, 0 warnings）；
+     - `npm run build` 全站 333+ 静态与动态路由成功编译并通过；
+     - 本地启动生产服务执行针对性端点探测：`/zh/east` (200 OK)、`/zh/east/liuyao` (200 OK)、`/zh/east/bazi` (200 OK)、`/zh/fatemaster/liuyao` (308 永久重定向到 `/zh/east/liuyao`)、`sitemap.xml` 中已 100% 清除所有 fatemaster 字符串。
 
 - K（Antigravity 实现、本地生产构建、ESLint 0 报警、多语言纯正度 0 混入验收通过）：
   1. **塔罗核心组件纯正多语言改造（Stage K.1）**：

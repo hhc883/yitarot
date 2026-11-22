@@ -7,33 +7,48 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/:lang/fatemaster/:path*',
+        destination: '/:lang/east/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:lang/fatemaster',
+        destination: '/:lang/east',
+        permanent: true,
+      },
+      {
+        source: '/api/fatemaster/:path*',
+        destination: '/api/east/:path*',
+        permanent: true,
+      },
+      {
         source: '/:lang/calculator/bazi',
-        destination: '/:lang/fatemaster/bazi',
+        destination: '/:lang/east/bazi',
         permanent: true,
       },
       {
         source: '/:lang/calculator/iching',
-        destination: '/:lang/fatemaster/liuyao',
+        destination: '/:lang/east/liuyao',
         permanent: true,
       },
       {
         source: '/:lang/calculator',
-        destination: '/:lang/fatemaster',
+        destination: '/:lang/east',
         permanent: true,
       },
       {
         source: '/:lang/compatibility/:slug*',
-        destination: '/:lang/fatemaster/compatibility',
+        destination: '/:lang/east/compatibility',
         permanent: true,
       },
       {
         source: '/:lang/compatibility',
-        destination: '/:lang/fatemaster/compatibility',
+        destination: '/:lang/east/compatibility',
         permanent: true,
       },
       {
         source: '/:lang/knowledge',
-        destination: '/:lang/fatemaster',
+        destination: '/:lang/east',
         permanent: true,
       },
       {

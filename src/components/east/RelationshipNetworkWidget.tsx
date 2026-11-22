@@ -1,0 +1,318 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+
+interface NetworkNode {
+  id: string;
+  name: string;
+  nameEn: string;
+  roleZh: string;
+  roleEn: string;
+  type: string;
+  element: string;
+  elementEn: string;
+  elementColor: string;
+  score: number;
+  relationNatureZh: string;
+  relationNatureEn: string;
+  x: number;
+  y: number;
+}
+
+export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
+  const isEn = lang === 'en';
+  const [selectedNodeId, setSelectedNodeId] = useState<string>('spouse');
+
+  const nodes: NetworkNode[] = [
+    {
+      id: 'spouse',
+      name: '伴侣',
+      nameEn: 'Spouse',
+      roleZh: '夫妻配偶 / 正财正官',
+      roleEn: 'Spouse / Direct Wealth & Officer',
+      type: 'marriage',
+      element: '水',
+      elementEn: 'Water',
+      elementColor: '#06B6D4',
+      score: 91,
+      relationNatureZh: '夫妻内宫六合，天作之合，长久依恋',
+      relationNatureEn: 'Inner palace Six Harmonies; celestial alignment yielding lasting devotion.',
+      x: 180,
+      y: 90
+    },
+    {
+      id: 'mother',
+      name: '母亲',
+      nameEn: 'Mother',
+      roleZh: '正印庇佑 / 慈爱源泉',
+      roleEn: 'Direct Resource / Maternal Blessing',
+      type: 'mother-child',
+      element: '金',
+      elementEn: 'Metal',
+      elementColor: '#94A3B8',
+      score: 88,
+      relationNatureZh: '金水相生，印星生身，深厚包容',
+      relationNatureEn: 'Metal generating Water; deep maternal sheltering and enduring empathy.',
+      x: 320,
+      y: 90
+    },
+    {
+      id: 'father',
+      name: '父亲',
+      nameEn: 'Father',
+      roleZh: '偏财父权 / 人生指引',
+      roleEn: 'Indirect Wealth / Paternal Mentor',
+      type: 'parent-child',
+      element: '木',
+      elementEn: 'Wood',
+      elementColor: '#10B981',
+      score: 82,
+      relationNatureZh: '偏财制衡，刚柔并济，精神传承',
+      relationNatureEn: 'Balanced indirect wealth guidance; philosophical heritage and resilience.',
+      x: 390,
+      y: 220
+    },
+    {
+      id: 'child',
+      name: '子女',
+      nameEn: 'Child',
+      roleZh: '食伤显秀 / 未来归宿',
+      roleEn: 'Output / Generational Continuation',
+      type: 'mother-child',
+      element: '木',
+      elementEn: 'Wood',
+      elementColor: '#10B981',
+      score: 94,
+      relationNatureZh: '我生食伤，秀气流行，温情反哺',
+      relationNatureEn: 'Self generating Output; talent flowing outward with warm filial reciprocity.',
+      x: 340,
+      y: 350
+    },
+    {
+      id: 'partner',
+      name: '合伙人',
+      nameEn: 'Business Partner',
+      roleZh: '财官协同 / 事业盟友',
+      roleEn: 'Commercial Synergy / Strategic Ally',
+      type: 'business',
+      element: '火',
+      elementEn: 'Fire',
+      elementColor: '#EF4444',
+      score: 85,
+      relationNatureZh: '优势互补，契约分明，求财拓荒',
+      relationNatureEn: 'Complementary execution; crystal-clear agreements driving collective expansion.',
+      x: 160,
+      y: 350
+    },
+    {
+      id: 'friend',
+      name: '密友',
+      nameEn: 'Best Friend',
+      roleZh: '比肩同气 / 灵魂树洞',
+      roleEn: 'Peer Friend / Soul Confidant',
+      type: 'best-friends',
+      element: '水',
+      elementEn: 'Water',
+      elementColor: '#06B6D4',
+      score: 89,
+      relationNatureZh: '同舟共济，情绪托底，君子之交',
+      relationNatureEn: 'Mutual resonance; emotional grounding and unpretentious noble loyalty.',
+      x: 100,
+      y: 220
+    }
+  ];
+
+  const selectedNode = nodes.find(n => n.id === selectedNodeId) || nodes[0];
+
+  return (
+    <div className="w-full max-w-5xl mx-auto flex flex-col items-center">
+      <div className="w-full text-center mb-6">
+        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#171717] tracking-tight">
+          {isEn ? 'BaZi Relationship Network' : '八字关系图谱'}
+        </h1>
+        <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-1.5 max-w-lg mx-auto">
+          {isEn
+            ? 'Centered on your Day Master natal core, mapping multi-dimensional synastry networks across spouse, parents, children, partners, and peers.'
+            : '以你为天心原点，全景映射夫妻、父母、子女、合伙人与密友的多维命盘气场网络。'}
+        </p>
+      </div>
+
+      <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+        {/* 左侧：可视化 SVG 拓扑图谱 */}
+        <div className="md:col-span-7 rounded-2xl bg-white border border-[#E4E4E7] p-6 shadow-2xs flex flex-col items-center justify-center relative min-h-[440px]">
+          <svg className="w-full max-w-[480px] h-[400px] overflow-visible" viewBox="0 0 500 440">
+            {/* 中心到各节点的连线 */}
+            {nodes.map(n => {
+              const isSelected = n.id === selectedNodeId;
+              return (
+                <g key={n.id}>
+                  <line
+                    x1="250"
+                    y1="220"
+                    x2={n.x}
+                    y2={n.y}
+                    stroke={isSelected ? '#171717' : '#8A8A91'}
+                    strokeWidth={isSelected ? '2.5' : '1'}
+                    strokeOpacity={isSelected ? '0.9' : '0.2'}
+                    strokeDasharray={isSelected ? 'none' : '3 3'}
+                    className="transition-all duration-300"
+                  />
+                  {isSelected && (
+                    <circle
+                      cx={(250 + n.x) / 2}
+                      cy={(220 + n.y) / 2}
+                      r="4"
+                      fill="#171717"
+                      className="animate-pulse"
+                    />
+                  )}
+                </g>
+              );
+            })}
+
+            {/* 中心核心：我 (日主元神) */}
+            <circle
+              cx="250"
+              cy="220"
+              r="34"
+              fill="#171717"
+              stroke="#52525B"
+              strokeWidth="2"
+              className="filter drop-shadow-md cursor-default"
+            />
+            <text
+              x="250"
+              y="216"
+              textAnchor="middle"
+              className="text-xs font-serif font-black fill-white select-none"
+            >
+              {isEn ? 'Natal Core' : '本命元神'}
+            </text>
+            <text
+              x="250"
+              y="232"
+              textAnchor="middle"
+              className="text-[9px] font-serif fill-neutral-300 select-none"
+            >
+              {isEn ? 'Self (Day Master)' : '我 (日主)'}
+            </text>
+
+            {/* 周围各关系节点 */}
+            {nodes.map(n => {
+              const isSelected = n.id === selectedNodeId;
+              return (
+                <g
+                  key={n.id}
+                  onClick={() => setSelectedNodeId(n.id)}
+                  className="cursor-pointer group"
+                >
+                  <circle
+                    cx={n.x}
+                    cy={n.y}
+                    r={isSelected ? '28' : '24'}
+                    fill={isSelected ? '#171717' : '#F5F5F6'}
+                    stroke={isSelected ? '#171717' : '#E4E4E7'}
+                    strokeWidth={isSelected ? '2' : '1'}
+                    strokeOpacity="1"
+                    className="transition-all duration-300 group-hover:scale-105"
+                  />
+                  <text
+                    x={n.x}
+                    y={n.y - 2}
+                    textAnchor="middle"
+                    className={`text-xs font-serif font-bold select-none ${
+                      isSelected ? 'fill-white' : 'fill-[#171717]'
+                    }`}
+                  >
+                    {isEn ? n.nameEn : n.name}
+                  </text>
+                  <text
+                    x={n.x}
+                    y={n.y + 12}
+                    textAnchor="middle"
+                    className={`text-[9px] font-serif font-semibold select-none ${
+                      isSelected ? 'fill-neutral-300' : 'fill-[#52525B]'
+                    }`}
+                  >
+                    {n.score} {isEn ? 'pts' : '分'}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+
+          <span className="text-[11px] font-serif text-[#52525B] mt-2">
+            {isEn
+              ? 'Click any node to explore relational energy exchange and detailed compatibility indicators.'
+              : '点击任意节点，查看该关系的能量流动与详细契合指标'}
+          </span>
+        </div>
+
+        {/* 右侧：选中关系的深度解析面板 */}
+        <div className="md:col-span-5 rounded-2xl bg-white border border-[#E4E4E7] p-6 shadow-2xs flex flex-col justify-between min-h-[440px]">
+          <div>
+            <div className="flex items-center justify-between mb-4 border-b border-[#E4E4E7] pb-3">
+              <div>
+                <span className="text-[11px] font-serif text-[#52525B]">
+                  {isEn ? 'Selected Relationship' : '当前选中关系'}
+                </span>
+                <h3 className="font-serif font-black text-xl text-[#171717] mt-0.5">
+                  {isEn ? `${selectedNode.nameEn} · ${selectedNode.roleEn}` : `${selectedNode.name} · ${selectedNode.roleZh}`}
+                </h3>
+              </div>
+              <div className="text-right">
+                <span className="text-[11px] font-serif text-[#52525B]">
+                  {isEn ? 'Harmony Index' : '契合指数'}
+                </span>
+                <div className="font-serif font-black text-3xl text-[#171717]">
+                  {selectedNode.score} <span className="text-xs text-[#52525B] font-normal">{isEn ? 'pts' : '分'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3.5 text-xs font-serif text-[#52525B] mb-6">
+              <div className="p-3.5 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7]">
+                <span className="font-bold text-[#171717] block mb-1">
+                  {isEn ? 'Relational Dynamic Mechanism' : '能量流动机制'}
+                </span>
+                <p className="leading-relaxed">
+                  {isEn ? selectedNode.relationNatureEn : selectedNode.relationNatureZh}
+                </p>
+              </div>
+
+              <div>
+                <span className="text-[11px] text-[#52525B] block mb-1">
+                  {isEn ? 'Five Elements Resonance' : '五行交互属性'}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-md bg-[#F5F5F6] border border-[#E4E4E7] text-xs font-bold text-[#171717]">
+                    {isEn ? `Ruling Element: ${selectedNode.elementEn}` : `对方主气：${selectedNode.element}`}
+                  </span>
+                  <span className="text-[11px] text-[#52525B]">
+                    {isEn ? 'Harmonizes cyclically with our energetic core' : '与我方气场循环呼应'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-[#E4E4E7]">
+            <Link
+              href={`/${lang}/east/relationship/${selectedNode.type}`}
+              className="w-full py-3 rounded-xl bg-[#171717] hover:bg-[#333333] text-white text-xs font-serif tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+            >
+              <span>
+                {isEn
+                  ? `Open [${selectedNode.nameEn}] Deep Synastry Analysis`
+                  : `进入【${selectedNode.name}合盘】专属排盘推演`}
+              </span>
+              <ArrowRight className="w-3.5 h-3.5 text-white" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

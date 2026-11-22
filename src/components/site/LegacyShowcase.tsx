@@ -23,7 +23,7 @@ export function LegacyShowcase({ lang = 'zh' }: { lang?: string }) {
             </h2>
 
             <Link
-              href={`/${lang}/fatemaster`}
+              href={`/${lang}/east`}
               className="flex items-center gap-1 text-xs font-serif text-[#52525B] transition-colors hover:text-[#171717]"
             >
               <span>{isEn ? 'Explore I Ching' : '进入专厅'}</span>
@@ -33,7 +33,7 @@ export function LegacyShowcase({ lang = 'zh' }: { lang?: string }) {
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             <Link
-              href={`/${lang}/fatemaster/bazi`}
+              href={`/${lang}/east/bazi`}
               className="group rounded-2xl border border-[#E4E4E7] bg-white p-6 shadow-xs transition-all hover:border-[#171717] hover:shadow-md"
             >
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F5F6] text-[#171717]">
@@ -50,7 +50,7 @@ export function LegacyShowcase({ lang = 'zh' }: { lang?: string }) {
             </Link>
 
             <Link
-              href={`/${lang}/fatemaster/liuyao`}
+              href={`/${lang}/east/liuyao`}
               className="group rounded-2xl border border-[#E4E4E7] bg-white p-6 shadow-xs transition-all hover:border-[#171717] hover:shadow-md"
             >
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F5F6] text-[#171717]">
@@ -67,7 +67,7 @@ export function LegacyShowcase({ lang = 'zh' }: { lang?: string }) {
             </Link>
 
             <Link
-              href={`/${lang}/fatemaster/compatibility`}
+              href={`/${lang}/east/compatibility`}
               className="group rounded-2xl border border-[#E4E4E7] bg-white p-6 shadow-xs transition-all hover:border-[#171717] hover:shadow-md"
             >
               <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F5F6] text-[#171717]">

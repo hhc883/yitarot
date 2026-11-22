@@ -116,9 +116,9 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
     if (normalizedPath === href || normalizedPath.startsWith(`${href}/`)) {
       return true;
     }
-    // 2. 深度工具路由映射（东：/fatemaster；西：/draw, /reading, /cards, /spreads, /fortune, /yes-no, /love；指南：/blog）
+    // 2. 深度工具路由映射（东：/east；西：/draw, /reading, /cards, /spreads, /fortune, /yes-no, /love；指南：/blog）
     if (key === 'east') {
-      const eastPrefix = `/${lang}/fatemaster`;
+      const eastPrefix = `/${lang}/east`;
       return normalizedPath === eastPrefix || normalizedPath.startsWith(`${eastPrefix}/`);
     }
     if (key === 'west') {

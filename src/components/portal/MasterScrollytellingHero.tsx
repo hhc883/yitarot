@@ -338,7 +338,7 @@ export function MasterScrollytellingHero({ lang = 'zh' }: MasterScrollytellingHe
 
               <div className="pt-4 mt-6 border-t border-[#171717]/8">
                 <Link
-                  href={`/${lang}/fatemaster`}
+                  href={`/${lang}/east`}
                   className="w-full py-3 rounded-xl bg-[#171717] hover:bg-[#27272A] text-white text-xs font-serif tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
                 >
                   <span>{lang === 'zh' ? '进入周易专厅' : 'Enter Eastern Metaphysics'}</span>

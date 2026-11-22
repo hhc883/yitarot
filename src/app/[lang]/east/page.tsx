@@ -53,8 +53,8 @@ export async function generateMetadata({
  * 东方专厅（A2 静态骨架）：
  * - 黑白排版：白底、#171717 与中性灰 #52525B / #E4E4E7
  * - 东方标题「易经与八字 / I Ching & BaZi」
- * - 主「起一卦 / Cast a hexagram」直达 /{lang}/fatemaster/liuyao（实心主按钮）
- * - 次「排八字」直达 /{lang}/fatemaster/bazi
+ * - 主「起一卦 / Cast a hexagram」直达 /{lang}/east/liuyao（实心主按钮）
+ * - 次「排八字」直达 /{lang}/east/bazi
  * - 静态六爻矢量图形视觉
  * - 其余既有东方数术工具完整保留并可直达
  */
@@ -65,7 +65,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
 
   const tools = [
     {
-      href: `/${lang}/fatemaster/liuyao`,
+      href: `/${lang}/east/liuyao`,
       titleEn: 'Liu Yao Divination',
       titleZh: '周易六爻神谕',
       descEn: 'Classic 3D coin toss oracle, changing lines, and hexagram shifts for timely decisions.',
@@ -74,7 +74,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       actionZh: '进入起卦'
     },
     {
-      href: `/${lang}/fatemaster/bazi`,
+      href: `/${lang}/east/bazi`,
       titleEn: 'BaZi Birth Chart',
       titleZh: '四柱八字排盘',
       descEn: 'Four Pillars of Destiny calculated from your exact birth date and time, five elements & ten gods.',
@@ -83,7 +83,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       actionZh: '排生辰盘'
     },
     {
-      href: `/${lang}/fatemaster/ziwei`,
+      href: `/${lang}/east/ziwei`,
       titleEn: 'ZiWei Astrology',
       titleZh: '紫微斗数排盘',
       descEn: 'Traditional Eastern star chart mapping 12 life palaces and 14 major stars.',
@@ -92,7 +92,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       actionZh: '排斗数盘'
     },
     {
-      href: `/${lang}/fatemaster/meihua`,
+      href: `/${lang}/east/meihua`,
       titleEn: 'Plum Blossom Divination',
       titleZh: '梅花易数决策',
       descEn: 'Time and number based spontaneous I Ching divination for clear daily decisions.',
@@ -101,7 +101,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       actionZh: '起梅花卦'
     },
     {
-      href: `/${lang}/fatemaster/compatibility`,
+      href: `/${lang}/east/compatibility`,
       titleEn: 'Zodiac & Chart Compatibility',
       titleZh: '生肖干支合盘',
       descEn: '144 pairwise combinations, examining earthly branch harmonies and energetic friction.',
@@ -110,7 +110,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       actionZh: '开始合盘'
     },
     {
-      href: `/${lang}/fatemaster/bazi-daily`,
+      href: `/${lang}/east/bazi-daily`,
       titleEn: 'Daily BaZi',
       titleZh: '每日八字',
       descEn: 'Use your birth date and hour to explore a daily reading and its twelve time periods.',
@@ -119,7 +119,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       actionZh: '查看今日'
     },
     {
-      href: `/${lang}/fatemaster/qimen`,
+      href: `/${lang}/east/qimen`,
       titleEn: 'Qimen Dunjia',
       titleZh: '奇门遁甲',
       descEn: 'Cast a nine-palace chart for your local time and explore its gates, stars, and directions.',
@@ -128,7 +128,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       actionZh: '排奇门局'
     },
     {
-      href: `/${lang}/fatemaster/relationship`,
+      href: `/${lang}/east/relationship`,
       titleEn: 'Relationship Synastry Hub',
       titleZh: '关系合盘中心',
       descEn: 'Nine distinct relationship synastry types including marriage, partnership, and family.',
@@ -196,9 +196,9 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
 
               {/* 行动按钮区：一个实心主按钮 + 次入口「排八字」 */}
               <div className="mt-8 flex flex-wrap items-center gap-4">
-                {/* 实心主按钮：直达 /{lang}/fatemaster/liuyao */}
+                {/* 实心主按钮：直达 /{lang}/east/liuyao */}
                 <Link
-                  href={`/${lang}/fatemaster/liuyao`}
+                  href={`/${lang}/east/liuyao`}
                   aria-label={isEn ? 'Cast a hexagram with Liu Yao divination' : '起一卦：进入周易六爻占卜'}
                   className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm bg-[#171717] px-6 py-2.5 text-[14px] font-medium text-white transition-colors hover:bg-[#333333] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                 >
@@ -206,9 +206,9 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
                   <span aria-hidden="true">→</span>
                 </Link>
 
-                {/* 次入口：直达 /{lang}/fatemaster/bazi */}
+                {/* 次入口：直达 /{lang}/east/bazi */}
                 <Link
-                  href={`/${lang}/fatemaster/bazi`}
+                  href={`/${lang}/east/bazi`}
                   aria-label={isEn ? 'Calculate your BaZi birth chart' : '排八字：进入四柱八字排盘'}
                   className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm border border-[#171717] px-5 py-2.5 text-[14px] font-medium text-[#171717] transition-colors hover:bg-[#F5F5F6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                 >

@@ -146,7 +146,7 @@ export function MasterPortalHero({ lang = 'zh' }: { lang?: string }) {
 
           <div className="pt-4 border-t border-[#171717]/10">
             <Link
-              href={`/${lang}/fatemaster`}
+              href={`/${lang}/east`}
               className="w-full py-4 rounded-2xl bg-[#171717] hover:bg-[#333333] text-white text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-md group-hover:scale-102"
             >
               <span>进入东方周易命理系统</span>

@@ -223,7 +223,7 @@ It serves as a gentle imperative: **Open your hand. Beneath the threshold lies n
       descEn: 'Calculate your four pillars, five elements equilibrium, and Ten Gods distribution.',
       ctaZh: '测算我的八字格局 →',
       ctaEn: 'Calculate My BaZi Chart →',
-      href: '/fatemaster/bazi'
+      href: '/east/bazi'
     },
     relatedSlugs: ['tarot-death-card-meaning-transformation', 'jung-synchronicity-iching-tarot'],
     content: `
@@ -289,7 +289,7 @@ It serves as a gentle imperative: **Open your hand. Beneath the threshold lies n
       descEn: 'Calculate your four pillars, five elements equilibrium, and Ten Gods distribution.',
       ctaZh: '测算我的八字格局 →',
       ctaEn: 'Calculate My BaZi Chart →',
-      href: '/fatemaster/bazi'
+      href: '/east/bazi'
     },
     relatedSlugs: ['tarot-death-card-meaning-transformation', 'jung-synchronicity-iching-tarot'],
     content: `
