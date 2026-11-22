@@ -10,7 +10,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { READING_COST } from '@/lib/points/constants';
 import { getSavedReadings, deleteSavedReading, type SavedReading } from '@/lib/storage/reading-history';
 import { MarkdownView } from '@/components/common/MarkdownView';
-import { ChevronDown, ChevronUp, Copy, Check, Trash2, MessageSquare, BookOpen } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Check, Trash2, MessageSquare, BookOpen, Gift, Loader2, CreditCard } from 'lucide-react';
 
 interface LedgerEntry {
   id: number;
@@ -45,20 +45,34 @@ export function AccountClient({ lang = 'zh' }: { lang?: string }) {
   const [ledger, setLedger] = useState<LedgerEntry[] | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [claimError, setClaimError] = useState('');
-  const [savedReadings, setSavedReadings] = useState<SavedReading[]>([]);
+  const [savedReadings, setSavedReadings] = useState<SavedReading[]>(() =>
+    typeof window !== 'undefined' ? getSavedReadings() : []
+  );
   const [expandedReadingId, setExpandedReadingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const local = getSavedReadings();
-    setSavedReadings(local);
+  // 卡密兑换状态
+  const [redeemCode, setRedeemCode] = useState('');
+  const [redeeming, setRedeeming] = useState(false);
+  const [redeemSuccess, setRedeemSuccess] = useState('');
+  const [redeemError, setRedeemError] = useState('');
 
+  useEffect(() => {
     // 若已登录，同步拉取云端保存的六爻会话，合并去重
     fetch('/api/east/liuyao/sessions')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.sessions && Array.isArray(data.sessions)) {
-          const cloudReadings: SavedReading[] = data.sessions.map((s: { id: string; question: string; created_at: string; reading_snapshot?: any }) => ({
+          const cloudReadings: SavedReading[] = data.sessions.map((s: {
+            id: string;
+            question: string;
+            created_at: string;
+            reading_snapshot?: {
+              primaryHexagram?: { nameEn?: string; nameZh?: string };
+              transformedHexagram?: { nameZh?: string };
+              ai_report?: string;
+            };
+          }) => ({
             id: s.id,
             type: 'liuyao',
             title: isEn
@@ -170,6 +184,41 @@ export function AccountClient({ lang = 'zh' }: { lang?: string }) {
     }
   };
 
+  const handleRedeem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = redeemCode.trim().toUpperCase();
+    if (!clean) return;
+
+    setRedeeming(true);
+    setRedeemError('');
+    setRedeemSuccess('');
+
+    try {
+      const res = await fetch('/api/points/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: clean })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setRedeemSuccess(
+          isEn
+            ? `+${data.pointsAdded} points added! New balance: ◆ ${data.newBalance}`
+            : `✓ 成功充值 +${data.pointsAdded} 积分！当前余额：◆ ${data.newBalance}`
+        );
+        setRedeemCode('');
+        await refresh();
+        await loadLedger();
+      } else {
+        setRedeemError(data.message || (isEn ? 'Redemption failed' : '兑换失败，请检查卡密'));
+      }
+    } catch {
+      setRedeemError(isEn ? 'Network error' : '网络异常，请重试');
+    } finally {
+      setRedeeming(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.replace(`/${lang}`);
@@ -205,18 +254,27 @@ export function AccountClient({ lang = 'zh' }: { lang?: string }) {
         </button>
       </div>
 
-      {/* 余额大数字 */}
-      <div className="mkt-rise mkt-rise-1 mt-12">
-        <p className="text-[12px] tracking-[0.14em] text-whisper">
-          {isEn ? 'CURRENT BALANCE' : '当前积分'}
-        </p>
-        <p className="mt-2 font-serif text-[56px] leading-none text-ink tabular-nums lg:text-[64px]">
-          {balance}
-        </p>
+      {/* 余额大数字 + 充值入口 */}
+      <div className="mkt-rise mkt-rise-1 mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[12px] tracking-[0.14em] text-whisper">
+            {isEn ? 'CURRENT BALANCE' : '当前积分'}
+          </p>
+          <p className="mt-2 font-serif text-[56px] leading-none text-ink tabular-nums lg:text-[64px]">
+            {balance}
+          </p>
+        </div>
+        <Link
+          href={`/${lang}/pricing`}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-ink px-6 text-[13px] font-medium text-white transition-opacity hover:opacity-85 sm:w-auto"
+        >
+          <CreditCard className="h-3.5 w-3.5" />
+          <span>{isEn ? 'Buy points' : '购买充值积分'}</span>
+        </Link>
       </div>
 
       {/* 每日领取 */}
-      <div className="mkt-rise mkt-rise-2 mt-12 rounded-[14px] border border-line bg-white p-6 sm:p-8">
+      <div className="mkt-rise mkt-rise-2 mt-8 rounded-[14px] border border-line bg-white p-6 sm:p-8">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-[16px] font-semibold text-ink">
@@ -253,6 +311,49 @@ export function AccountClient({ lang = 'zh' }: { lang?: string }) {
                   : `领取今日 ${READING_COST} 积分`}
           </button>
         </div>
+      </div>
+
+      {/* 卡密兑换区 */}
+      <div className="mkt-rise mkt-rise-2 mt-6 rounded-[14px] border border-line bg-white p-6 sm:p-8">
+        <div className="flex items-center gap-2">
+          <Gift className="h-4 w-4 text-ink" />
+          <h2 className="text-[16px] font-semibold text-ink">
+            {isEn ? 'Redeem code' : '卡密 / 礼品兑换码充值'}
+          </h2>
+        </div>
+        <p className="mt-1.5 text-[13px] text-soft">
+          {isEn
+            ? 'Enter your 16-character code to add points to your account instantly.'
+            : '输入在客服、小红书或发卡平台获得的 16 位卡密兑换码，即时增加积分。'}
+        </p>
+
+        <form onSubmit={handleRedeem} className="mt-4 flex flex-col gap-3 sm:flex-row max-w-[600px]">
+          <input
+            type="text"
+            value={redeemCode}
+            onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
+            placeholder={isEn ? 'Enter redemption code (YITA...)' : '请输入卡密兑换码 (如 YITA...)'}
+            className="h-10 flex-1 rounded-full border border-line bg-mist/30 px-4 font-mono text-[13px] text-ink placeholder:text-whisper focus:border-ink focus:bg-white focus:outline-none"
+          />
+          <button
+            type="submit"
+            disabled={redeeming || !redeemCode.trim()}
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-ink px-6 text-[13px] font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-40"
+          >
+            {redeeming ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+            ) : (
+              <span>{isEn ? 'Redeem' : '立即兑换'}</span>
+            )}
+          </button>
+        </form>
+
+        {redeemSuccess ? (
+          <p className="mt-2.5 text-[12.5px] font-medium text-emerald-700">{redeemSuccess}</p>
+        ) : null}
+        {redeemError ? (
+          <p className="mt-2.5 text-[12.5px] font-medium text-red-600">{redeemError}</p>
+        ) : null}
       </div>
 
       {/* 测算与会话档案 */}

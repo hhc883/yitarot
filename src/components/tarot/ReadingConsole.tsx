@@ -123,46 +123,46 @@ function ReadingConsoleInner({
 }) {
   const isEn = lang === 'en';
 
+  const initialSavedSession = React.useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (!rawSessionId) return null;
+    const list = getSavedReadings();
+    const found = list.find((r) => r.id === rawSessionId);
+    return found && found.type === 'tarot' ? found : null;
+  }, []);
+
   // 步骤：'input' -> 'shuffle' -> 'result'
-  const [step, setStep] = useState<'input' | 'shuffle' | 'result'>('input');
+  const [step, setStep] = useState<'input' | 'shuffle' | 'result'>(() =>
+    initialSavedSession ? 'result' : 'input'
+  );
   const [category, setCategory] = useState(defaultCategory);
-  const [question, setQuestion] = useState('');
+  const [question, setQuestion] = useState(() => initialSavedSession?.question || '');
   const [selectedSpread, setSelectedSpread] = useState<TarotSpread>(initialSpread);
   const [selectedReader, setSelectedReader] = useState<TarotReader>(TAROT_READERS[0]); // 默认露娜
-  const [drawnCards, setDrawnCards] = useState<DrawnCard[]>([]);
-  const [interpretationText, setInterpretationText] = useState('');
+  const [drawnCards, setDrawnCards] = useState<DrawnCard[]>(() => {
+    if (initialSavedSession?.cards && initialSavedSession.cards.length > 0) {
+      return initialSavedSession.cards.map((c: { name: string; isReversed?: boolean; position?: string }, i: number) => {
+        const cardData =
+          TAROT_DECK.find((cd) => cd.nameZh === c.name || cd.nameEn === c.name) ||
+          TAROT_DECK[0];
+        return {
+          card: cardData,
+          isReversed: Boolean(c.isReversed),
+          positionName: c.position || `Position ${i + 1}`,
+          positionDesc: ''
+        };
+      });
+    }
+    return [];
+  });
+  const [interpretationText, setInterpretationText] = useState(
+    () => initialSavedSession?.fullContent || ''
+  );
   const [isStreaming, setIsStreaming] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const pointsGate = usePointsGate();
   const hasConsumedRef = useRef(false);
-
-  // 恢复历史塔罗牌例，支持直接继续追问
-  React.useEffect(() => {
-    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
-    if (!rawSessionId) return;
-
-    const list = getSavedReadings();
-    const found = list.find((r) => r.id === rawSessionId);
-    if (found && found.type === 'tarot') {
-      if (found.question) setQuestion(found.question);
-      if (found.fullContent) setInterpretationText(found.fullContent);
-      if (found.cards && found.cards.length > 0) {
-        const rebuilt: DrawnCard[] = found.cards.map((c, i) => {
-          const cardData =
-            TAROT_DECK.find((cd) => cd.nameZh === c.name || cd.nameEn === c.name) ||
-            TAROT_DECK[0];
-          return {
-            card: cardData,
-            isReversed: Boolean(c.isReversed),
-            positionName: c.position || `Position ${i + 1}`,
-            positionDesc: ''
-          };
-        });
-        setDrawnCards(rebuilt);
-      }
-      setStep('result');
-    }
-  }, []);
 
   // 点击预设问题
   const handleSelectPreset = (q: string) => {

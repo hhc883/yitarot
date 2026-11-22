@@ -33,14 +33,15 @@ export function LiuYaoFollowUpWidget({
 
   const [inputQuestion, setInputQuestion] = useState('');
   const [messages, setMessages] = useState<MessageItem[]>(initialMessages);
-  const [isAnswering, setIsAnswering] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [prevInitial, setPrevInitial] = useState(initialMessages);
+  if (initialMessages !== prevInitial) {
+    setPrevInitial(initialMessages);
     if (initialMessages && initialMessages.length > 0) {
       setMessages(initialMessages);
     }
-  }, [initialMessages]);
+  }
+  const [isAnswering, setIsAnswering] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);

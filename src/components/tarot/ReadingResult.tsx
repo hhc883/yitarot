@@ -33,19 +33,21 @@ export function ReadingResult({
   const isEn = lang === 'en';
   const [copied, setCopied] = useState(false);
   const [followUpInput, setFollowUpInput] = useState('');
-  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
+  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'assistant'; text: string }[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (!rawSessionId) return [];
+    const list = getSavedReadings();
+    const found = list.find((r) => r.id === rawSessionId);
+    return found?.chatHistory && found.chatHistory.length > 0 ? found.chatHistory : [];
+  });
   const [isAskingFollowUp, setIsAskingFollowUp] = useState(false);
   const savedIdRef = React.useRef<string>('');
 
-  // 若从历史会话进入，还原当时的多轮追问对话
   React.useEffect(() => {
     const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
-    if (!rawSessionId) return;
-    savedIdRef.current = rawSessionId;
-    const list = getSavedReadings();
-    const found = list.find(r => r.id === rawSessionId);
-    if (found?.chatHistory && found.chatHistory.length > 0) {
-      setChatHistory(found.chatHistory);
+    if (rawSessionId) {
+      savedIdRef.current = rawSessionId;
     }
   }, []);
 

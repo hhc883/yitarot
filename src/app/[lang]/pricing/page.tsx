@@ -22,10 +22,10 @@ export default async function PricingPage({ params }: { params: Promise<{ lang: 
           <h1 className="mt-4 font-serif text-[clamp(30px,4vw,52px)] font-normal leading-[1.1] tracking-[-0.01em] text-ink">
             {lang === 'en' ? 'Buy points' : '购买积分'}
           </h1>
-          <p className="mt-6 max-w-[52ch] text-[15px] leading-[1.7] text-soft">
+          <p className="mt-6 max-w-[56ch] text-[15px] leading-[1.7] text-soft">
             {lang === 'en'
-              ? 'Each AI reading costs 10 points. Points never expire while in beta.'
-              : '每次 AI 测试消耗 10 积分。测试期间积分长期有效。'}
+              ? '10 points per deep AI reading, 2 points per follow-up inquiry. Seamless checkout via Stripe, Visa, Mastercard, WeChat Pay, and Alipay. Points never expire.'
+              : '每次 AI 完整解卦推演消耗 10 积分，追问仅需 2 积分。双轨通道支持微信支付、支付宝扫码与海外 Stripe / 国际信用卡，积分长期有效。'}
           </p>
         </div>
       </section>

@@ -66,7 +66,14 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
     calculateBaZi(1996, 8, 18, 12, 0)
   );
 
-  const [aiReport, setAiReport] = useState<string>('');
+  const [aiReport, setAiReport] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
+    if (!rawSessionId) return '';
+    const list = getSavedReadings();
+    const found = list.find((r) => r.id === rawSessionId);
+    return found?.fullContent || '';
+  });
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
   const pointsGate = usePointsGate();
 
@@ -98,17 +105,6 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
       );
     }
   }, { dependencies: [baziResult], scope: containerRef });
-
-  // 恢复历史八字档案
-  useEffect(() => {
-    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
-    if (!rawSessionId) return;
-    const list = getSavedReadings();
-    const found = list.find((r) => r.id === rawSessionId);
-    if (found && found.fullContent) {
-      setAiReport(found.fullContent);
-    }
-  }, []);
 
   // 八字 AI 报告生成完成自动存入用户档案
   useEffect(() => {

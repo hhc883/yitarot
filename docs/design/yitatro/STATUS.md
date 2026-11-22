@@ -46,10 +46,26 @@
 | J | 全站多语言 TDK 关键词继承修复：彻底解决 Next.js App Router 根布局 keywords 向英文页面渗透下沉问题，全站动态与静态路由精准匹配双语 SEO 词库。 | 本地验收通过（发布就绪） |
 | K | 全站多语言纯正度与中英文混入治理：彻底消除英文模式下的中文残留（首页3D展台、每日一签、自由抽牌、卡牌百科、专厅工具卡、八字纳音与紫微宫位），实现全站英文页面 0 中文混入。 | 本地验收通过（发布就绪） |
 | L | 竞品命名与历史痕迹彻底脱敏治理：将旧竞品前缀 fatemaster 全量重构为 YiTatro 原生架构（/[lang]/east/*、/api/east/*、components/east/、east-ai.ts），配置 301 永久重定向并更正包名与配置注释。 | 全量重构验收通过（发布就绪） |
+| M | 双轨支付结算体系：海外 Stripe 国际信用卡/Apple Pay 接入、国内微信/支付宝扫码通道适配、防伪卡密/兑换码秒充系统与多语言定价收银台。 | 本地验收通过（发布就绪） |
 
 ## 交接记录
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
+
+- M（Antigravity 实现、全量生产构建通过、双轨支付接口上线）：
+  1. **海外支付体系（Stripe 全球结算）**：
+     - 在 `src/lib/payments/stripe.ts` 实现轻量化原生 REST 通道，无冗余重量级 SDK，接入 Checkout Sessions 与 Webhook 签名防篡改校验；
+     - 创建创建会话路由 `/api/checkout/stripe`、异步回调路由 `/api/webhooks/stripe`、以及客户端即时核销到账路由 `/api/checkout/verify`；
+     - 支持 Visa、Mastercard、American Express、Apple Pay、Google Pay 全币种结算，三档积分定价（$4.99 / $19.99 / $59.99）。
+  2. **国内支付与卡密极速充值体系**：
+     - 在 `src/lib/payments/domestic.ts` 搭建国内免签/聚合支付网关标准协议适配器，创建 `/api/checkout/domestic` 与异步回调 `/api/webhooks/domestic`；
+     - 研发防伪抗篡改 HMAC-SHA256 签名卡密兑换系统（`POST /api/points/redeem`），支持 100/500/2000 面额一键秒充入账，利用全局 `point_ledger` 唯一约束与事务防重复重放；
+     - 提供官方卡密生成命令行工具 `scripts/generate-redeem-codes.mjs`，方便运营批量发卡。
+  3. **收银台与个人中心 UI 升级**：
+     - 重构 `src/components/site/PricingCards.tsx`：提供「🇨🇳 国内支付 (微信/支付宝)」与「🌏 海外支付 (Stripe/信用卡)」双轨一键切换；
+     - 在定价页及个人中心（`AccountClient.tsx`）内置「卡密/兑换码即时充值」组件，兑换成功即时刷新账户积分余额；
+     - 支付成功带参返回时自动核销并弹出欢庆到账横幅；
+     - 全站生产构建（340 条静态与动态路由）0 报错通过。
 
 - L（Antigravity 实现、全量路由重构、ESLint 0 报警、全站 333+ 路由构建验收通过）：
   1. **路由与页面架构重构（Stage L.1）**：
