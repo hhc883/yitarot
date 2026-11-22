@@ -45,14 +45,12 @@ export async function GET() {
       .maybeSingle()
   ]);
 
+  let balance = 0;
   if (ledgerResult.error) {
-    return new Response(JSON.stringify({ error: 'ledger_unavailable' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.warn('/api/me ledger query warning (tables may need SQL migration):', ledgerResult.error.message);
+  } else {
+    balance = (ledgerResult.data ?? []).reduce((sum, row) => sum + (row.amount ?? 0), 0);
   }
-
-  const balance = (ledgerResult.data ?? []).reduce((sum, row) => sum + (row.amount ?? 0), 0);
   const profile = profileResult.data;
 
   const payload: MeResponse = {

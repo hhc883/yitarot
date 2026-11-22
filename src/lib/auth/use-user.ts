@@ -39,6 +39,23 @@ export function useUser() {
         return;
       }
       if (!res.ok) {
+        // 客户端兜底：若服务端接口异常，直接读取 Supabase 客户端会话以确保登录态不丢失
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user) {
+          const u = authData.user;
+          setState({
+            loading: false,
+            user: {
+              id: u.id,
+              email: u.email ?? '',
+              display_name: (u.user_metadata?.full_name as string) || (u.user_metadata?.name as string) || u.email?.split('@')[0] || 'User',
+              avatar_url: (u.user_metadata?.avatar_url as string) || (u.user_metadata?.picture as string) || ''
+            },
+            balance: 0,
+            dailyClaimed: false
+          });
+          return;
+        }
         setState((prev) => ({ ...prev, loading: false }));
         return;
       }
@@ -56,7 +73,7 @@ export function useUser() {
     } catch {
       setState((prev) => ({ ...prev, loading: false }));
     }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     // INITIAL_SESSION 在订阅时立即触发，作为首次加载；之后的登录 / 退出事件再刷新

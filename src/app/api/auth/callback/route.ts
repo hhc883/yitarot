@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 /**
@@ -10,7 +10,18 @@ export async function GET(req: NextRequest) {
   const code = searchParams.get('code');
   const nextParam = searchParams.get('next');
 
-  // 只允许站内相对路径，防止开放重定向
+  // 计算外部代理下的真实公共域名基准（适配 Vercel/Cloudflare 反代与本地环境）
+  const forwardedHost = req.headers.get('x-forwarded-host');
+  const forwardedProto = req.headers.get('x-forwarded-proto') || 'https';
+  const isLocalEnv = process.env.NODE_ENV === 'development';
+
+  const baseUrl = isLocalEnv
+    ? origin
+    : forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : process.env.NEXT_PUBLIC_SITE_URL || origin;
+
+  // 只允许站内相对路径，防止开放重定向漏洞
   const safeNext =
     nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')
       ? nextParam
@@ -21,11 +32,14 @@ export async function GET(req: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      return Response.redirect(new URL(safeNext, origin), 302);
+      // 必须使用 NextResponse.redirect，确保 Supabase 设置的 auth token cookie 正确注入响应头
+      return NextResponse.redirect(new URL(safeNext, baseUrl));
     }
+
+    console.error('Supabase exchangeCodeForSession failed:', error);
   }
 
   // 失败时带回错误标记，登录页展示提示
   const lang = safeNext.startsWith('/en') ? 'en' : 'zh';
-  return Response.redirect(new URL(`/${lang}/login?error=auth`, origin), 302);
+  return NextResponse.redirect(new URL(`/${lang}/login?error=auth`, baseUrl));
 }

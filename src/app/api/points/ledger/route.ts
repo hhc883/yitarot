@@ -22,8 +22,8 @@ export async function GET() {
     .limit(100);
 
   if (error) {
-    return new Response(JSON.stringify({ error: 'ledger_unavailable' }), {
-      status: 500,
+    console.warn('/api/points/ledger query warning:', error.message);
+    return new Response(JSON.stringify({ entries: [] }), {
       headers: { 'Content-Type': 'application/json' }
     });
   }
