@@ -1,10 +1,13 @@
 import type { KBEntry } from './types';
+import { ZENGSHAN_CORE_RULES } from './golden-rules';
+
+export { ZENGSHAN_CORE_RULES };
 
 /**
- * 六爻实战断法条目库（正统《增删卜易》典籍条目）
- * 当前共 180 条，全量 status: 'draft'，待专家审核
+ * 六爻实战断法草稿条目库（正统《增删卜易》典籍条目）
+ * 当前共 180 条，全量 status: 'draft'
  */
-export const RULES_DB: KBEntry[] = [
+const DRAFT_RULES: KBEntry[] = [
   {
     "id": "zsy.yong.01",
     "kind": "rule",
@@ -3301,3 +3304,5 @@ export const RULES_DB: KBEntry[] = [
     "timing": "禄神逢生当权之月。"
   }
 ];
+
+export const RULES_DB: KBEntry[] = [...ZENGSHAN_CORE_RULES, ...DRAFT_RULES];

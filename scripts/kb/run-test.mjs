@@ -43,8 +43,10 @@ const files = [
   'src/lib/kb/wuxing.ts',
   'src/lib/kb/pan.ts',
   'src/lib/kb/canon.ts',
+  'src/lib/kb/golden-rules.ts',
   'src/lib/kb/rules.ts',
   'src/lib/kb/cases.ts',
+  'src/lib/kb/concepts.ts',
   'src/lib/kb/retriever.ts',
   'src/lib/kb/context-builder.ts',
   'src/lib/kb/guard.ts',
@@ -64,6 +66,14 @@ async function run() {
   const { buildKnowledgeBlock } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/context-builder.js')).href);
   const { auditLiuYaoReport } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/guard.js')).href);
   const { buildFollowUpMessages } = await import(pathToFileURL(path.join(OUT_DIR, 'llm/conversation.js')).href);
+  const { ZENGSHAN_CORE_RULES } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/golden-rules.js')).href);
+  const { buildImagerySnapshot, SIX_RELATIVES_IMAGERY } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/concepts.js')).href);
+
+  // 0. 验证《增删卜易》30条黄金通则与象意字典
+  console.log('增删卜易黄金通则总数:', ZENGSHAN_CORE_RULES.length);
+  if (ZENGSHAN_CORE_RULES.length !== 30) throw new Error('黄金通则数量应为 30 条');
+  if (ZENGSHAN_CORE_RULES[0].status !== 'verified') throw new Error('黄金通则首条应为 verified 状态');
+  if (!SIX_RELATIVES_IMAGERY['妻财']) throw new Error('象意字典缺少妻财定义');
 
   // 1. 测试盘面：乾为天（无变爻，六爻安静，纯阳六冲）
   const qianLines = [
@@ -97,6 +107,11 @@ async function run() {
   for (const h of bundle.hits) {
     console.log(`  ${h.ref}: [${h.entry.source.book}·${h.entry.source.chapter}] (分值: ${h.score}) - ${h.reason}`);
   }
+
+  // 2b. 测试象意提取 (concepts)
+  const imagery = buildImagerySnapshot(qianReading, bundle.yongShen.primary);
+  console.log('\n象意生成结果:\n', imagery);
+  if (!imagery.includes('用神取象·妻财')) throw new Error('象意生成应包含妻财取象');
 
   // 3. 测试 KB 块组装与预算控制
   const { block, usedRefs, droppedRefs } = buildKnowledgeBlock(bundle, { maxChars: 2500 });

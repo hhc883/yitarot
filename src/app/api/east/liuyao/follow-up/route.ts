@@ -6,6 +6,7 @@ import { streamLLM } from '@/lib/llm/adapter';
 import { createSupabaseServerClient, getSupabaseUser } from '@/lib/supabase/server';
 import { retrieveKnowledge } from '@/lib/kb/retriever';
 import { buildKnowledgeBlock, buildHexSnapshot, buildLiuYaoSystem } from '@/lib/kb/context-builder';
+import { buildImagerySnapshot } from '@/lib/kb/concepts';
 import { buildFollowUpMessages, ConversationTurn } from '@/lib/llm/conversation';
 import { auditLiuYaoReport } from '@/lib/kb/guard';
 
@@ -142,6 +143,7 @@ export async function POST(req: NextRequest) {
       snapshot: buildHexSnapshot(reading, lang),
       block,
       yongShenNote: `用神判定：${bundle.yongShen.reason}`,
+      imageryNote: lang === 'en' ? undefined : buildImagerySnapshot(reading, bundle.yongShen.primary),
       anchor,
       extraPrompt: `${followUpRule}\n\n${langInstruction}`
     });

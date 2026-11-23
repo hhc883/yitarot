@@ -4,6 +4,7 @@ import { getActiveLiuYaoSkill } from './skills/registry';
 import { streamLLM } from '@/lib/llm/adapter';
 import { retrieveKnowledge } from '@/lib/kb/retriever';
 import { buildKnowledgeBlock, buildHexSnapshot, buildLiuYaoSystem } from '@/lib/kb/context-builder';
+import { buildImagerySnapshot } from '@/lib/kb/concepts';
 import type { KnowledgeBundle } from '@/lib/kb/types';
 
 export { buildHexSnapshot } from '@/lib/kb/context-builder';
@@ -301,6 +302,7 @@ export async function* streamLiuYaoReading(
     snapshot: buildHexSnapshot(req.reading, req.lang === 'en' ? 'en' : 'zh'),
     block,
     yongShenNote: `用神判定：${bundle.yongShen.reason}`,
+    imageryNote: req.lang === 'en' ? undefined : buildImagerySnapshot(req.reading, bundle.yongShen.primary),
   });
   const userPrompt = buildLiuYaoUserPrompt(req, req.lang === 'en' ? 'en' : 'zh');
 

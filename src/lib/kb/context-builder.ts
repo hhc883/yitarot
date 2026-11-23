@@ -182,6 +182,7 @@ export interface BuildLiuYaoSystemArgs {
   skillInstruction: string;
   block: string;
   yongShenNote: string;
+  imageryNote?: string;
   snapshot?: string;
   anchor?: string;
   extraPrompt?: string;
@@ -190,7 +191,7 @@ export interface BuildLiuYaoSystemArgs {
 /**
  * 组装模型 System Instruction
  * 顺序固定（利于 KV Cache 命中）：
- * 人设心法 → 引用铁律 → 输出契约 → 卦象快照 → KB 块 → 用神判定 → [首解锚点] → [额外规则]
+ * 人设心法 → 引用铁律 → 输出契约 → 卦象快照 → KB 块 → 用神判定 → [象意指归] → [首解锚点] → [额外规则]
  */
 export function buildLiuYaoSystem(args: BuildLiuYaoSystemArgs): string {
   const isEn = args.lang === 'en';
@@ -204,6 +205,7 @@ export function buildLiuYaoSystem(args: BuildLiuYaoSystemArgs): string {
     args.snapshot,
     args.block,
     args.yongShenNote,
+    args.imageryNote,
     args.anchor
       ? isEn
         ? `[First Reading Anchor (Immutable)]\n${args.anchor}`
