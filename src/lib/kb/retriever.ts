@@ -4,6 +4,7 @@ import { CONDITION_LABEL } from './types';
 import { deriveChartFacts, resolveYongShen } from './pan';
 import { getCanonEntries } from './canon';
 import { RULES_DB } from './rules';
+import { CASES_DB } from './cases';
 
 export interface RetrieveOptions {
   question: string;
@@ -145,8 +146,72 @@ export function retrieveKnowledge(input: RetrieveOptions): KnowledgeBundle {
 
   const selectedRules = candidateRules.slice(0, maxRules);
 
-  // 4. cases 检索（本期为占位，后续可基于相似卦例扩展）
-  const selectedCases: KBEntry[] = [];
+  // 4. cases 检索（从增删卜易 42 实战经典卦例库中打分召回）
+  const maxCases = input.maxCases ?? 2;
+  const candidateCases: Array<{ entry: KBEntry; score: number; reason: string }> = [];
+
+  if (!isEn) {
+    for (const c of CASES_DB) {
+      let score = 0;
+      let categoryHit = false;
+
+      // A. 卦象匹配（本卦命中 +6，变卦命中 +3）
+      const cHex = c.when.hexagram ?? [];
+      if (cHex.includes(input.reading.primaryHexagram.number)) {
+        score += 6;
+        categoryHit = true;
+      }
+      if (input.reading.transformedHexagram && cHex.includes(input.reading.transformedHexagram.number)) {
+        score += 3;
+        categoryHit = true;
+      }
+
+      // B. 占问主题匹配 (+4)
+      const cTopic = c.when.topic ?? [];
+      if (cTopic.includes(yongShen.topic)) {
+        score += 4;
+        categoryHit = true;
+      }
+
+      // C. 用神六亲匹配 (+3)
+      const cRel = c.when.relative ?? [];
+      if (cRel.some(rel => yongShen.primary.includes(rel))) {
+        score += 3;
+        categoryHit = true;
+      }
+
+      // D. 动爻位重合 (+2)
+      const cLines = c.when.lineIndex ?? [];
+      if (cLines.some(idx => input.reading.changingLineIndices.includes(idx))) {
+        score += 2;
+      }
+
+      // E. 盘面条件重合（如月破、化退、暗动等）(+3)
+      const cConds = c.when.conditions ?? [];
+      for (const cond of cConds) {
+        if (facts.conditions.has(cond)) {
+          score += 3;
+        }
+      }
+
+      // 至少命中卦象、主题或用神之一，且总分 >= 6 才入选
+      if (categoryHit && score >= 6) {
+        candidateCases.push({
+          entry: c,
+          score,
+          reason: `实战占验 · ${c.source.note || cTopic.join('/')}`
+        });
+      }
+    }
+
+    // 平手排序：score desc -> id asc
+    candidateCases.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.entry.id.localeCompare(b.entry.id);
+    });
+  }
+
+  const selectedCases = candidateCases.slice(0, maxCases);
 
   // 5. 组装 hits 并固定按顺序分配 KB-01..KB-xx
   const hits: KnowledgeHit[] = [];
@@ -190,16 +255,16 @@ export function retrieveKnowledge(input: RetrieveOptions): KnowledgeBundle {
   }
 
   // 3) cases
-  for (const caseEntry of selectedCases) {
+  for (const item of selectedCases) {
     const ref = `KB-${String(refIndex++).padStart(2, '0')}`;
     const hit: KnowledgeHit = {
       ref,
-      entry: caseEntry,
-      score: 50,
-      reason: '实战案例'
+      entry: item.entry,
+      score: item.score,
+      reason: item.reason
     };
     hits.push(hit);
-    byRef.set(ref, caseEntry);
+    byRef.set(ref, item.entry);
   }
 
   return {

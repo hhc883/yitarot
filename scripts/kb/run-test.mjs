@@ -44,6 +44,7 @@ const files = [
   'src/lib/kb/pan.ts',
   'src/lib/kb/canon.ts',
   'src/lib/kb/rules.ts',
+  'src/lib/kb/cases.ts',
   'src/lib/kb/retriever.ts',
   'src/lib/kb/context-builder.ts',
   'src/lib/kb/guard.ts',
