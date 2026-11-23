@@ -2,6 +2,15 @@ import { BaZiCalculationResult } from './bazi';
 import { IChingReading } from './iching';
 import { getActiveLiuYaoSkill } from './skills/registry';
 import { streamLLM } from '@/lib/llm/adapter';
+import { retrieveKnowledge } from '@/lib/kb/retriever';
+import { buildKnowledgeBlock, buildHexSnapshot, buildLiuYaoSystem } from '@/lib/kb/context-builder';
+import type { KnowledgeBundle } from '@/lib/kb/types';
+
+export { buildHexSnapshot } from '@/lib/kb/context-builder';
+
+export interface LiuYaoStreamOptions {
+  onKnowledge?: (bundle: KnowledgeBundle) => void;
+}
 
 export interface BaziAiRequest {
   year: number;
@@ -91,57 +100,16 @@ The names, symbols, judgments, images and trigrams below come from a standard 64
 3. If a name you remember disagrees with the table, the table always wins.
 4. Interpret only the inquiry and the hexagrams listed below; do not generate any name, symbol or judgment absent from the table.`;
 
-export function buildLiuYaoPrompt(req: LiuYaoAiRequest): string {
-  const { question, reading, lang } = req;
-  const p = reading.primaryHexagram;
-  const t = reading.transformedHexagram;
-  const n = reading.najia;
-
-  if (lang === 'en') {
-    return `You are a revered scholar of the classical I Ching 64 Hexagrams, Liu Yao Najia divination, and contemporary strategic decision-making.
-${LIUYAO_TABLE_RULE_EN}
-Inquiry: "${question}"
-Cast Result (from lookup table):
-${n ? `- 【Divination Timing】: Year ${n.timeInfo.yearGanzhi}, Month ${n.timeInfo.monthGanzhi} (${n.timeInfo.monthZhi} Month Leader), Day ${n.timeInfo.dayGanzhi} (${n.timeInfo.dayZhi} Day Governor), Hour ${n.timeInfo.timeGanzhi}. Day Void (Xun Kong): ${n.timeInfo.xunKong}.
-- 【Hexagram Palace】: ${n.palace} Palace (${n.palaceElement} Element) · ${n.generationName}. Shi (Self) on Line ${n.shiIndex}, Ying (Other) on Line ${n.yingIndex}.
-- 【Six Lines Najia Structure (Bottom to Top)】:
-${n.lines.map(l => `  * ${l.lineNameZh} [${l.sixBeast}] ${l.relative} ${l.branch}${l.element} ${l.isYang ? '⚊' : '⚋'} ${l.isShi ? '[Shi/Self]' : ''}${l.isYing ? '[Ying/Other]' : ''}${l.isChanging ? ` (Moving ⚡ -> Transforms into ${l.transformed?.relative} ${l.transformed?.branch}${l.transformed?.element})` : ''}`).join('\n')}` : ''}
-- 【Primary Hexagram】: King Wen No. ${p.number} · ${p.nameZh} / ${p.nameEn} ${p.symbol} (lower ${p.lowerTrigramEn} / upper ${p.upperTrigramEn})
-- Canonical judgment (Chinese, from table): ${p.judgmentZh}
-- Canonical image (Chinese, from table): ${p.imageZh}
-${t ? `- 【Transformed Hexagram】: King Wen No. ${t.number} · ${t.nameZh} / ${t.nameEn} ${t.symbol} (lower ${t.lowerTrigramEn} / upper ${t.upperTrigramEn})
-- Transformed judgment: ${t.judgmentZh}
-- Moving Line Indices: ${reading.changingLineIndices.map(i => `Line ${i}`).join(', ')}` : '- No changing lines; primary hexagram governs fully.'}
-
-Please generate an elegant, rigorous, and insightful I Ching oracle in English, quoting only the table data above:
-# ${p.symbol} Hexagram Overview & Present Timing
-# 🔍 Line Text Deep Reflection
-# ⚖️ Dynamics of Progression & Transformation
-# 🧭 Strategic Action Principles (DO & DON\'T)
-# ✨ Universal Wisdom & Axiom`;
+export function buildLiuYaoUserPrompt(req: LiuYaoAiRequest, lang?: 'zh' | 'en'): string {
+  const isEn = (lang ?? req.lang) === 'en';
+  if (isEn) {
+    return `Inquiry: "${req.question}"\n\nPlease generate an I Ching oracle following the [Output Contract] and [Reference Rules].`;
   }
+  return `求问者所决之事：“${req.question}”\n\n请按【输出契约】五节输出六爻神谕断语，严格执行【引用铁律】。`;
+}
 
-  return `你是一位精通周易六十四卦、纳甲六爻、八宫世应与时代决断的易学智者。
-${LIUYAO_TABLE_RULE}
-求问者所决之事：“${question}”
-起卦结果（标准六十四卦查表与纳甲排盘）：
-${n ? `- 【起卦时空提纲】：${n.timeInfo.yearGanzhi}年 ${n.timeInfo.monthGanzhi}月 ${n.timeInfo.dayGanzhi}日 ${n.timeInfo.timeGanzhi}时（月建：${n.timeInfo.monthZhi}，日辰：${n.timeInfo.dayZhi}，旬空：${n.timeInfo.xunKong}）
-- 【卦宫体用】：${n.palace}宫${n.palaceElement}（${n.generationName}），世在第 ${n.shiIndex} 爻，应在第 ${n.yingIndex} 爻
-- 【纳甲六爻图谱（自初爻至上爻）】：
-${n.lines.map(l => `  * ${l.lineNameZh} [${l.sixBeast}] ${l.relative}${l.branch}${l.element} ${l.isYang ? '⚊' : '⚋'} ${l.isShi ? '【世】' : ''}${l.isYing ? '【应】' : ''}${l.isChanging ? ` (动爻○ -> 化出 ${l.transformed?.relative}${l.transformed?.branch}${l.transformed?.element})` : ''}`).join('\n')}` : ''}
-- 【本卦】：第 ${p.number} 卦 · ${p.nameZh} ${p.symbol}（下${p.lowerTrigram}上${p.upperTrigram}）
-- 卦辞：${p.judgmentZh}
-- 大象传：${p.imageZh}
-${t ? `- 【变卦】：第 ${t.number} 卦 · ${t.nameZh} ${t.symbol}（下${t.lowerTrigram}上${t.upperTrigram}）
-- 变卦卦辞：${t.judgmentZh}
-- 变动爻位：${reading.changingLineIndices.map(i => `第 ${i} 爻`).join('、')}` : '- 无变爻，纯取本卦体用'}
-
-请为求问者生成结构严谨、辞章典雅的六爻神谕解析，且只引用上表：
-# ${p.symbol} 卦象全景与当下时势
-# 🔍 卦爻辞深层映射（重点结合世应关系、日月生克与动爻转化）
-# ⚖️ 本卦与变卦的转机因果
-# 🧭 破局行动指南（应为之事 Do & 当避之戒 Don't）
-# ✨ 易道天心箴言`;
+export function buildLiuYaoPrompt(req: LiuYaoAiRequest): string {
+  return buildLiuYaoUserPrompt(req, req.lang === 'en' ? 'en' : 'zh');
 }
 
 /**
@@ -318,19 +286,33 @@ ${t ? `---
 /**
  * 流式输出适配器
  */
-export async function* streamLiuYaoReading(req: LiuYaoAiRequest): AsyncGenerator<string, void, unknown> {
+export async function* streamLiuYaoReading(
+  req: LiuYaoAiRequest,
+  options?: LiuYaoStreamOptions
+): AsyncGenerator<string, void, unknown> {
   const activeSkill = getActiveLiuYaoSkill();
-  const systemInstruction = `${req.lang === 'en' ? LIUYAO_TABLE_RULE_EN : LIUYAO_TABLE_RULE}\n\n${activeSkill.systemInstruction}`;
-  const userPrompt = buildLiuYaoPrompt(req);
+  const bundle = retrieveKnowledge({ question: req.question, reading: req.reading, lang: req.lang === 'en' ? 'en' : 'zh' });
+  const { block } = buildKnowledgeBlock(bundle);
+  options?.onKnowledge?.(bundle);
+
+  const systemInstruction = buildLiuYaoSystem({
+    lang: req.lang === 'en' ? 'en' : 'zh',
+    skillInstruction: activeSkill.systemInstruction,
+    snapshot: buildHexSnapshot(req.reading, req.lang === 'en' ? 'en' : 'zh'),
+    block,
+    yongShenNote: `用神判定：${bundle.yongShen.reason}`,
+  });
+  const userPrompt = buildLiuYaoUserPrompt(req, req.lang === 'en' ? 'en' : 'zh');
 
   try {
     yield* streamLLM({
       systemInstruction,
-      messages: [{ role: 'user', content: userPrompt }]
+      messages: [{ role: 'user', content: userPrompt }],
+      maxContextChars: 24000,
     });
     return;
   } catch (err) {
-    console.warn('大模型（DeepSeek/Gemini）调用受限，平滑切换至内置易经专家引擎:', err);
+    console.warn('大模型调用受限，切换内置引擎:', err);
   }
 
   // 本地专家引擎流式输出

@@ -3,6 +3,8 @@ import { streamLiuYaoReading, LiuYaoAiRequest } from '@/lib/metaphysics/east-ai'
 import { normalizeIChingReading } from '@/lib/metaphysics/iching';
 import { verifyReadingSpend, pointsErrorResponse } from '@/lib/points/server';
 import { createSupabaseServerClient, getSupabaseUser } from '@/lib/supabase/server';
+import { auditLiuYaoReport } from '@/lib/kb/guard';
+import type { KnowledgeBundle } from '@/lib/kb/types';
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,10 +38,30 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of streamLiuYaoReading(request)) {
+          let bundle: KnowledgeBundle | undefined;
+
+          for await (const chunk of streamLiuYaoReading(request, {
+            onKnowledge: (b) => {
+              bundle = b;
+            }
+          })) {
             fullReportText += chunk;
             const data = JSON.stringify({ text: chunk });
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+          }
+
+          // 流结束后审计
+          let auditResult: unknown = null;
+          if (bundle) {
+            const audit = auditLiuYaoReport(fullReportText, {
+              allowedRefs: bundle.hits.map(h => h.ref),
+              reading: request.reading,
+              lang: request.lang === 'en' ? 'en' : 'zh'
+            });
+            if (!audit.ok) {
+              console.warn('[liuyao-guard]', audit.issues);
+            }
+            auditResult = audit;
           }
 
           // 自动将 AI 解卦与卦象快照持久化到用户的个人账号（Supabase liuyao_sessions）
@@ -54,7 +76,8 @@ export async function POST(req: NextRequest) {
                   question: request.question,
                   reading_snapshot: {
                     ...request.reading,
-                    ai_report: fullReportText
+                    ai_report: fullReportText,
+                    audit: auditResult
                   }
                 })
                 .select('id')

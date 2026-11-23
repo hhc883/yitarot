@@ -11,6 +11,8 @@ export interface StreamLLMOptions {
   temperature?: number;
   /** 可选覆盖使用的模型提供商: 'deepseek' | 'gemini' | 'auto' */
   provider?: 'deepseek' | 'gemini' | 'auto';
+  /** 上下文预算（字符）。超限直接抛错，不静默截断 */
+  maxContextChars?: number;
 }
 
 /**
@@ -19,6 +21,14 @@ export interface StreamLLMOptions {
  * - 支持 Gemini 官方 SDK 自动热切换与故障逃生（Failover）
  */
 export async function* streamLLM(options: StreamLLMOptions): AsyncGenerator<string, void, unknown> {
+  if (options.maxContextChars) {
+    const total = (options.systemInstruction?.length ?? 0) +
+      options.messages.reduce((n, m) => n + m.content.length, 0);
+    if (total > options.maxContextChars) {
+      throw new Error(`上下文超预算：${total} > ${options.maxContextChars}`);
+    }
+  }
+
   const { systemInstruction, messages, temperature = 0.7, provider = 'auto' } = options;
 
   const deepseekKey = process.env.DEEPSEEK_API_KEY;
@@ -143,14 +153,16 @@ async function* streamGemini(opts: {
 }): AsyncGenerator<string, void, unknown> {
   const ai = new GoogleGenAI({ apiKey: opts.apiKey });
 
-  // 拼接最近的用户提问或上下文
-  const lastUserMsg = opts.messages.filter(m => m.role === 'user').pop();
-  const inputPrompt = lastUserMsg?.content || '';
+  // 拼接多轮 transcript，保留求问者与易学师对话历史
+  const transcript = opts.messages
+    .map(m => `${m.role === 'user' ? '求问者' : m.role === 'assistant' ? '易学师' : '说明'}: ${m.content}`)
+    .join('\n\n');
+  if (!transcript.trim()) throw new Error('Gemini 通道输入为空');
 
   const stream = await ai.interactions.create({
     model: 'gemini-4-hydrogen',
     system_instruction: opts.systemInstruction,
-    input: inputPrompt,
+    input: transcript,
     stream: true
   });
 

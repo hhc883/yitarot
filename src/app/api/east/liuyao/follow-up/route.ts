@@ -2,8 +2,12 @@ import { NextRequest } from 'next/server';
 import { verifyReadingSpend, pointsErrorResponse } from '@/lib/points/server';
 import { normalizeIChingReading, IChingReading } from '@/lib/metaphysics/iching';
 import { getActiveLiuYaoSkill } from '@/lib/metaphysics/skills/registry';
-import { streamLLM, LLMMessage } from '@/lib/llm/adapter';
+import { streamLLM } from '@/lib/llm/adapter';
 import { createSupabaseServerClient, getSupabaseUser } from '@/lib/supabase/server';
+import { retrieveKnowledge } from '@/lib/kb/retriever';
+import { buildKnowledgeBlock, buildHexSnapshot, buildLiuYaoSystem } from '@/lib/kb/context-builder';
+import { buildFollowUpMessages, ConversationTurn } from '@/lib/llm/conversation';
+import { auditLiuYaoReport } from '@/lib/kb/guard';
 
 interface FollowUpRequest {
   question: string;
@@ -12,6 +16,42 @@ interface FollowUpRequest {
   session_id?: string;
   points_ref?: string;
   lang?: 'zh' | 'en';
+}
+
+function extractAnchor(report: string): string {
+  if (!report) return '';
+  const match = report.match(/##\s*一、结论([\s\S]*?)(?=##|$)/);
+  if (match && match[1].trim()) {
+    const text = match[1].trim();
+    return text.length > 400 ? text.slice(0, 400) + '…' : text;
+  }
+  const enMatch = report.match(/##\s*1\.\s*Verdict([\s\S]*?)(?=##|$)/i);
+  if (enMatch && enMatch[1].trim()) {
+    const text = enMatch[1].trim();
+    return text.length > 400 ? text.slice(0, 400) + '…' : text;
+  }
+  return report.length > 1200 ? report.slice(0, 1200) + '…' : report;
+}
+
+function sanitizeClientHistory(raw: Array<{ role?: string; content?: string }> = []): ConversationTurn[] {
+  const result: ConversationTurn[] = [];
+  for (const m of raw) {
+    if (!m || typeof m.content !== 'string') continue;
+    const content = m.content.trim();
+    if (!content) continue;
+    if (m.role !== 'user' && m.role !== 'assistant') continue;
+    if (
+      m.role === 'assistant' &&
+      (content.includes('【引用铁律】') ||
+        content.includes('【输出契约】') ||
+        content.includes('[Reference Rules]'))
+    ) {
+      continue;
+    }
+    const truncated = content.length > 1200 ? content.slice(0, 1200) + '…' : content;
+    result.push({ role: m.role, content: truncated });
+  }
+  return result.slice(-8);
 }
 
 export async function POST(req: NextRequest) {
@@ -33,19 +73,56 @@ export async function POST(req: NextRequest) {
     // 2. 规范化卦象爻线
     const reading = normalizeIChingReading(rawReading);
     const activeSkill = getActiveLiuYaoSkill();
-
     const p = reading.primaryHexagram;
     const t = reading.transformedHexagram;
-    const n = reading.najia;
 
-    // 3. 构建追问专属上下文与心法
-    const hexContext = `【当前排定卦象图谱】
-- 本卦：第 ${p.number} 卦 · ${p.nameZh} ${p.symbol}（下${p.lowerTrigram}上${p.upperTrigram}）· ${n?.palace}宫${n?.palaceElement}
-- 卦辞：“${p.judgmentZh}”
-${t ? `- 变卦：第 ${t.number} 卦 · ${t.nameZh} ${t.symbol}（下${t.lowerTrigram}上${t.upperTrigram}）· 动爻：${reading.changingLineIndices.map(i => `第${i}爻`).join('、')}` : '- 无变爻（六爻安静）'}
-${n ? `- 起卦时空：${n.timeInfo.yearGanzhi}年 ${n.timeInfo.monthGanzhi}月 ${n.timeInfo.dayGanzhi}日 ${n.timeInfo.timeGanzhi}时（月建：${n.timeInfo.monthZhi}，日辰：${n.timeInfo.dayZhi}，旬空：${n.timeInfo.xunKong}）
-- 世应爻位：世在第 ${n.shiIndex} 爻，应在第 ${n.yingIndex} 爻` : ''}`;
+    // 3. 服务端取历史与首解锚点
+    let anchor = '';
+    let history: ConversationTurn[] = [];
+    if (session_id) {
+      const user = await getSupabaseUser();
+      if (user) {
+        const supabase = await createSupabaseServerClient();
+        const [{ data: sessionRow }, { data: msgRows }] = await Promise.all([
+          supabase
+            .from('liuyao_sessions')
+            .select('reading_snapshot')
+            .eq('id', session_id)
+            .maybeSingle(),
+          supabase
+            .from('liuyao_messages')
+            .select('role,content')
+            .eq('session_id', session_id)
+            .order('created_at', { ascending: true })
+            .limit(40)
+        ]);
+        const snapshot = sessionRow?.reading_snapshot as { ai_report?: string } | null;
+        anchor = extractAnchor(snapshot?.ai_report ?? '');
+        history = (msgRows ?? []).filter(r => r.role === 'user' || r.role === 'assistant');
+      }
+    }
 
+    // 4. 未登录/无 session：回退客户端历史，但必须清洗（最多 8 条、单条 ≤1200 字）
+    if (!history.length) {
+      history = sanitizeClientHistory(previous_messages);
+    }
+
+    // 5. 知识库检索（与首解同一套）
+    const bundle = retrieveKnowledge({
+      question,
+      reading,
+      lang: lang === 'en' ? 'en' : 'zh'
+    });
+    const { block } = buildKnowledgeBlock(bundle);
+
+    // 6. messages：服务端历史优先，客户端只在兜底时生效，预算 8000 字符
+    const { messages: llmMessages } = buildFollowUpMessages({
+      history,
+      question,
+      budgetChars: 8000
+    });
+
+    // 7. 追问心法与提示词
     const followUpRule = activeSkill.followUpInstruction
       ? activeSkill.followUpInstruction
           .replace('{{PRIMARY_HEX}}', p.nameZh)
@@ -56,13 +133,18 @@ ${n ? `- 起卦时空：${n.timeInfo.yearGanzhi}年 ${n.timeInfo.monthGanzhi}月
 2. 紧扣原卦之动爻与用神在月日生克下的演进态势，直接犀利切中问题核心；
 3. 给出切实的具体时间窗（如应期月日、出空之时）或行动抉择指引。`;
 
-    const langInstruction = lang === 'en' ? '\nPlease respond fluently in English.' : '\n请使用地道典雅的中文易学风格作答。';
-    const systemInstruction = `${activeSkill.systemInstruction}\n\n${hexContext}\n\n${followUpRule}${langInstruction}`;
+    const langInstruction = lang === 'en' ? 'Please respond fluently in English.' : '请使用地道典雅的中文易学风格作答。';
 
-    const llmMessages: LLMMessage[] = [
-      ...previous_messages.map(m => ({ role: m.role, content: m.content })),
-      { role: 'user', content: question }
-    ];
+    // 8. 组装 System Instruction
+    const systemInstruction = buildLiuYaoSystem({
+      lang: lang === 'en' ? 'en' : 'zh',
+      skillInstruction: activeSkill.systemInstruction,
+      snapshot: buildHexSnapshot(reading, lang),
+      block,
+      yongShenNote: `用神判定：${bundle.yongShen.reason}`,
+      anchor,
+      extraPrompt: `${followUpRule}\n\n${langInstruction}`
+    });
 
     const encoder = new TextEncoder();
     let fullResponseText = '';
@@ -73,11 +155,24 @@ ${n ? `- 起卦时空：${n.timeInfo.yearGanzhi}年 ${n.timeInfo.monthGanzhi}月
           for await (const chunk of streamLLM({
             systemInstruction,
             messages: llmMessages,
-            temperature: 0.7
+            temperature: 0.7,
+            maxContextChars: 24000
           })) {
             fullResponseText += chunk;
             const data = JSON.stringify({ text: chunk });
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+          }
+
+          // 流结束后审计
+          if (bundle) {
+            const audit = auditLiuYaoReport(fullResponseText, {
+              allowedRefs: bundle.hits.map(h => h.ref),
+              reading,
+              lang: lang === 'en' ? 'en' : 'zh'
+            });
+            if (!audit.ok) {
+              console.warn('[liuyao-guard][follow-up]', audit.issues);
+            }
           }
 
           // 追问完成后，若存在 session_id，将问答异步归档保存
