@@ -1,5 +1,6 @@
 import type { SixRelativeName, SixBeastName } from '@/lib/metaphysics/najia';
 import type { IChingReading } from '@/lib/metaphysics/iching';
+import { getPrincipleById, getSanXingTheory } from '@/lib/kb/principles';
 
 export interface RelativeImagery {
   name: SixRelativeName;
@@ -245,11 +246,54 @@ export function buildImagerySnapshot(
         parts.push(`- 【特殊格局·避凶而空】：用神落${n.timeInfo.xunKong}旬空，若受克制则得空避凶，出空逢值逢冲之期见吉凶。`);
       }
     }
+
+    // 4. 底层天道与干支机理渊薮（《京氏易传》元典溯源）
+    if (n.generationName === '游魂' || n.generationName === '归魂') {
+      const p = getPrincipleById('jsyc.wuxing.06');
+      if (p) {
+        parts.push(`- 【天道消息·${n.generationName}卦】（《京氏易传》元典）：${p.practicalGuidance}`);
+      }
+    }
+
+    // 检查卦爻与月日地支是否触发三刑（寅巳申、丑戌未、子卯、辰午酉亥）
+    const allBranches = new Set<string>([
+      n.timeInfo.monthZhi,
+      n.timeInfo.dayZhi,
+      ...n.lines.map(l => l.branch),
+      ...n.lines.filter(l => l.transformed).map(l => l.transformed!.branch)
+    ]);
+
+    const hasYinSiShen = allBranches.has('寅') && allBranches.has('巳') && allBranches.has('申');
+    const hasChouXuWei = allBranches.has('丑') && allBranches.has('戌') && allBranches.has('未');
+    const hasZiMao = allBranches.has('子') && allBranches.has('卯');
+    const hasZiXing = ['辰', '午', '酉', '亥'].some(b => {
+      const count = [
+        n.timeInfo.monthZhi,
+        n.timeInfo.dayZhi,
+        ...n.lines.map(l => l.branch),
+        ...n.lines.filter(l => l.transformed).map(l => l.transformed!.branch)
+      ].filter(x => x === b).length;
+      return count >= 2;
+    });
+
+    if (hasYinSiShen) {
+      const p = getSanXingTheory('无恩之刑');
+      if (p) parts.push(`- 【干支机理·三刑（无恩之刑）】（《京氏易传》）：${p.originTheory} 指归：${p.practicalGuidance}`);
+    } else if (hasChouXuWei) {
+      const p = getSanXingTheory('恃势之刑');
+      if (p) parts.push(`- 【干支机理·三刑（恃势之刑）】（《京氏易传》）：${p.originTheory} 指归：${p.practicalGuidance}`);
+    } else if (hasZiMao) {
+      const p = getSanXingTheory('无礼之刑');
+      if (p) parts.push(`- 【干支机理·相刑（无礼之刑）】（《京氏易传》）：${p.originTheory} 指归：${p.practicalGuidance}`);
+    } else if (hasZiXing) {
+      const p = getSanXingTheory('自刑');
+      if (p) parts.push(`- 【干支机理·自刑（专旺自戕）】（《京氏易传》）：${p.originTheory} 指归：${p.practicalGuidance}`);
+    }
   }
 
   if (parts.length === 0) {
     return '';
   }
 
-  return `【易理象意指归（增删卜易·卜筮全书会通）】\n${parts.join('\n')}`;
+  return `【易理象意与天道指归（增删卜易·卜筮全书·京氏易传会通）】\n${parts.join('\n')}`;
 }

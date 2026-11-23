@@ -43,6 +43,9 @@ const files = [
   'src/lib/metaphysics/hexagrams64.ts',
   'src/lib/metaphysics/najia.ts',
   'src/lib/metaphysics/iching.ts',
+  'src/lib/kb/principles/types.ts',
+  'src/lib/kb/principles/jingshi.ts',
+  'src/lib/kb/principles/index.ts',
   'src/lib/kb/types.ts',
   'src/lib/kb/wuxing.ts',
   'src/lib/kb/pan.ts',
@@ -108,6 +111,40 @@ async function run() {
   if (MEIHUA_RULES.length !== 15) throw new Error('梅花易数通则应为 15 条');
   if (MEIHUA_CASES.length !== 10) throw new Error('梅花易数经典案例应为 10 个');
   if (!BAGUA_WANWU_IMAGERY['乾']) throw new Error('八卦万物类象缺少乾卦');
+
+  // 0c. 验证《京氏易传》宇宙原理库（模式 C：55条元典：20条五行亢害承制 + 20条干支冲合会刑 + 15条四时旺相长生）
+  const {
+    JINGSHI_PRINCIPLES,
+    JINGSHI_WUXING_CHENGZHI,
+    JINGSHI_GANZHI_MECHANICS,
+    JINGSHI_TWELVE_STAGES,
+    getSanXingTheory,
+    getTwelveStageTheory,
+    getPrincipleById,
+    buildCosmologicalSnapshot
+  } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/principles/index.js')).href);
+
+  console.log('京氏易传五行亢害承制条数:', JINGSHI_WUXING_CHENGZHI.length);
+  console.log('京氏易传干支冲合会刑条数:', JINGSHI_GANZHI_MECHANICS.length);
+  console.log('京氏易传四时旺相长生条数:', JINGSHI_TWELVE_STAGES.length);
+  console.log('京氏易传全量宇宙原理总数:', JINGSHI_PRINCIPLES.length);
+
+  if (JINGSHI_WUXING_CHENGZHI.length !== 20) throw new Error('五行亢害承制应为 20 条');
+  if (JINGSHI_GANZHI_MECHANICS.length !== 20) throw new Error('干支冲合会刑应为 20 条');
+  if (JINGSHI_TWELVE_STAGES.length !== 15) throw new Error('四时旺相长生应为 15 条');
+  if (JINGSHI_PRINCIPLES.length !== 55) throw new Error('京氏易传总数应为 55 条');
+
+  const wuen = getSanXingTheory('无恩之刑');
+  if (!wuen || !wuen.originTheory.includes('寅中有长生之火')) throw new Error('未正确检索到无恩之刑生成机理');
+
+  const changsheng = getTwelveStageTheory('长生');
+  if (!changsheng || !changsheng.originTheory.includes('水长生在申')) throw new Error('未正确检索到水长生在申机理');
+
+  const youhun = getPrincipleById('jsyc.wuxing.06');
+  if (!youhun || !youhun.practicalGuidance.includes('游魂')) throw new Error('未正确检索到游魂卦机理');
+
+  const cosmoSnapshot = buildCosmologicalSnapshot(['无恩之刑', '长生']);
+  if (!cosmoSnapshot.includes('无恩之刑')) throw new Error('宇宙原理快照生成失败');
 
   // 测试梅花起卦自动关联邵康节经典案例（观梅占：上兑2，下离3，动爻1 -> 泽火革变泽山咸）
   const meihuaTest = divineMeihua('二雀争梅花枝', 'numbers', [2, 3, 1]);
