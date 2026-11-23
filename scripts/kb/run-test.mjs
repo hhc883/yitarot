@@ -64,7 +64,11 @@ const files = [
   'src/lib/kb/meihua/cases.ts',
   'src/lib/kb/meihua/concepts.ts',
   'src/lib/kb/meihua/index.ts',
-  'src/lib/metaphysics/meihua.ts'
+  'src/lib/metaphysics/meihua.ts',
+  'src/lib/kb/cezi/rules.ts',
+  'src/lib/kb/cezi/cases.ts',
+  'src/lib/kb/cezi/concepts.ts',
+  'src/lib/kb/cezi/index.ts'
 ];
 
 for (const f of files) {
@@ -145,6 +149,43 @@ async function run() {
 
   const cosmoSnapshot = buildCosmologicalSnapshot(['无恩之刑', '长生']);
   if (!cosmoSnapshot.includes('无恩之刑')) throw new Error('宇宙原理快照生成失败');
+
+  // 0d. 验证《测字秘牒》相字心易知识库（模式 A：35条核心通则 + 35例程省实战占验案例 + 独门象意字典）
+  const {
+    CEZI_RULES,
+    CEZI_CASES,
+    findCeziCasesByChar,
+    findCeziRulesByTopic,
+    analyzeCharacterDeconstruction,
+    buildCeziInsightSnapshot,
+    RADICAL_IMAGERY_MAP
+  } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/cezi/index.js')).href);
+
+  console.log('测字秘牒核心通则总数:', CEZI_RULES.length);
+  console.log('测字秘牒经典案例总数:', CEZI_CASES.length);
+
+  if (CEZI_RULES.length !== 35) throw new Error('测字秘牒通则应为 35 条');
+  if (CEZI_CASES.length !== 35) throw new Error('测字秘牒案例应为 35 个');
+  if (!RADICAL_IMAGERY_MAP['水']) throw new Error('缺少水部取格类象定义');
+
+  const qianCases = findCeziCasesByChar('欠');
+  if (qianCases.length === 0 || !qianCases[0].title.includes('问六甲')) throw new Error('未正确匹配欠字问六甲案例');
+
+  const qingCases = findCeziCasesByChar('青');
+  if (qingCases.length === 0 || !qingCases[0].title.includes('圣驾南巡')) throw new Error('未正确匹配青字问圣驾南巡案例');
+
+  const deconstruct = analyzeCharacterDeconstruction('江');
+  if (!deconstruct.detectedRadical || deconstruct.detectedRadical.name !== '水部取格') {
+    throw new Error('汉字全息析字未能正确识别江字水部吉格');
+  }
+
+  const ceziRules = findCeziRulesByTopic('功名');
+  if (ceziRules.length === 0) throw new Error('未检索到功名相关测字通则');
+
+  const ceziSnapshot = buildCeziInsightSnapshot('门', '疾病');
+  if (!ceziSnapshot.includes('门字问妇病') || !ceziSnapshot.includes('日有余月不足')) {
+    throw new Error('测字全息象数推演快照未能正确映射门字占验');
+  }
 
   // 测试梅花起卦自动关联邵康节经典案例（观梅占：上兑2，下离3，动爻1 -> 泽火革变泽山咸）
   const meihuaTest = divineMeihua('二雀争梅花枝', 'numbers', [2, 3, 1]);

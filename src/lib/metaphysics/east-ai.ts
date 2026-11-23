@@ -5,9 +5,18 @@ import { streamLLM } from '@/lib/llm/adapter';
 import { retrieveKnowledge } from '@/lib/kb/retriever';
 import { buildKnowledgeBlock, buildHexSnapshot, buildLiuYaoSystem } from '@/lib/kb/context-builder';
 import { buildImagerySnapshot } from '@/lib/kb/concepts';
+import { buildCeziInsightSnapshot } from '@/lib/kb/cezi';
 import type { KnowledgeBundle } from '@/lib/kb/types';
 
 export { buildHexSnapshot } from '@/lib/kb/context-builder';
+export { buildCeziInsightSnapshot } from '@/lib/kb/cezi';
+
+export interface CeziAiRequest {
+  char: string;
+  question: string;
+  lang?: string;
+  points_ref?: string;
+}
 
 export interface LiuYaoStreamOptions {
   onKnowledge?: (bundle: KnowledgeBundle) => void;
@@ -352,3 +361,54 @@ export async function* streamBaziReading(data: BaZiCalculationResult, req: BaziA
     await new Promise(r => setTimeout(r, 20));
   }
 }
+
+/**
+ * 构造测字心易全息推演 Prompt（《测字秘牒》清·程省）
+ */
+export function buildCeziPrompt(req: CeziAiRequest): { systemInstruction: string; userPrompt: string } {
+  const snapshot = buildCeziInsightSnapshot(req.char, req.question);
+  const systemInstruction = req.lang === 'en'
+    ? 'You are an imperial Chinese character divination master grounded in Qing Dynasty maestro Cheng Sheng\'s "Ce Zi Mi Die" (测字秘牒). Analyze character strokes, radicals, anatomy, and homophones without vague modern clichés.'
+    : `你是一位精通清代相字宗师程省《测字秘牒》的正统测字心易大师（YiTatro 象数推演架构）。
+你的职责是依据求测者所写所指之「单字」，深究其装头、接脚、穿心、包笼、偏旁五行、字画骨骼（头心身足）与程省经典占验，做出直断事体成败吉凶与应期的确切断语。不得使用「顺其自然」「保持平和」等禁用空话。`;
+
+  const userPrompt = req.lang === 'en'
+    ? `Querent asks about: "${req.question}" with character "${req.char}".\n\n${snapshot}\n\nPlease provide a clear structural dissection, astrological/elemental mapping, historical case resonance, and definite timing.`
+    : `求测事项：「${req.question}」\n所占之字：「${req.char}」\n\n${snapshot}\n\n请按《测字秘牒》之法，详陈字形骨骼结构分析、五行六神体用、吉凶断语与精准应期。`;
+
+  return { systemInstruction, userPrompt };
+}
+
+/**
+ * 测字断相心易流式输出适配器
+ */
+export async function* streamCeziReading(req: CeziAiRequest): AsyncGenerator<string, void, unknown> {
+  const { systemInstruction, userPrompt } = buildCeziPrompt(req);
+
+  try {
+    yield* streamLLM({
+      systemInstruction,
+      messages: [{ role: 'user', content: userPrompt }]
+    });
+    return;
+  } catch (err) {
+    console.warn('大模型调用受限，切换内置测字析字引擎:', err);
+  }
+
+  const snapshot = buildCeziInsightSnapshot(req.char, req.question);
+  const fallback = `## 一、字理本源
+所书「${req.char}」字，按《测字秘牒》相字之法，字具象形与骨骼之体。
+
+## 二、程省断法渊薮
+${snapshot}
+
+## 三、吉凶与应期指归
+凡问「${req.question}」，字意与生克相合，事机当顺遂而成，切忌犹豫不决；应期以所带五行与冲合之日月定局。`;
+
+  const parts = fallback.split(/(?<=\n|。|！|？|：|；|\*\*)/);
+  for (const p of parts) {
+    yield p;
+    await new Promise(r => setTimeout(r, 20));
+  }
+}
+
