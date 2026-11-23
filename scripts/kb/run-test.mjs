@@ -12,6 +12,10 @@ function transpileFile(srcRelative) {
 
   // Convert alias @/ to absolute path to file in OUT_DIR
   code = code.replace(/from\s+['"]@\/lib\/([^'"]+)['"]/g, (match, p1) => {
+    const candidateDir = path.resolve(process.cwd(), 'src/lib', p1);
+    if (fs.existsSync(candidateDir) && fs.statSync(candidateDir).isDirectory()) {
+      return `from '${pathToFileURL(path.join(OUT_DIR, p1, 'index.js')).href}'`;
+    }
     return `from '${pathToFileURL(path.join(OUT_DIR, p1 + '.js')).href}'`;
   });
 
@@ -52,7 +56,12 @@ const files = [
   'src/lib/kb/retriever.ts',
   'src/lib/kb/context-builder.ts',
   'src/lib/kb/guard.ts',
-  'src/lib/llm/conversation.ts'
+  'src/lib/llm/conversation.ts',
+  'src/lib/kb/meihua/rules.ts',
+  'src/lib/kb/meihua/cases.ts',
+  'src/lib/kb/meihua/concepts.ts',
+  'src/lib/kb/meihua/index.ts',
+  'src/lib/metaphysics/meihua.ts'
 ];
 
 for (const f of files) {
@@ -87,6 +96,27 @@ async function run() {
   if (RULES_DB.length !== 245) throw new Error('RULES_DB 总数应为 245 (30 + 35 + 180)');
   if (ZENGSHAN_CORE_RULES[0].status !== 'verified') throw new Error('黄金通则首条应为 verified 状态');
   if (!SIX_RELATIVES_IMAGERY['妻财']) throw new Error('象意字典缺少妻财定义');
+
+  // 0b. 验证《梅花易数》知识库（15条通则 + 10经典案例 + 八卦万物类象）
+  const { MEIHUA_RULES } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/meihua/rules.js')).href);
+  const { MEIHUA_CASES } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/meihua/cases.js')).href);
+  const { BAGUA_WANWU_IMAGERY } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/meihua/concepts.js')).href);
+  const { divineMeihua } = await import(pathToFileURL(path.join(OUT_DIR, 'metaphysics/meihua.js')).href);
+
+  console.log('梅花易数通则总数:', MEIHUA_RULES.length);
+  console.log('梅花易数经典案例总数:', MEIHUA_CASES.length);
+  if (MEIHUA_RULES.length !== 15) throw new Error('梅花易数通则应为 15 条');
+  if (MEIHUA_CASES.length !== 10) throw new Error('梅花易数经典案例应为 10 个');
+  if (!BAGUA_WANWU_IMAGERY['乾']) throw new Error('八卦万物类象缺少乾卦');
+
+  // 测试梅花起卦自动关联邵康节经典案例（观梅占：上兑2，下离3，动爻1 -> 泽火革变泽山咸）
+  const meihuaTest = divineMeihua('二雀争梅花枝', 'numbers', [2, 3, 1]);
+  console.log('梅花测算本卦:', meihuaTest.primaryHexagram.fullNameZh);
+  console.log('梅花测算变卦:', meihuaTest.transformedHexagram.fullNameZh);
+  console.log('梅花命中宗师卦案:', meihuaTest.classicCase?.title);
+  if (meihuaTest.primaryHexagram.fullNameZh !== '泽火革') throw new Error('本卦应为泽火革');
+  if (meihuaTest.transformedHexagram.fullNameZh !== '泽山咸') throw new Error('变卦应为泽山咸');
+  if (!meihuaTest.classicCase?.title.includes('观梅占')) throw new Error('应命中观梅占经典案例');
 
   // 1. 测试盘面：乾为天（无变爻，六爻安静，纯阳六冲）
   const qianLines = [

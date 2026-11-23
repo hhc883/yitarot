@@ -488,6 +488,51 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
               </div>
             </section>
           )}
+
+          {/* 邵康节宗师同卦实战占验（若命中） */}
+          {result.classicCase && (
+            <section
+              aria-labelledby="meihua-classic-case-heading"
+              className="w-full mb-8 p-5 rounded-xl border border-zinc-200 bg-zinc-50"
+            >
+              <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-200">
+                <h3
+                  id="meihua-classic-case-heading"
+                  className="text-xs font-semibold text-zinc-900 flex items-center gap-1.5"
+                >
+                  <span className="font-mono text-xs">📖</span>
+                  <span>
+                    {isEn
+                      ? `Master Shao Precedent · ${result.classicCase.title}`
+                      : `邵雍宗师经典卦案 · ${result.classicCase.title}`}
+                  </span>
+                </h3>
+                <span className="text-[11px] font-mono text-zinc-500">
+                  {isEn ? 'Meihua Yishu Canon' : '《梅花易数》占验'}
+                </span>
+              </div>
+              <div className="space-y-2 text-xs text-zinc-700 leading-relaxed">
+                <p>
+                  <strong className="text-zinc-900 font-medium">
+                    {isEn ? 'Historical Query: ' : '实占起因：'}
+                  </strong>
+                  {result.classicCase.query}
+                </p>
+                <p>
+                  <strong className="text-zinc-900 font-medium">
+                    {isEn ? 'Analysis: ' : '机理推演：'}
+                  </strong>
+                  {result.classicCase.analysis}
+                </p>
+                <p className="pt-2 border-t border-zinc-200 text-zinc-600">
+                  <strong className="text-zinc-900 font-medium">
+                    {isEn ? 'Historical Outcome: ' : '实际应验：'}
+                  </strong>
+                  {result.classicCase.result}
+                </p>
+              </div>
+            </section>
+          )}
         </>
       )}
 

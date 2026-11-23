@@ -1,3 +1,6 @@
+import { findMatchingMeihuaCase, getTrigramImagery, type MeihuaCaseEntry, type TrigramWanwuDetail } from '@/lib/kb/meihua';
+import { lookupEntryByBinary } from './hexagrams64';
+
 export interface TrigramInfo {
   number: number; // 1 to 8
   nameZh: string; // 乾、兑、离、震、巽、坎、艮、坤
@@ -81,6 +84,13 @@ export interface MeihuaDivinationResult {
     suitable: string[];
     unsuitable: string[];
     tacticalAdvice: string;
+  };
+  /** 邵康节《梅花易数》经典实战卦例（若命中） */
+  classicCase?: MeihuaCaseEntry;
+  /** 体用八卦万物类象（《梅花易数》伏羲先天类象） */
+  trigramImagery?: {
+    body?: TrigramWanwuDetail;
+    application?: TrigramWanwuDetail;
   };
 }
 
@@ -261,6 +271,18 @@ export function divineMeihua(
     tacticalAdviceEn = "Find mediation rather than force. Cultivate internal fortitude until cosmic timing realigns.";
   }
 
+  // 查文王 64 卦序号与匹配梅花历史经典卦案
+  const primaryBinary = allLines.map(b => (b ? '1' : '0')).join('');
+  const primaryEntry = lookupEntryByBinary(primaryBinary);
+  const changedBinary = changedLines.map(b => (b ? '1' : '0')).join('');
+  const changedEntry = lookupEntryByBinary(changedBinary);
+
+  const classicCase = findMatchingMeihuaCase(primaryEntry.number, changedEntry.number);
+  const trigramImagery = {
+    body: getTrigramImagery(bodyTri.nameZh),
+    application: getTrigramImagery(useTri.nameZh)
+  };
+
   return {
     question: question || "当前关键决策与事态走向",
     castMode: mode,
@@ -321,6 +343,8 @@ export function divineMeihua(
       suitable: suitableEn,
       unsuitable: unsuitableEn,
       tacticalAdvice: tacticalAdviceEn
-    }
+    },
+    classicCase,
+    trigramImagery
   };
 }
