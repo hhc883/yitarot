@@ -202,95 +202,129 @@ ${dm.cosmicAdviceZh}
 }
 
 /**
- * 本地六爻神谕解读引擎
+ * 本地六爻神谕解读引擎（增删卜易 · 卜筮全书 · 京氏易传理法直出）
  */
-export function generateLocalLiuYaoReport(req: LiuYaoAiRequest): string {
+export function generateLocalLiuYaoReport(req: LiuYaoAiRequest, customBundle?: KnowledgeBundle): string {
   const { question, reading, lang } = req;
-  const p = reading.primaryHexagram;
-  const t = reading.transformedHexagram;
   const n = reading.najia;
 
+  const bundle = customBundle || retrieveKnowledge({ question, reading, lang: lang === 'en' ? 'en' : 'zh' });
+  const facts = bundle.facts;
+  const yongShenName = bundle.yongShen.primary.join('、') || '用神';
+
   if (lang === 'en') {
-    return `Regarding your inquiry: **“${question}”**, the six coins have completed their classical oracle casting.
+    const topHits = bundle.hits.slice(0, 5);
+    const primaryRef = topHits[0] ? `[${topHits[0].ref}]` : '[KB-01]';
+    let verdict = 'Attainable';
+    if (facts.conditions.has('month-break') || facts.conditions.has('hui-tou-ke') || facts.conditions.has('hua-jue')) {
+      verdict = 'Unattainable';
+    } else if (facts.conditions.has('xun-kong') || facts.conditions.has('hua-mu') || facts.conditions.has('transform-retreat') || facts.conditions.has('liu-chong-gua')) {
+      verdict = 'Attainable with obstacles';
+    }
 
----
+    const evidenceList = topHits.map(h => `- Condition: ${h.reason} -> Judgment: "${h.entry.text.slice(0, 80)}..." ([${h.ref}])`).join('\n');
 
-### ⏳ Divination Timing & Astronomical Pillars
-${n ? `- Date & Time: ${n.timeInfo.solarDate} (${n.timeInfo.lunarDate})
-- Four Pillars: ${n.timeInfo.yearGanzhi} Year, ${n.timeInfo.monthGanzhi} Month, ${n.timeInfo.dayGanzhi} Day, ${n.timeInfo.timeGanzhi} Hour
-- Month Leader (Yue Jian): **${n.timeInfo.monthZhi}** | Day Governor (Ri Chen): **${n.timeInfo.dayZhi}** | Day Void (Xun Kong): **${n.timeInfo.xunKong}**
-- Hexagram Palace: **${n.palace} Palace (${n.palaceElement} Element)** · ${n.generationName} | Shi Line: **Line ${n.shiIndex}** · Ying Line: **Line ${n.yingIndex}**` : ''}
+    return `## 1. Verdict
+**${verdict}**. Regarding inquiry "${question}", the primary focus falls on ${yongShenName}. (${primaryRef})
 
----
+## 2. Evidence
+${evidenceList}
 
-### ${p.symbol} Primary Hexagram: 【${p.nameEn}】 (${p.nameZh})
-Hexagram **【${p.nameEn}】** ${p.symbol} (lower ${p.lowerTrigramEn} / upper ${p.upperTrigramEn}).
-> *“${p.judgmentEn}”*
-Image Commentary: *“${p.imageEn}”*
+## 3. Timing
+${topHits[0]?.entry.timing || 'Decided by Day Void clearance (Xun Kong) or Clashing day as documented in canons.'} (${primaryRef})
 
----
+## 4. Risk Factors
+If hostile branches clash or conquer the primary focus line, the affirmative verdict risks reversal.
 
-### 🔍 Classical Najia Lines Progression
-${n ? n.lines.map(l => `- **${l.lineNameEn}** [${l.sixBeast}] ${l.relative} ${l.branch}${l.element} (${l.isYang ? 'Yang ⚊' : 'Yin ⚋'})${l.isShi ? ' 【Shi/Self】' : ''}${l.isYing ? ' 【Ying/Other】' : ''}${l.isChanging ? ` ⚡ (Moving -> Transforms into ${l.transformed?.relative} ${l.transformed?.branch}${l.transformed?.element})` : ''}`).join('\n') : reading.lines.map(l => `- Line ${l.lineIndex}: ${l.isYang ? 'Yang ⚊' : 'Yin ⚋'}${l.isChanging ? ' ⚡' : ''}`).join('\n')}
-
-${t ? `---
-
-### ⚡ Transformed Hexagram: 【${t.nameEn}】 (${t.nameZh}) ${t.symbol}
-Moving lines catalyze evolution into Hexagram **【${t.nameEn}】**.
-> *“${t.judgmentEn}”*
-Following transitional friction, matters will mature in the direction governed by ${t.nameEn}.` : 'All six lines are peaceful; adhere strictly to the foundation of the Primary Hexagram.'}
-
----
-
-### 🧭 Strategic Action Principles
-- 💡 **DO**: ${p.careerAdviceEn} Maintain honesty and plan with foresight.
-- ⚠️ **DON'T**: Avoid impulsive haste or forcing actions during emotional turbulence.
-
----
-
-### ✨ Universal Wisdom
-> *Act in accordance with ${p.nameEn}. The lookup table above is the sole authority on the name, symbol and judgment.*`;
+## 5. If... Then...
+- If future solar/lunar dates generate support for ${yongShenName}, then the enterprise prospers;
+- If adverse clashing emerges, then restraint preserves vitality.`;
   }
 
-  return `针对你所叩问之事：**“${question}”**，铜钱六掷，京房纳甲神谕已成。
+  // 中文模式：严格遵循输出契约与引用规范
+  const topHits = bundle.hits.slice(0, 6);
+  const ruleHits = topHits.filter(h => h.entry.kind === 'rule');
+  const primaryHit = ruleHits[0] || topHits[0];
+  const primaryRef = primaryHit ? `[${primaryHit.ref}]` : '[KB-01]';
+
+  // 严格判定结论
+  let verdict: '成' | '不成' | '成而有阻' = '成';
+  let verdictReason = '用神得日月生扶，气数纯旺';
+
+  if (facts.conditions.has('month-break') || facts.conditions.has('hui-tou-ke') || facts.conditions.has('hua-jue')) {
+    verdict = '不成';
+    verdictReason = facts.conditions.has('month-break') ? '用神休囚而临月破，根基已伤' : '动化回头克，外助反成内祸';
+  } else if (facts.conditions.has('xun-kong') || facts.conditions.has('hua-mu') || facts.conditions.has('transform-retreat') || facts.conditions.has('liu-chong-gua')) {
+    verdict = '成而有阻';
+    verdictReason = facts.conditions.has('xun-kong') ? '用神虽旺而入旬空，出空方能成事' : '卦逢六冲或动化退神，先难而后易';
+  } else if (facts.conditions.has('hui-tou-sheng') || facts.conditions.has('transform-advance') || facts.conditions.has('dark-move') || facts.conditions.has('liu-he-gua')) {
+    verdict = '成';
+    verdictReason = facts.conditions.has('hui-tou-sheng') ? '动爻化回头生，自内发秀' : '爻临动旺化进神，势如破竹';
+  }
+
+  // 依据清单（至少三条，挂引用）
+  const evidenceLines: string[] = [];
+  for (const h of topHits) {
+    if (evidenceLines.length >= 4) break;
+    const bookTitle = h.entry.source.book || '增删卜易';
+    const chap = h.entry.source.chapter ? `·${h.entry.source.chapter}` : '';
+    const cleanText = h.entry.text.length > 70 ? h.entry.text.slice(0, 70) + '…' : h.entry.text;
+    evidenceLines.push(`- 盘面条达：${h.reason} → 【${bookTitle}${chap}】：“${cleanText}”（[${h.ref}]）`);
+  }
+  if (evidenceLines.length < 3 && topHits.length > 0) {
+    for (const h of topHits) {
+      if (!evidenceLines.some(l => l.includes(`[${h.ref}]`))) {
+        evidenceLines.push(`- 盘面机括：${h.reason} → 断语：“${h.entry.text.slice(0, 60)}”（[${h.ref}]）`);
+      }
+      if (evidenceLines.length >= 3) break;
+    }
+  }
+
+  // 应期推法
+  let timingText = '';
+  const timingRule = topHits.find(h => h.entry.timing);
+  if (timingRule && timingRule.entry.timing) {
+    timingText = `以用神生旺墓绝与冲合之律定之：${timingRule.entry.timing}。（[${timingRule.ref}]）`;
+  } else if (facts.conditions.has('xun-kong') && n) {
+    timingText = `用神落旬空（${n.timeInfo.xunKong}），以出空逢值、逢冲之日断，过旬即见分晓。（${primaryRef}）`;
+  } else if (facts.conditions.has('month-break')) {
+    timingText = `用神逢月破，出月逢值逢合之月日方得实破应验。（${primaryRef}）`;
+  } else {
+    timingText = `动而逢合以冲开之日断，静爻逢值逢生以生旺之月日为期。（${primaryRef}）`;
+  }
+
+  // 风险信号
+  let riskText = '';
+  if (facts.conditions.has('hui-tou-ke')) {
+    riskText = '若变爻克绝之支在日辰再次加临发动，则凶势不可解。';
+  } else if (facts.conditions.has('month-break')) {
+    riskText = '若出月后仍逢日辰重克，则彻底化为真破无救。';
+  } else {
+    riskText = '若占后日辰遇相刑相冲之煞克制用神，则事生翻覆。';
+  }
+
+  // 象意与天道消息快照
+  const imagery = buildImagerySnapshot(reading, bundle.yongShen.primary);
+
+  return `## 一、结论
+**${verdict}**。占问「${question}」，以${bundle.yongShen.reason}。今盘面用神【${yongShenName}】${verdictReason}。（${primaryRef}）
+
+## 二、依据
+${evidenceLines.join('\n')}
+
+## 三、应期
+${timingText}
+
+## 四、风险信号
+${riskText}
+
+## 五、若…则…
+- 若出空或逢合之日生扶用神，则事成定局；
+- 若遇忌神生旺克制用神，则中途多生枝节阻遏。
 
 ---
 
-### ⏳ 起卦时空提纲
-${n ? `- 公历时间：${n.timeInfo.solarDate} （农历：${n.timeInfo.lunarDate}）
-- 四柱干支：**${n.timeInfo.yearGanzhi}年 ${n.timeInfo.monthGanzhi}月 ${n.timeInfo.dayGanzhi}日 ${n.timeInfo.timeGanzhi}时**
-- 月令提纲：**${n.timeInfo.monthZhi}水（月建）** | 日辰主宰：**${n.timeInfo.dayZhi}火（日辰）** | 空亡：**${n.timeInfo.xunKong}空**
-- 卦宫归属：**${n.palace}宫【${n.palaceElement}】· ${n.generationName}**（世在第 **${n.shiIndex}** 爻，应在第 **${n.yingIndex}** 爻）` : ''}
-
----
-
-### ${p.symbol} 本卦全景：【${p.nameZh}】 ${p.symbol}
-本卦得**【${p.nameZh}】**（下${p.lowerTrigram}上${p.upperTrigram}）。
-> 卦辞：*“${p.judgmentZh}”*
-大象传云：*“${p.imageZh}”*
-
----
-
-### 🔍 纳甲六爻全图谱
-${n ? n.lines.map(l => `- **${l.lineNameZh}**【${l.sixBeast}】 ${l.relative}${l.branch}${l.element} （${l.isYang ? '阳 ⚊' : '阴 ⚋'}）${l.isShi ? ' 【世】' : ''}${l.isYing ? ' 【应】' : ''}${l.isChanging ? ` ⚡ (动爻○ -> 化出 ${l.transformed?.relative}${l.transformed?.branch}${l.transformed?.element})` : ''}`).join('\n') : reading.lines.map(l => `- 第 ${l.lineIndex} 爻：${l.isYang ? '阳 ⚊' : '阴 ⚋'}${l.isChanging ? ' ⚡' : ''}`).join('\n')}
-
-${t ? `---
-
-### ⚡ 变卦走向：【${t.nameZh}】 ${t.symbol}
-动爻引动气场流转，变卦显化为**【${t.nameZh}】 ${t.symbol}**（下${t.lowerTrigram}上${t.upperTrigram}）。
-> 变卦卦辞：*“${t.judgmentZh}”*
-这预示着经过初期的磨合与动荡后，事情将朝着${t.nameZh}所示的方向演进。` : '六爻安静，纯守本卦，宜稳扎稳打。'}
-
----
-
-### 🧭 破局行动指南
-- 💡 **宜（Do）**：${p.careerAdviceZh} 保持诚笃守正的心态，凡事提前谋篇布局。
-- ⚠️ **忌（Don't）**：切忌急功近利、在情绪未定之时强行推进行动。
-
----
-
-### ✨ 易道天心箴言
-> *大象传云：“${p.imageZh}”*`;
+${imagery}`;
 }
 
 /**
@@ -327,7 +361,7 @@ export async function* streamLiuYaoReading(
   }
 
   // 本地专家引擎流式输出
-  const fullText = generateLocalLiuYaoReport(req);
+  const fullText = generateLocalLiuYaoReport(req, bundle);
   const parts = fullText.split(/(?<=\n|。|！|？|：|；|\*\*)/);
   for (const p of parts) {
     yield p;
