@@ -1,7 +1,8 @@
 import type { KBEntry } from './types';
 import { ZENGSHAN_CORE_RULES } from './golden-rules';
+import { BUSHIQUANSHU_RULES } from './bushiquanshu-rules';
 
-export { ZENGSHAN_CORE_RULES };
+export { ZENGSHAN_CORE_RULES, BUSHIQUANSHU_RULES };
 
 /**
  * 六爻实战断法草稿条目库（正统《增删卜易》典籍条目）
@@ -3305,4 +3306,4 @@ const DRAFT_RULES: KBEntry[] = [
   }
 ];
 
-export const RULES_DB: KBEntry[] = [...ZENGSHAN_CORE_RULES, ...DRAFT_RULES];
+export const RULES_DB: KBEntry[] = [...ZENGSHAN_CORE_RULES, ...BUSHIQUANSHU_RULES, ...DRAFT_RULES];

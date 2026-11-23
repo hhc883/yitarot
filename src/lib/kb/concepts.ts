@@ -20,12 +20,14 @@ export interface LinePositionImagery {
   index: number;
   name: string;
   domain: string;
+  weatherHome: string;
+  peopleBody: string;
   socialRank: string;
   bodyPart: string;
 }
 
 /**
- * 《增删卜易》六亲实战功能取象
+ * 六亲实战功能取象（《增删卜易》与《卜筮全书》通贯）
  */
 export const SIX_RELATIVES_IMAGERY: Record<SixRelativeName, RelativeImagery> = {
   父母: {
@@ -66,7 +68,7 @@ export const SIX_RELATIVES_IMAGERY: Record<SixRelativeName, RelativeImagery> = {
 };
 
 /**
- * 《增删卜易》六神（六兽）情状辅象
+ * 六神（六兽）情状辅象
  * 核心原旨：“吉凶全由生克，六神唯断情状”
  */
 export const SIX_BEASTS_IMAGERY: Record<SixBeastName, BeastImagery> = {
@@ -109,13 +111,15 @@ export const SIX_BEASTS_IMAGERY: Record<SixBeastName, BeastImagery> = {
 };
 
 /**
- * 爻位时空与尊卑取象
+ * 爻位万事立体时空定位（《卜筮全书》浑天甲子爻位法）
  */
 export const LINE_POSITIONS_IMAGERY: Record<number, LinePositionImagery> = {
   1: {
     index: 1,
     name: '初爻',
     domain: '基层、平民、子弟、幼苗、步卒、门户、潜伏之地',
+    weatherHome: '云、井泉、地基、乡村、左邻后邻',
+    peopleBody: '小口、婴儿、贱民、奴仆、足部、鞋袜',
     socialRank: '百姓、下役、庶民',
     bodyPart: '足部、脚踝、趾'
   },
@@ -123,45 +127,59 @@ export const LINE_POSITIONS_IMAGERY: Record<number, LinePositionImagery> = {
     index: 2,
     name: '二爻',
     domain: '家室、母腹、私室、吏员、庭院、厨房、乡党',
-    socialRank: '州县官、治下吏、管家',
+    weatherHome: '电、灶堂、厨房、母腹、私室、州县市镇',
+    peopleBody: '妻妾、妇人、胎儿、胫骨、膝盖、猫犬',
+    socialRank: '县丞僚佐、万民百姓、乡村里正',
     bodyPart: '小腿、胫膝、生殖'
   },
   3: {
     index: 3,
     name: '三爻',
     domain: '门闾、官署门首、中层、同列、腹部、阻隔之所',
-    socialRank: '部佐、同僚、中层官员',
+    weatherHome: '风、大门、床席、市井、门庭、神祠',
+    peopleBody: '兄弟、叔伯、同僚、中层、腰腹、猪豕',
+    socialRank: '本县知县、府县主官、关口阻隔',
     bodyPart: '腰腹、臀胯'
   },
   4: {
     index: 4,
     name: '四爻',
     domain: '门户、府门、近臣、佐贰、诸侯、进阶之所',
-    socialRank: '公卿、辅相、贴身要职',
+    weatherHome: '雷、中门、门户、坊镇、右邻前邻',
+    peopleBody: '母位、近侍、佐贰、大夫、心胸乳膈、羊畜',
+    socialRank: '巡抚都宪、朝廷宰执大臣、省部道台',
     bodyPart: '胸背、心肺'
   },
   5: {
     index: 5,
     name: '五爻',
     domain: '君王、至尊、主将、宰辅、路途、主宰、纲领之位',
-    socialRank: '元首、天子、一把手、统帅',
+    weatherHome: '雨、道路、街衢、京师城邑、正堂',
+    peopleBody: '父位、天子、国君、主帅、面貌五官、牛马',
+    socialRank: '当今天子、中央政令、朝廷恩命、一把手',
     bodyPart: '颈项、心脑、面部'
   },
   6: {
     index: 6,
     name: '上爻',
     domain: '宗庙、祖茔、郊野、退休、极顶、头颅、穷极绝响',
+    weatherHome: '天、栋梁、墙垣、宗庙、祖茔、山林',
+    peopleBody: '祖先、太上、郊野隐士、极老之人、头颅头发',
     socialRank: '太上、元老、遗老、世外宗师',
     bodyPart: '发顶、天灵'
   }
 };
 
 /**
- * 关键格位独门法门
+ * 关键格位与特殊格局（《增删卜易》与《卜筮全书》）
  */
-export const SPECIAL_MECHANICS = {
-  飞伏神出入: '飞神逢空、月破、休囚，伏神如脱网之鸟，易出易就；飞神得生旺克伏，伏神死死沉沦，此野鹤“飞伏辨虚实”之独门心得。',
-  退神不退辩: '动爻化退，占近事逢日月当令（如秋占申化酉、酉化申）者，不作退神论，应期在逢值之时；占久远事方受退神剥夺，不可一概而论。'
+export const SPECIAL_PATTERNS = {
+  飞伏神出入: '飞神逢空、月破、休囚，伏神如脱网之鸟，易出易就；飞神得生旺克伏，伏神死死沉沦，此“飞伏辨虚实”之法门。',
+  退神不退辩: '动爻化退，占近事逢日月当令（如秋占申化酉、酉化申）者，不作退神论，应期在逢值之时；占久远事方受退神剥夺，不可一概而论。',
+  避凶而空: '爻受日月动爻重克刑冲，而恰值旬空，避其锐气；待出空之日免祸成事，因祸得福。',
+  六冲变六合: '始遭溃散，终得圆聚；破镜重圆，官讼私和，失物自还。',
+  六合变六冲: '结盟反目，成事化虚，买卖先盈后折，临产难生。',
+  两鬼两财: '一卦见两官，政令不一，事干两头，反复不常；占婚见两财两官，婚配乖违，重婚续弦。'
 };
 
 /**
@@ -205,9 +223,33 @@ export function buildImagerySnapshot(
     parts.push(`- 【动爻时空与情状】：${movingDesc.join('；')}`);
   }
 
+  // 3. 特殊格局判定（《卜筮全书》辨格）
+  if (n) {
+    const p = reading.primaryHexagram;
+    const t = reading.transformedHexagram;
+    if (t) {
+      // 检查六冲变六合 / 六合变六冲
+      const chongHexNums = [1, 2, 51, 52, 53, 54, 29, 30, 25, 33];
+      const heHexNums = [11, 12, 31, 32, 17, 18, 45, 46];
+      if (chongHexNums.includes(p.number) && heHexNums.includes(t.number)) {
+        parts.push(`- 【特殊格局·六冲变六合】：${SPECIAL_PATTERNS.六冲变六合}`);
+      } else if (heHexNums.includes(p.number) && chongHexNums.includes(t.number)) {
+        parts.push(`- 【特殊格局·六合变六冲】：${SPECIAL_PATTERNS.六合变六冲}`);
+      }
+    }
+
+    // 检查用神避凶而空
+    if (yongShenRelatives && yongShenRelatives.length > 0) {
+      const kongLines = n.lines.filter(l => yongShenRelatives.includes(l.relative) && n.timeInfo.xunKong.includes(l.branch));
+      if (kongLines.length > 0) {
+        parts.push(`- 【特殊格局·避凶而空】：用神落${n.timeInfo.xunKong}旬空，若受克制则得空避凶，出空逢值逢冲之期见吉凶。`);
+      }
+    }
+  }
+
   if (parts.length === 0) {
     return '';
   }
 
-  return `【易理象意指归（增删卜易精义）】\n${parts.join('\n')}`;
+  return `【易理象意指归（增删卜易·卜筮全书会通）】\n${parts.join('\n')}`;
 }

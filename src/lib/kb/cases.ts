@@ -1,11 +1,14 @@
 import type { KBEntry } from './types';
+import { BUSHIQUANSHU_CASES } from './bushiquanshu-cases';
+
+export { BUSHIQUANSHU_CASES };
 
 /**
  * 《增删卜易》42 经典实战占验卦例库
  * 全部为野鹤老人亲断亲历之真实卦案，经后世名家推崇
  * status: 'verified', credibility: 5
  */
-export const CASES_DB: KBEntry[] = [
+export const ZENGSHAN_CASES: KBEntry[] = [
   {
     "id": "zsy.case.01",
     "kind": "case",
@@ -1341,3 +1344,5 @@ export const CASES_DB: KBEntry[] = [
     "credibility": 5
   }
 ];
+
+export const CASES_DB: KBEntry[] = [...ZENGSHAN_CASES, ...BUSHIQUANSHU_CASES];

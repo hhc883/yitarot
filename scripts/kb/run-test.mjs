@@ -44,6 +44,8 @@ const files = [
   'src/lib/kb/pan.ts',
   'src/lib/kb/canon.ts',
   'src/lib/kb/golden-rules.ts',
+  'src/lib/kb/bushiquanshu-rules.ts',
+  'src/lib/kb/bushiquanshu-cases.ts',
   'src/lib/kb/rules.ts',
   'src/lib/kb/cases.ts',
   'src/lib/kb/concepts.ts',
@@ -67,11 +69,22 @@ async function run() {
   const { auditLiuYaoReport } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/guard.js')).href);
   const { buildFollowUpMessages } = await import(pathToFileURL(path.join(OUT_DIR, 'llm/conversation.js')).href);
   const { ZENGSHAN_CORE_RULES } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/golden-rules.js')).href);
+  const { BUSHIQUANSHU_RULES } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/bushiquanshu-rules.js')).href);
+  const { CASES_DB, BUSHIQUANSHU_CASES, ZENGSHAN_CASES } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/cases.js')).href);
+  const { RULES_DB } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/rules.js')).href);
   const { buildImagerySnapshot, SIX_RELATIVES_IMAGERY } = await import(pathToFileURL(path.join(OUT_DIR, 'kb/concepts.js')).href);
 
-  // 0. 验证《增删卜易》30条黄金通则与象意字典
+  // 0. 验证多书知识库整合：《增删卜易》30条 + 《卜筮全书》35条 + 62案例
   console.log('增删卜易黄金通则总数:', ZENGSHAN_CORE_RULES.length);
+  console.log('卜筮全书通则总数:', BUSHIQUANSHU_RULES.length);
+  console.log('规则库 RULES_DB 总数:', RULES_DB.length);
+  console.log('案例库 CASES_DB 总数:', CASES_DB.length);
   if (ZENGSHAN_CORE_RULES.length !== 30) throw new Error('黄金通则数量应为 30 条');
+  if (ZENGSHAN_CASES.length !== 42) throw new Error('增删卜易案例数量应为 42 条');
+  if (BUSHIQUANSHU_RULES.length !== 35) throw new Error('卜筮全书通则数量应为 35 条');
+  if (BUSHIQUANSHU_CASES.length !== 20) throw new Error('卜筮全书案例数量应为 20 个');
+  if (CASES_DB.length !== 62) throw new Error('CASES_DB 总数应为 62 (42 + 20)');
+  if (RULES_DB.length !== 245) throw new Error('RULES_DB 总数应为 245 (30 + 35 + 180)');
   if (ZENGSHAN_CORE_RULES[0].status !== 'verified') throw new Error('黄金通则首条应为 verified 状态');
   if (!SIX_RELATIVES_IMAGERY['妻财']) throw new Error('象意字典缺少妻财定义');
 
