@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/east/ziwei-marriage',
     '/east/meihua',
     '/east/qimen',
+    '/east/almanac',
     '/east/relationship',
     '/east/relationship-network',
     '/east/compatibility',

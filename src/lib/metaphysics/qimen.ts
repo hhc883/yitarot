@@ -1,238 +1,252 @@
 import { Solar } from "lunar-typescript";
 
+type PalaceId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+type OuterPalace = Exclude<PalaceId, 5>;
+type Epoch = "上元" | "中元" | "下元";
+
 export interface QimenPalace {
-  palaceId: number; // 1 to 9 (九宫数)
-  bagua: string; // 坎、坤、震、巽、中、乾、兑、艮、离
-  directionZh: string; // 正北、西南、正东、东南、中央、西北、正西、东北、正南
-  directionEn?: string;
-  elementZh: string; // 水、土、木、木、土、金、金、土、火
-  elementEn?: string;
-  originalStar: string; // 天蓬、天芮、天冲、天辅、天禽、天心、天柱、天任、天英
-  originalGate: string; // 休、死、伤、杜、中、开、惊、生、景
-  currentStar: string;
-  currentStarEn?: string;
-  currentGate: string;
-  currentGateEn?: string;
-  currentDeity: string; // 值符、腾蛇、太阴、六合、白虎、玄武、九地、九天
-  currentDeityEn?: string;
-  heavenStem: string; // 天盘干
-  earthStem: string; // 地盘干
-  isAuspiciousGate: boolean; // 是否逢开门、休门、生门三大吉门
-  qualityLevel: "大吉" | "次吉" | "平" | "凶";
-  qualityLevelEn?: string;
-  domainAdviceZh: string; // 适用场景
-  domainAdviceEn?: string;
+  palaceId: PalaceId;
+  bagua: string;
+  directionZh: string;
+  directionEn: string;
+  elementZh: string;
+  elementEn: string;
+  currentStar: string | null;
+  currentStarEn: string | null;
+  currentGate: string | null;
+  currentGateEn: string | null;
+  currentDeity: string | null;
+  currentDeityEn: string | null;
+  heavenStem: string | null;
+  earthStem: string;
+  companionStar: string | null;
+  companionStem: string | null;
+  isAuspiciousGate: boolean;
 }
 
 export interface QimenChartResult {
-  querySolar: {
-    year: number;
-    month: number;
-    day: number;
-    hour: number;
-  };
-  ganzhi: {
-    year: string;
-    month: string;
-    day: string;
-    hour: string;
-  };
+  /** Beijing standard wall time (fixed UTC+08:00), independent of device timezone. */
+  time: string;
+  ganzhi: { year: string; month: string; day: string; hour: string };
   solarTermZh: string;
-  solarTermEn?: string;
+  solarTermEn: string;
+  solarTermStart: string;
+  epoch: Epoch;
+  epochEn: string;
   dunType: "阳遁" | "阴遁";
-  dunTypeEn?: string;
-  juNumber: number; // 1 to 9
-  zhifuStar: string; // 值符九星 (旬首值班)
-  zhishiGate: string; // 值使八门
-  palaces: QimenPalace[]; // 9 palaces arranged in standard Lo Shu order
-  bestDirections: {
-    wealthZh: string; // 生门求财吉方
-    wealthEn?: string;
-    careerZh: string; // 开门谋事吉方
-    careerEn?: string;
-    negotiationZh: string; // 休门和谈吉方
-    negotiationEn?: string;
-  };
-  strategicAdviceZh: string;
-  strategicAdviceEn?: string;
+  dunTypeEn: string;
+  juNumber: number;
+  cycleHead: string;
+  zhifuStar: string;
+  zhifuStarEn: string;
+  zhifuPalace: OuterPalace;
+  zhishiGate: string;
+  zhishiGateEn: string;
+  zhishiPalace: OuterPalace;
+  palaces: QimenPalace[];
 }
 
-const ORIGINAL_PALACE_CONFIGS: Record<number, { bagua: string; direction: string; element: string; star: string; gate: string }> = {
-  1: { bagua: "坎", direction: "正北", element: "水", star: "天蓬", gate: "休门" },
-  2: { bagua: "坤", direction: "西南", element: "土", star: "天芮", gate: "死门" },
-  3: { bagua: "震", direction: "正东", element: "木", star: "天冲", gate: "伤门" },
-  4: { bagua: "巽", direction: "东南", element: "木", star: "天辅", gate: "杜门" },
-  5: { bagua: "中", direction: "中央", element: "土", star: "天禽", gate: "开门" }, // 寄二宫
-  6: { bagua: "乾", direction: "西北", element: "金", star: "天心", gate: "开门" },
-  7: { bagua: "兑", direction: "正西", element: "金", star: "天柱", gate: "惊门" },
-  8: { bagua: "艮", direction: "东北", element: "土", star: "天任", gate: "生门" },
-  9: { bagua: "离", direction: "正南", element: "火", star: "天英", gate: "景门" }
-};
+export const QIMEN_TIME_MIN = "1900-01-01T00:00:00";
+export const QIMEN_TIME_MAX = "2100-12-31T23:59:59";
 
-const DEITIES = ["值符", "腾蛇", "太阴", "六合", "白虎", "玄武", "九地", "九天"];
-const GATES = ["休门", "生门", "伤门", "杜门", "景门", "死门", "惊门", "开门"];
-const STARS = ["天蓬", "天任", "天冲", "天辅", "天英", "天芮", "天柱", "天心"];
-const SAN_QI_LIU_YI = ["戊", "己", "庚", "辛", "壬", "癸", "丁", "丙", "乙"];
+const BEIJING_OFFSET_MS = 8 * 60 * 60 * 1000;
+const PALACES_ASC = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+const OUTER_RING = [1, 8, 3, 4, 9, 2, 7, 6] as const;
+const CENTER_HOST = 2;
+const STEMS = "甲乙丙丁戊己庚辛壬癸";
+const BRANCHES = "子丑寅卯辰巳午未申酉戌亥";
+const EARTH_STEMS = ["戊", "己", "庚", "辛", "壬", "癸", "丁", "丙", "乙"];
+const CYCLE_HEADS = ["甲子", "甲戌", "甲申", "甲午", "甲辰", "甲寅"];
 
-const DIRECTION_EN_MAP: Record<string, string> = {
-  正北: "North", 西南: "Southwest", 正东: "East", 东南: "Southeast",
-  中央: "Center", 西北: "Northwest", 正西: "West", 东北: "Northeast", 正南: "South"
-};
+const PALACE = {
+  1: { bagua: "坎", directionZh: "正北", directionEn: "North", elementZh: "水", elementEn: "Water", star: "天蓬", starEn: "Tianpeng", gate: "休门", gateEn: "Rest Gate" },
+  2: { bagua: "坤", directionZh: "西南", directionEn: "Southwest", elementZh: "土", elementEn: "Earth", star: "天芮", starEn: "Tianrui", gate: "死门", gateEn: "Death Gate" },
+  3: { bagua: "震", directionZh: "正东", directionEn: "East", elementZh: "木", elementEn: "Wood", star: "天冲", starEn: "Tianchong", gate: "伤门", gateEn: "Harm Gate" },
+  4: { bagua: "巽", directionZh: "东南", directionEn: "Southeast", elementZh: "木", elementEn: "Wood", star: "天辅", starEn: "Tianfu", gate: "杜门", gateEn: "Hidden Gate" },
+  5: { bagua: "中", directionZh: "中央", directionEn: "Center", elementZh: "土", elementEn: "Earth", star: "天禽", starEn: "Tianqin" },
+  6: { bagua: "乾", directionZh: "西北", directionEn: "Northwest", elementZh: "金", elementEn: "Metal", star: "天心", starEn: "Tianxin", gate: "开门", gateEn: "Open Gate" },
+  7: { bagua: "兑", directionZh: "正西", directionEn: "West", elementZh: "金", elementEn: "Metal", star: "天柱", starEn: "Tianzhu", gate: "惊门", gateEn: "Shock Gate" },
+  8: { bagua: "艮", directionZh: "东北", directionEn: "Northeast", elementZh: "土", elementEn: "Earth", star: "天任", starEn: "Tianren", gate: "生门", gateEn: "Life Gate" },
+  9: { bagua: "离", directionZh: "正南", directionEn: "South", elementZh: "火", elementEn: "Fire", star: "天英", starEn: "Tianying", gate: "景门", gateEn: "Scenery Gate" },
+} as const;
 
-const ELEMENT_EN_MAP: Record<string, string> = {
-  水: "Water", 土: "Earth", 木: "Wood", 金: "Metal", 火: "Fire"
-};
+const DEITIES = [
+  ["值符", "Chief (Zhifu)"], ["螣蛇", "Soaring Snake"], ["太阴", "Great Yin"], ["六合", "Six Harmonies"],
+  ["白虎", "White Tiger"], ["玄武", "Black Tortoise"], ["九地", "Nine Earth"], ["九天", "Nine Heaven"],
+] as const;
 
-const GATE_EN_MAP: Record<string, string> = {
-  休门: "Rest Gate", 生门: "Life Gate", 伤门: "Harm Gate", 杜门: "Hidden Gate",
-  景门: "Scenery Gate", 死门: "Death Gate", 惊门: "Shock Gate", 开门: "Open Gate"
-};
+// 《奇门遁甲统宗》卷一「阴阳二遁顺逆起例」：上、中、下元局数。
+const TERMS = {
+  冬至: ["Winter Solstice", 1, 7, 4],
+  小寒: ["Minor Cold", 2, 8, 5],
+  大寒: ["Major Cold", 3, 9, 6],
+  立春: ["Start of Spring", 8, 5, 2],
+  雨水: ["Rain Water", 9, 6, 3],
+  惊蛰: ["Awakening of Insects", 1, 7, 4],
+  春分: ["Spring Equinox", 3, 9, 6],
+  清明: ["Clear and Bright", 4, 1, 7],
+  谷雨: ["Grain Rain", 5, 2, 8],
+  立夏: ["Start of Summer", 4, 1, 7],
+  小满: ["Grain Buds", 5, 2, 8],
+  芒种: ["Grain in Ear", 6, 3, 9],
+  夏至: ["Summer Solstice", 9, 3, 6],
+  小暑: ["Minor Heat", 8, 2, 5],
+  大暑: ["Major Heat", 7, 1, 4],
+  立秋: ["Start of Autumn", 2, 5, 8],
+  处暑: ["End of Heat", 1, 4, 7],
+  白露: ["White Dew", 9, 3, 6],
+  秋分: ["Autumn Equinox", 7, 1, 4],
+  寒露: ["Cold Dew", 6, 9, 3],
+  霜降: ["Frost Descent", 5, 8, 2],
+  立冬: ["Start of Winter", 6, 9, 3],
+  小雪: ["Minor Snow", 5, 8, 2],
+  大雪: ["Major Snow", 4, 7, 1],
+} as const;
+const YANG_TERMS = new Set([
+  "冬至", "小寒", "大寒", "立春", "雨水", "惊蛰", "春分", "清明", "谷雨", "立夏", "小满", "芒种",
+]);
+const EPOCHS = [
+  ["上元", "Upper epoch"],
+  ["中元", "Middle epoch"],
+  ["下元", "Lower epoch"],
+] as const;
 
-const DEITY_EN_MAP: Record<string, string> = {
-  值符: "Chief (Zhifu)", 腾蛇: "Snake (Tengshe)", 太阴: "Moon (Taiyin)", 六合: "Harmony (Liuhe)",
-  白虎: "White Tiger", 玄武: "Black Tortoise", 九地: "Nine Earth", 九天: "Nine Heaven"
-};
+function mod(index: number, length: number): number {
+  return ((index % length) + length) % length;
+}
 
-const QUALITY_EN_MAP: Record<string, string> = {
-  大吉: "Great Auspiciousness", 次吉: "Auspicious", 平: "Neutral", 凶: "Inauspicious"
-};
+function hostedPalace(id: PalaceId): OuterPalace {
+  return id === 5 ? CENTER_HOST : id;
+}
 
-const ADVICE_EN_MAP: Record<string, string> = {
-  生门: "Acquiring wealth, property transactions, investment pitches & commercial partnerships.",
-  开门: "Launching new ventures, interviews, public keynotes & inaugurations.",
-  休门: "Restoration & therapy, consulting sponsors, resolving disputes & signing treaties.",
-  景门: "Content drafting, marketing campaigns & social banquets.",
-  杜门: "Confidential R&D, sealing security protocols & strategic retreat.",
-  伤门: "Debt recovery, litigation enforcement & aggressive competition.",
-  死门: "Meditative release, disposing of obsolete structures; avoid initiating ventures.",
-  惊门: "Formal auditing, cross-examination; common ventures should tread carefully."
-};
+function cycleIndex(pillar: string): number {
+  const stem = STEMS.indexOf(pillar[0]);
+  const branch = BRANCHES.indexOf(pillar[1]);
+  const index = Array.from({ length: 6 }, (_, group) => stem + group * 10).find(
+    (index) => index % BRANCHES.length === branch,
+  );
+  if (stem < 0 || branch < 0 || index === undefined) throw new RangeError("Invalid sexagenary pillar.");
+  return index;
+}
 
+function getEpochIndex(dayIndex: number): 0 | 1 | 2 {
+  // 卷二「定三元法」：五日回溯至甲/己符头，由符头支决定三元。
+  const headBranch = BRANCHES[Math.floor(dayIndex / 5) * 5 % BRANCHES.length];
+  if ("子午卯酉".includes(headBranch)) return 0;
+  if ("寅申巳亥".includes(headBranch)) return 1;
+  return 2;
+}
+
+/** Parse a manually entered Beijing standard wall time without host timezone or rollover. */
+export function parseQimenBeijingTime(input: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(input)) return null;
+  const wall = input.length === 16 ? input + ":00" : input;
+  if (wall < QIMEN_TIME_MIN || wall > QIMEN_TIME_MAX) return null;
+  const instant = new Date(wall + "+08:00");
+  if (!Number.isFinite(instant.getTime())) return null;
+  return new Date(instant.getTime() + BEIJING_OFFSET_MS).toISOString().slice(0, 19) === wall ? instant : null;
+}
+
+/** 时家转盘 · 拆补。按实际交节、北京时间 23:00 换日、天禽随天芮寄坤二。 */
 export function calculateQimen(targetDate: Date = new Date()): QimenChartResult {
-  const solar = Solar.fromDate(targetDate);
-  const lunar = solar.getLunar();
-  const eightChar = lunar.getEightChar();
+  const beijing = new Date(targetDate.getTime() + BEIJING_OFFSET_MS);
+  const time = beijing.toISOString().slice(0, 19);
+  if (time < QIMEN_TIME_MIN || time > QIMEN_TIME_MAX) throw new RangeError("Qimen date outside supported range.");
 
-  const jieqi = lunar.getJieQi() || "冬至后阳气发萌";
-  const m = targetDate.getMonth() + 1;
-  const d = targetDate.getDate();
+  // lunar-typescript's Solar fields represent Beijing wall time. Do not call Solar.fromDate,
+  // which would instead pick up the device's local fields.
+  const lunar = Solar.fromYmdHms(
+    beijing.getUTCFullYear(), beijing.getUTCMonth() + 1, beijing.getUTCDate(),
+    beijing.getUTCHours(), beijing.getUTCMinutes(), beijing.getUTCSeconds(),
+  ).getLunar();
+  const ganzhi = {
+    year: lunar.getYearInGanZhiExact(),
+    month: lunar.getMonthInGanZhiExact(),
+    day: lunar.getDayInGanZhiExact(),
+    hour: lunar.getTimeInGanZhi(),
+  };
 
-  // 冬至后阳遁，夏至后阴遁 (近似月判定：冬至约 12.21 到 夏至 6.21 阳遁，夏至至冬至阴遁)
-  const isYangDun = (m >= 1 && m < 6) || (m === 6 && d < 21) || (m === 12 && d >= 21);
-  const dunType = isYangDun ? "阳遁" : "阴遁";
+  const term = lunar.getPrevJieQi(false);
+  const solarTermZh = term.getName();
+  if (!Object.hasOwn(TERMS, solarTermZh)) throw new RangeError("Unsupported solar term.");
+  const [solarTermEn, ...juByEpoch] = TERMS[solarTermZh as keyof typeof TERMS];
+  const epochIndex = getEpochIndex(cycleIndex(ganzhi.day));
+  const [epoch, epochEn] = EPOCHS[epochIndex];
+  const juNumber = juByEpoch[epochIndex];
+  const yang = YANG_TERMS.has(solarTermZh);
+  const sign = yang ? 1 : -1;
 
-  // 局数简易推演 (1-9)
-  const juNumber = ((targetDate.getDate() + targetDate.getHours()) % 9) + 1;
+  // 阴遁逆排、阳遁顺排，以局数宫起戊。甲遁入对应旬首仪。
+  const earthByPalace = PALACES_ASC.map((id) => EARTH_STEMS[mod(sign * (id - juNumber), 9)]);
+  const palaceOf = (stem: string): PalaceId => {
+    const id = PALACES_ASC[earthByPalace.indexOf(stem)];
+    if (!id) throw new RangeError("Invalid Qimen stem.");
+    return id;
+  };
+  const hourIndex = cycleIndex(ganzhi.hour);
+  const cycleHeadIndex = Math.floor(hourIndex / 10);
+  const cycleHeadStem = EARTH_STEMS[cycleHeadIndex];
+  const cycleHead = CYCLE_HEADS[cycleHeadIndex];
+  const officeHome = palaceOf(cycleHeadStem);
+  const officeRingHome = hostedPalace(officeHome);
+  const hourStep = hourIndex % 10;
+  const zhifuPalace = hostedPalace(palaceOf(hourStep === 0 ? cycleHeadStem : ganzhi.hour[0]));
+  const zhishiPalace = hostedPalace(PALACES_ASC[mod(officeHome - 1 + sign * hourStep, 9)]);
 
-  // 旋转偏移排盘
-  const offset = juNumber % 8;
-
-  const palaces: QimenPalace[] = [];
-
-  for (let id = 1; id <= 9; id++) {
-    const orig = ORIGINAL_PALACE_CONFIGS[id];
-    let curGate = orig.gate;
-    let curStar = orig.star;
-    let curDeity = "太阴";
-    let heavenStem = "丁";
-    let earthStem = "甲";
-
-    if (id === 5) {
-      // 中宫寄坤二宫
-      curGate = "生门";
-      curStar = "天禽";
-      curDeity = "值符";
-      heavenStem = "戊";
-      earthStem = "戊";
-    } else {
-      const idx = (id + offset) % 8;
-      curGate = GATES[idx];
-      curStar = STARS[idx];
-      curDeity = DEITIES[idx];
-      heavenStem = SAN_QI_LIU_YI[(id + offset) % 9];
-      earthStem = SAN_QI_LIU_YI[id % 9];
+  // Stars + heaven stems rotate together; gates rotate separately. The eight deities
+  // start at the duty star and run along the outer ring in the dun direction.
+  const starShift = OUTER_RING.indexOf(zhifuPalace) - OUTER_RING.indexOf(officeRingHome);
+  const gateShift = OUTER_RING.indexOf(zhishiPalace) - OUTER_RING.indexOf(officeRingHome);
+  const palaces = PALACES_ASC.map((palaceId): QimenPalace => {
+    const { bagua, directionZh, directionEn, elementZh, elementEn } = PALACE[palaceId];
+    const earthStem = earthByPalace[palaceId - 1];
+    const base = { palaceId, bagua, directionZh, directionEn, elementZh, elementEn, earthStem };
+    if (palaceId === 5) {
+      return {
+        ...base, currentStar: null, currentStarEn: null, currentGate: null, currentGateEn: null,
+        currentDeity: null, currentDeityEn: null, heavenStem: null,
+        companionStar: null, companionStem: null, isAuspiciousGate: false,
+      };
     }
-
-    const isAuspicious = curGate === "开门" || curGate === "休门" || curGate === "生门";
-    let qualityLevel: "大吉" | "次吉" | "平" | "凶" = "平";
-    if (isAuspicious && (curDeity === "值符" || curDeity === "太阴" || curDeity === "六合")) {
-      qualityLevel = "大吉";
-    } else if (isAuspicious) {
-      qualityLevel = "次吉";
-    } else if (curGate === "死门" || curGate === "惊门" || curDeity === "白虎") {
-      qualityLevel = "凶";
-    }
-
-    let domainAdviceZh = "平稳推进常规事务";
-    if (curGate === "生门") domainAdviceZh = "求财置业、商务谈判、招商融资极吉";
-    else if (curGate === "开门") domainAdviceZh = "开创新局、面试求职、公开亮相、领证启幕";
-    else if (curGate === "休门") domainAdviceZh = "休养调息、拜访贵人、化解矛盾、签署和约";
-    else if (curGate === "景门") domainAdviceZh = "文书策划、广告宣传、宴会聚会";
-    else if (curGate === "杜门") domainAdviceZh = "藏风聚气、保密研发、防范泄密";
-    else if (curGate === "伤门") domainAdviceZh = "讨债索赔、打猎追捕、竞技博弈";
-    else if (curGate === "死门") domainAdviceZh = "超度冥想、吊唁破旧、不宜求生";
-    else if (curGate === "惊门") domainAdviceZh = "捕盗诉讼、严厉盘查、常人宜避";
-
-    palaces.push({
-      palaceId: id,
-      bagua: orig.bagua,
-      directionZh: orig.direction,
-      directionEn: DIRECTION_EN_MAP[orig.direction] || orig.direction,
-      elementZh: orig.element,
-      elementEn: ELEMENT_EN_MAP[orig.element] || orig.element,
-      originalStar: orig.star,
-      originalGate: orig.gate,
-      currentStar: curStar,
-      currentStarEn: curStar,
-      currentGate: curGate,
-      currentGateEn: GATE_EN_MAP[curGate] || curGate,
-      currentDeity: curDeity,
-      currentDeityEn: DEITY_EN_MAP[curDeity] || curDeity,
-      heavenStem,
-      earthStem,
-      isAuspiciousGate: isAuspicious,
-      qualityLevel,
-      qualityLevelEn: QUALITY_EN_MAP[qualityLevel] || qualityLevel,
-      domainAdviceZh,
-      domainAdviceEn: ADVICE_EN_MAP[curGate] || "Maintain steady progress on routine workflows."
-    });
-  }
-
-  // 求吉方
-  const shengPalace = palaces.find(p => p.currentGate === "生门") || palaces[0];
-  const kaiPalace = palaces.find(p => p.currentGate === "开门") || palaces[5];
-  const xiuPalace = palaces.find(p => p.currentGate === "休门") || palaces[1];
+    const ringIndex = OUTER_RING.indexOf(palaceId);
+    const starHome = OUTER_RING[mod(ringIndex - starShift, 8)];
+    const star = PALACE[starHome];
+    const gate = PALACE[OUTER_RING[mod(ringIndex - gateShift, 8)]];
+    const [deity, deityEn] = DEITIES[mod(sign * (ringIndex - OUTER_RING.indexOf(zhifuPalace)), 8)];
+    const hostsCenter = starHome === CENTER_HOST;
+    return {
+      ...base,
+      currentStar: star.star,
+      currentStarEn: star.starEn,
+      currentGate: gate.gate,
+      currentGateEn: gate.gateEn,
+      currentDeity: deity,
+      currentDeityEn: deityEn,
+      heavenStem: earthByPalace[starHome - 1],
+      companionStar: hostsCenter ? PALACE[5].star : null,
+      companionStem: hostsCenter ? earthByPalace[4] : null,
+      isAuspiciousGate: ["生门", "开门", "休门"].includes(gate.gate),
+    };
+  });
 
   return {
-    querySolar: {
-      year: targetDate.getFullYear(),
-      month: targetDate.getMonth() + 1,
-      day: targetDate.getDate(),
-      hour: targetDate.getHours()
-    },
-    ganzhi: {
-      year: eightChar.getYear(),
-      month: eightChar.getMonth(),
-      day: eightChar.getDay(),
-      hour: eightChar.getTime()
-    },
-    solarTermZh: jieqi,
-    solarTermEn: jieqi,
-    dunType,
-    dunTypeEn: isYangDun ? "Yang Dun" : "Yin Dun",
+    time,
+    ganzhi,
+    solarTermZh,
+    solarTermEn,
+    solarTermStart: term.getSolar().toYmdHms().replace(" ", "T"),
+    epoch,
+    epochEn,
+    dunType: yang ? "阳遁" : "阴遁",
+    dunTypeEn: yang ? "Yang Dun" : "Yin Dun",
     juNumber,
-    zhifuStar: "天心星",
-    zhishiGate: "开门",
+    cycleHead,
+    zhifuStar: PALACE[officeHome].star,
+    zhifuStarEn: PALACE[officeHome].starEn,
+    zhifuPalace,
+    zhishiGate: PALACE[officeRingHome].gate,
+    zhishiGateEn: PALACE[officeRingHome].gateEn,
+    zhishiPalace,
     palaces,
-    bestDirections: {
-      wealthZh: `${shengPalace.directionZh}（${shengPalace.bagua}宫逢生门，大吉大利）`,
-      wealthEn: `${shengPalace.directionEn} (${shengPalace.bagua} Palace with Life Gate · Peak Wealth)`,
-      careerZh: `${kaiPalace.directionZh}（${kaiPalace.bagua}宫逢开门，谋事大顺）`,
-      careerEn: `${kaiPalace.directionEn} (${kaiPalace.bagua} Palace with Open Gate · Career Breakthrough)`,
-      negotiationZh: `${xiuPalace.directionZh}（${xiuPalace.bagua}宫逢休门，和气生财）`,
-      negotiationEn: `${xiuPalace.directionEn} (${xiuPalace.bagua} Palace with Rest Gate · Strategic Harmony)`
-    },
-    strategicAdviceZh: `当前局象逢【${dunType}${juNumber}局】。三吉门气场流转，西北至东北一线逢生开休拱照。出行办事宜面向【${shengPalace.directionZh}】或【${kaiPalace.directionZh}】展布，避开凶门对冲，运筹帷幄自得天时。`,
-    strategicAdviceEn: `Current chart configuration: [${isYangDun ? 'Yang Dun' : 'Yin Dun'} Ju ${juNumber}]. Auspicious Gates align harmoniously. Face ${shengPalace.directionEn} or ${kaiPalace.directionEn} for negotiations and execution to capture cosmic momentum.`
   };
 }

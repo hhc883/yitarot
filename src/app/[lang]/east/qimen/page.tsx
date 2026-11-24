@@ -22,7 +22,7 @@ export default async function QimenPage({ params }: { params: Promise<{ lang: st
           {isEn ? 'Qimen Dunjia' : '奇门遁甲'}
         </h1>
         <p className="mt-3 text-base leading-relaxed text-neutral-600">
-          {isEn ? 'Cast a simplified nine-palace chart for your local time. Select a palace to explore its gate, star, and direction.' : '按本地时间排出简化的九宫盘，选择一个宫位，查看对应的门、星和方位。'}
+          {isEn ? 'Cast a rotating nine-palace chart using Beijing time. Select a palace to explore its gate, star, and direction.' : '按北京时间排出时家转盘拆补局，选择一个宫位，查看门、星和方位。'}
         </p>
       </div>
       <QimenBoardWidget lang={isEn ? 'en' : 'zh'} />

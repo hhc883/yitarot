@@ -122,10 +122,19 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       href: `/${lang}/east/qimen`,
       titleEn: 'Qimen Dunjia',
       titleZh: '奇门遁甲',
-      descEn: 'Cast a nine-palace chart for your local time and explore its gates, stars, and directions.',
-      descZh: '按本地时间排出九宫盘，查看各宫位的门、星和方位。',
+      descEn: 'Cast a rotating nine-palace chart using Beijing time and explore its gates, stars, and directions.',
+      descZh: '按北京时间排出时家转盘拆补局，查看各宫位的门、星和方位。',
       actionEn: 'Open Qimen',
       actionZh: '排奇门局'
+    },
+    {
+      href: `/${lang}/east/almanac`,
+      titleEn: 'Chinese Almanac Date Finder',
+      titleZh: '黄历择日',
+      descEn: 'Compare traditional almanac entries for moving, opening a business, and signing a contract.',
+      descZh: '按传统黄历宜忌，查看入宅搬家、开业或签约的候选日期。',
+      actionEn: 'Find dates',
+      actionZh: '查看候选日期'
     },
     {
       href: `/${lang}/east/relationship`,
@@ -250,6 +259,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
               <Link
                 key={tool.href}
                 href={tool.href}
+                prefetch={tool.href.endsWith('/east/almanac') ? false : undefined}
                 className="group flex flex-col justify-between rounded-sm border border-[#E4E4E7] bg-white p-6 transition-[border-color,background-color] hover:border-[#171717] hover:bg-[#F5F5F6]/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
               >
                 <div>
