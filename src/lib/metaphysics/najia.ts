@@ -30,6 +30,8 @@ export interface LineNajiaDetail {
   sixBeast: SixBeastName; // "青龙", "朱雀"...
   isShi: boolean; // 是否世爻
   isYing: boolean; // 是否应爻
+  isXunKong?: boolean; // 是否落入日柱旬空地支
+  isYuePo?: boolean; // 是否被月建六冲（月破）
   // 动爻化出之爻（仅在动爻存在时有值）
   transformed?: {
     isYang: boolean;
@@ -152,6 +154,95 @@ export const BRANCH_ELEMENT: Record<string, ElementName> = {
   申: '金', 酉: '金', 戌: '土', 亥: '水'
 };
 
+// 地支六冲（月建六冲本爻地支即为月破）
+export const BRANCH_CLASH: Record<string, string> = {
+  子: '午', 午: '子',
+  丑: '未', 未: '丑',
+  寅: '申', 申: '寅',
+  卯: '酉', 酉: '卯',
+  辰: '戌', 戌: '辰',
+  巳: '亥', 亥: '巳'
+};
+
+// 中英对照映射
+export const ELEMENT_EN: Record<ElementName, string> = {
+  金: 'Metal',
+  木: 'Wood',
+  水: 'Water',
+  火: 'Fire',
+  土: 'Earth'
+};
+
+export const PALACE_EN: Record<PalaceName, string> = {
+  乾: 'Qian',
+  兑: 'Dui',
+  离: 'Li',
+  震: 'Zhen',
+  巽: 'Xun',
+  坎: 'Kan',
+  艮: 'Gen',
+  坤: 'Kun'
+};
+
+export const SIX_RELATIVE_EN: Record<SixRelativeName, string> = {
+  父母: 'Parents',
+  兄弟: 'Siblings',
+  子孙: 'Offspring',
+  妻财: 'Wealth',
+  官鬼: 'Official'
+};
+
+export const SIX_BEAST_EN: Record<SixBeastName, string> = {
+  青龙: 'Azure Dragon',
+  朱雀: 'Vermilion Bird',
+  勾陈: 'Hook Chen',
+  螣蛇: 'Flying Serpent',
+  白虎: 'White Tiger',
+  玄武: 'Black Tortoise'
+};
+
+export const BRANCH_EN: Record<string, string> = {
+  子: 'Zi', 丑: 'Chou', 寅: 'Yin', 卯: 'Mao',
+  辰: 'Chen', 巳: 'Si', 午: 'Wu', 未: 'Wei',
+  申: 'Shen', 酉: 'You', 戌: 'Xu', 亥: 'Hai'
+};
+
+export const GENERATION_NAME_EN: Record<string, string> = {
+  '本宫卦(八纯)': 'Pure Palace',
+  '一世卦': '1st Gen',
+  '二世卦': '2nd Gen',
+  '三世卦': '3rd Gen',
+  '四世卦': '4th Gen',
+  '五世卦': '5th Gen',
+  '游魂卦': 'Wandering Soul',
+  '归魂卦': 'Returning Soul'
+};
+
+/** 查地支五行 */
+export function getBranchElement(branch: string): ElementName | undefined {
+  return BRANCH_ELEMENT[branch];
+}
+
+/** 核对本爻地支是否落入日柱旬空 */
+export function isBranchXunKong(branch: string, xunKong: string): boolean {
+  return Boolean(branch && xunKong && xunKong.includes(branch));
+}
+
+/** 核对本爻地支是否被月建六冲（月破） */
+export function isBranchYuePo(branch: string, monthZhi: string): boolean {
+  return Boolean(branch && monthZhi && BRANCH_CLASH[monthZhi] === branch);
+}
+
+/** 格式化地支列表英文说明（如 "辰巳" -> "辰巳 (Chen/Si)"） */
+export function formatBranchesEn(branches: string): string {
+  if (!branches) return '';
+  const names = branches
+    .split('')
+    .map((ch) => BRANCH_EN[ch])
+    .filter(Boolean);
+  return names.length ? `${branches} (${names.join('/')})` : branches;
+}
+
 // 八卦内外卦纳甲地支表（初爻至三爻为内，四爻至六爻为外）
 const NAJIA_BRANCHES: Record<string, { inner: string[]; outer: string[] }> = {
   '111': { inner: ['子', '寅', '辰'], outer: ['午', '申', '戌'] }, // 乾
@@ -221,9 +312,94 @@ export function formatLineNameEn(lineIndex: number, isYang: boolean): string {
 }
 
 /**
+ * 严格按浏览器/运行环境当地时区解析手录日期时刻（YYYY-MM-DD 与可选 HH:mm）。
+ * 拒绝任何不存在的日历日期（如 2026-02-29、2026-02-30、2026-04-31）或越界时刻。
+ */
+export function parseLocalDateTimeInput(dateStr: string, timeStr?: string): Date {
+  const rawDate = (dateStr ?? '').trim();
+  if (!rawDate) {
+    throw new Error('请输入有效日期 / Please enter a valid date');
+  }
+
+  let datePart = rawDate;
+  let timePart = (timeStr ?? '').trim();
+
+  const combinedMatch = rawDate.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})$/);
+  if (combinedMatch && !timePart) {
+    datePart = combinedMatch[1];
+    timePart = combinedMatch[2];
+  }
+
+  const dateMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!dateMatch) {
+    throw new Error('日期格式无效，应为 YYYY-MM-DD / Invalid date format (expected YYYY-MM-DD)');
+  }
+
+  const year = Number(dateMatch[1]);
+  const month = Number(dateMatch[2]);
+  const day = Number(dateMatch[3]);
+
+  if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) {
+    throw new Error('日期超出可排盘范围 / Date out of valid calendar range');
+  }
+
+  let hour = 12;
+  let minute = 0;
+  if (timePart) {
+    const timeMatch = timePart.match(/^(\d{2}):(\d{2})$/);
+    if (!timeMatch) {
+      throw new Error('时刻格式无效，应为 HH:mm / Invalid time format (expected HH:mm)');
+    }
+    hour = Number(timeMatch[1]);
+    minute = Number(timeMatch[2]);
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+      throw new Error('时刻超出 00:00-23:59 范围 / Time out of range (00:00-23:59)');
+    }
+  }
+
+  const parsed = new Date(year, month - 1, day, hour, minute, 0, 0);
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day ||
+    parsed.getHours() !== hour ||
+    parsed.getMinutes() !== minute
+  ) {
+    throw new Error(`不存在的日历日期：${datePart} / Non-existent calendar date: ${datePart}`);
+  }
+
+  return parsed;
+}
+
+/**
+ * 获取当前当地时区标识（如 "Asia/Shanghai (UTC+8)"）
+ */
+export function getLocalTimezoneLabel(refDate?: Date): string {
+  const d = refDate && !Number.isNaN(refDate.getTime()) ? refDate : new Date();
+  const offsetMinutes = -d.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const abs = Math.abs(offsetMinutes);
+  const hh = Math.floor(abs / 60);
+  const mm = abs % 60;
+  const utcOffset = mm > 0 ? `UTC${sign}${hh}:${String(mm).padStart(2, '0')}` : `UTC${sign}${hh}`;
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return tz ? `${tz} (${utcOffset})` : utcOffset;
+  } catch {
+    return utcOffset;
+  }
+}
+
+/**
  * 获取当前起卦的时空四柱干支与月建日辰旬空
  */
 export function getCurrentLiuYaoTimeInfo(customDate?: Date): LiuYaoTimeInfo {
+  if (customDate !== undefined) {
+    if (!(customDate instanceof Date) || Number.isNaN(customDate.getTime())) {
+      throw new Error('无效的起卦日期或时刻 / Invalid divination date or time');
+    }
+  }
   const now = customDate || new Date();
   const solar = Solar.fromDate(now);
   const lunar = solar.getLunar();
@@ -298,6 +474,8 @@ export function buildNajiaChart(
     const branch = primaryBranches[i];
     const element = BRANCH_ELEMENT[branch];
     const relative = deriveSixRelative(meta.palaceElement, element);
+    const isXunKong = isBranchXunKong(branch, time.xunKong);
+    const isYuePo = isBranchYuePo(branch, time.monthZhi);
 
     let transformedInfo: LineNajiaDetail['transformed'] = undefined;
     if (isChanging && transformedBinary && transformedBranches) {
@@ -326,6 +504,8 @@ export function buildNajiaChart(
       sixBeast: sixBeasts[i],
       isShi: meta.shi === lineIndex,
       isYing: meta.ying === lineIndex,
+      isXunKong,
+      isYuePo,
       transformed: transformedInfo
     });
   }
