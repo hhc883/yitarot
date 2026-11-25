@@ -1,34 +1,34 @@
 'use client';
 
 import React, { useState } from 'react';
-import { calculateZiwei, ZiweiChartResult, ZiweiPalace, STAR_NAMES_EN } from '@/lib/metaphysics/ziwei';
+import {
+  BRANCH_NAMES_EN,
+  calculateZiwei,
+  STAR_NAMES_EN,
+  ZiweiChartResult,
+  ZiweiGender,
+  ZiweiPalace
+} from '@/lib/metaphysics/ziwei';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
-const BRANCH_EN_MAP: Record<string, string> = {
-  '子': 'Zi (Rat)',
-  '丑': 'Chou (Ox)',
-  '寅': 'Yin (Tiger)',
-  '卯': 'Mao (Rabbit)',
-  '辰': 'Chen (Dragon)',
-  '巳': 'Si (Snake)',
-  '午': 'Wu (Horse)',
-  '未': 'Wei (Goat)',
-  '申': 'Shen (Monkey)',
-  '酉': 'You (Rooster)',
-  '戌': 'Xu (Dog)',
-  '亥': 'Hai (Pig)'
-};
+function parseStrictInt(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (!/^-?\d+$/.test(trimmed)) return null;
+  return Number(trimmed);
+}
 
 export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
   const isEn = lang === 'en';
-  const [year, setYear] = useState(1996);
-  const [month, setMonth] = useState(8);
-  const [day, setDay] = useState(18);
-  const [hour, setHour] = useState(12);
+  const [year, setYear] = useState('1996');
+  const [month, setMonth] = useState('8');
+  const [day, setDay] = useState('18');
+  const [hour, setHour] = useState('12');
+  const [gender, setGender] = useState<ZiweiGender>('male');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [chart, setChart] = useState<ZiweiChartResult>(() =>
-    calculateZiwei(1996, 8, 18, 12)
+    calculateZiwei(1996, 8, 18, 12, 'male')
   );
 
   const [activePalaceIndex, setActivePalaceIndex] = useState<number>(
@@ -39,10 +39,33 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
 
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
-    const res = calculateZiwei(year, month, day, hour);
-    setChart(res);
-    const lifeIdx = res.palaces.find(p => p.isLifePalace)?.index ?? 0;
-    setActivePalaceIndex(lifeIdx);
+    const y = parseStrictInt(year);
+    const m = parseStrictInt(month);
+    const d = parseStrictInt(day);
+    const h = parseStrictInt(hour);
+
+    if (y === null || m === null || d === null || h === null) {
+      setErrorMessage(
+        isEn
+          ? 'Please enter complete integer values for year, month, day, and hour (0–23).'
+          : '请完整填写公历年、月、日与时辰（0–23 整数）。'
+      );
+      return;
+    }
+
+    try {
+      const res = calculateZiwei(y, m, d, h, gender);
+      setChart(res);
+      const lifeIdx = res.palaces.find(p => p.isLifePalace)?.index ?? 0;
+      setActivePalaceIndex(lifeIdx);
+      setErrorMessage(null);
+    } catch {
+      setErrorMessage(
+        isEn
+          ? 'Please enter a valid Gregorian date (1920–2035) and hour (0–23).'
+          : '请输入 1920–2035 年间有效的公历日期及 0–23 时辰。'
+      );
+    }
   };
 
   const selectedPalace: ZiweiPalace =
@@ -67,19 +90,60 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
   const getTransformationBadge = (transformation?: string) => {
     if (!transformation) return '';
     const t = transformation.replace('化', '');
-    if (t === '禄' || t === 'Lu') {
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    }
-    if (t === '权' || t === 'Quan') {
-      return 'bg-red-50 text-red-700 border-red-200';
-    }
-    if (t === '科' || t === 'Ke') {
-      return 'bg-blue-50 text-blue-700 border-blue-200';
-    }
     if (t === '忌' || t === 'Ji') {
-      return 'bg-amber-50 text-amber-800 border-amber-200';
+      return 'bg-[#171717] text-white border-[#171717]';
     }
-    return 'bg-zinc-100 text-zinc-800 border-zinc-200';
+    return 'bg-[#F5F5F6] text-[#171717] border-[#D4D4D8]';
+  };
+
+  const renderPalaceStarsSummary = (palace: ZiweiPalace, compact = false) => {
+    const transformedMinors = palace.minorStars.filter(m => m.transformation);
+    return (
+      <div className={`space-y-0.5 my-1 ${compact ? 'min-h-[30px]' : 'min-h-[38px]'}`}>
+        {palace.majorStars.map((st, sIdx) => (
+          <div key={`maj-${sIdx}`} className={`flex items-center justify-between ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
+            <span className="font-medium text-[#171717]">
+              {isEn ? (st.nameEn || st.name) : st.name}
+            </span>
+            <div className="flex items-center gap-1">
+              {st.brightness && (
+                <span className="text-[10px] text-[#71717A]">
+                  {isEn ? (st.brightnessEn || st.brightness) : st.brightness}
+                </span>
+              )}
+              {st.transformation && (
+                <span
+                  className={`px-1 py-0.2 rounded-xs ${compact ? 'text-[8px]' : 'text-[9px]'} font-medium border ${getTransformationBadge(
+                    st.transformation
+                  )}`}
+                >
+                  {isEn ? (st.transformationEn || st.transformation) : st.transformation}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+        {transformedMinors.map((st, mIdx) => (
+          <div key={`min-tr-${mIdx}`} className={`flex items-center justify-between ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
+            <span className="text-[#52525B]">
+              {isEn ? (st.nameEn || st.name) : st.name}
+            </span>
+            <span
+              className={`px-1 py-0.2 rounded-xs ${compact ? 'text-[8px]' : 'text-[9px]'} font-medium border ${getTransformationBadge(
+                st.transformation
+              )}`}
+            >
+              {isEn ? (st.transformationEn || st.transformation) : st.transformation}
+            </span>
+          </div>
+        ))}
+        {palace.majorStars.length === 0 && (
+          <span className="text-[10px] text-[#71717A] italic font-serif">
+            {isEn ? 'Empty Palace' : '空宫（无主星）'}
+          </span>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -88,67 +152,100 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
       <div className="w-full rounded-sm bg-white border border-[#E4E4E7] p-5 sm:p-6 mb-8">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
           <h2 className="font-serif text-[16px] sm:text-[17px] font-normal text-[#171717]">
-            {isEn ? 'Birth Timing' : '生辰历法'}
+            {isEn ? 'Birth Timing & Gender' : '生辰历法与性别'}
           </h2>
           <span className="text-[12px] text-[#52525B]">
             {isEn
-              ? `Solar Date: ${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} · ${chart.bureau.nameEn}`
-              : `农历：${chart.lunarDate.yearGanZhi}年 ${chart.lunarDate.monthZh}${chart.lunarDate.dayZh} ${chart.lunarDate.hourBranch} · 【${chart.bureau.nameZh}】`}
+              ? `Solar: ${chart.solarDate.year}-${String(chart.solarDate.month).padStart(2, '0')}-${String(chart.solarDate.day).padStart(2, '0')} ${String(chart.solarDate.hour).padStart(2, '0')}:00 · ${chart.bureau.nameEn} · ${chart.decadalDirectionEn}`
+              : `农历：${chart.lunarDate.yearGanZhi}年 ${chart.lunarDate.monthZh}${chart.lunarDate.dayZh} ${chart.lunarDate.hourBranch} · 【${chart.bureau.nameZh}】· ${chart.decadalDirectionZh}`}
           </span>
         </div>
 
-        <form onSubmit={handleCalculate} className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <form onSubmit={handleCalculate} className="grid grid-cols-2 sm:grid-cols-6 gap-3">
           <div>
-            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
+            <label htmlFor="ziwei-year" className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Year' : '公历年'}
             </label>
             <input
+              id="ziwei-year"
               type="number"
               value={year}
-              onChange={e => setYear(Number(e.target.value))}
+              onChange={e => {
+                setYear(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
               min={1920}
               max={2035}
               className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
+            <label htmlFor="ziwei-month" className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Month' : '月份'}
             </label>
             <input
+              id="ziwei-month"
               type="number"
               value={month}
-              onChange={e => setMonth(Number(e.target.value))}
+              onChange={e => {
+                setMonth(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
               min={1}
               max={12}
               className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
+            <label htmlFor="ziwei-day" className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Day' : '日期'}
             </label>
             <input
+              id="ziwei-day"
               type="number"
               value={day}
-              onChange={e => setDay(Number(e.target.value))}
+              onChange={e => {
+                setDay(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
               min={1}
               max={31}
               className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-[#52525B] mb-1">
+            <label htmlFor="ziwei-hour" className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Hour (0-23)' : '时辰（0-23点）'}
             </label>
             <input
+              id="ziwei-hour"
               type="number"
               value={hour}
-              onChange={e => setHour(Number(e.target.value))}
+              onChange={e => {
+                setHour(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
               min={0}
               max={23}
               className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
+          </div>
+          <div>
+            <label htmlFor="ziwei-gender" className="block text-[11px] font-medium text-[#52525B] mb-1">
+              {isEn ? 'Gender' : '排盘性别'}
+            </label>
+            <select
+              id="ziwei-gender"
+              value={gender}
+              onChange={e => {
+                setGender(e.target.value === 'female' ? 'female' : 'male');
+                if (errorMessage) setErrorMessage(null);
+              }}
+              className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+            >
+              <option value="male">{isEn ? 'Male' : '男（乾造）'}</option>
+              <option value="female">{isEn ? 'Female' : '女（坤造）'}</option>
+            </select>
           </div>
           <div className="flex items-end col-span-2 sm:col-span-1">
             <button
@@ -159,6 +256,15 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
             </button>
           </div>
         </form>
+
+        {errorMessage && (
+          <div
+            role="alert"
+            className="mt-3 p-3 rounded-sm border border-[#D4D4D8] bg-[#F5F5F6] text-[12px] text-[#171717]"
+          >
+            {errorMessage}
+          </div>
+        )}
       </div>
 
       {/* 紫微斗数十二宫盘面 */}
@@ -173,64 +279,40 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                   Z I W E I · D O U S H U
                 </span>
                 <h3 className="font-serif text-[18px] sm:text-[20px] font-normal text-[#171717]">
-                  {isEn ? 'Twelve Palaces Chart' : '天盘十二宫全息图'}
+                  {isEn ? 'Twelve Palaces Chart' : '天盘十二宫实盘'}
                 </h3>
                 <p className="text-[12px] text-[#52525B] mt-1">
                   {isEn
-                    ? `${chart.bureau.nameEn} · Life Palace [${BRANCH_EN_MAP[chart.lifePalaceBranch] || chart.lifePalaceBranch}] · Body Palace [${BRANCH_EN_MAP[chart.bodyPalaceBranch] || chart.bodyPalaceBranch}]`
-                    : `五行局：${chart.bureau.nameZh} · 命宫坐【${chart.lifePalaceBranch}】 · 身宫坐【${chart.bodyPalaceBranch}】`}
+                    ? `${chart.bureau.nameEn} · Life [${chart.lifePalaceStem}${chart.lifePalaceBranch}] · Body [${BRANCH_NAMES_EN[chart.bodyPalaceBranch] || chart.bodyPalaceBranch}]`
+                    : `${chart.bureau.nameZh} · 命宫【${chart.lifePalaceStem}${chart.lifePalaceBranch}】 · 身宫【${chart.bodyPalaceBranch}】`}
+                </p>
+                <p className="text-[11px] text-[#71717A] mt-0.5">
+                  {isEn ? chart.decadalDirectionEn : `大限顺逆：${chart.decadalDirectionZh}`}
                 </p>
               </div>
 
               <div className="p-3 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[12px] text-left">
                 <span className="font-medium text-[#171717] block mb-0.5">
-                  {isEn ? `Life Star: ${chart.dayMasterStarEn}` : `命宫主星：${chart.dayMasterStar}`}
+                  {isEn ? `Life Palace Stars: ${chart.dayMasterStarEn}` : `命宫主星：${chart.dayMasterStar}`}
                 </span>
                 <p className="text-[11px] text-[#52525B] leading-relaxed line-clamp-3">
                   {isEn ? chart.overallProfileEn.personality : chart.overallProfileZh.personality}
                 </p>
               </div>
 
-              <div className="flex justify-around items-center pt-2 border-t border-[#E4E4E7] text-[11px] text-[#52525B]">
-                {isEn ? (
-                  <>
-                    <span className="flex items-center gap-1">
-                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">Lu</span>
-                      <span>{chart.fourTransformationsEn.lu}</span>
+              <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-[#E4E4E7] text-[11px] text-[#52525B] text-left">
+                {chart.transformationLocations.map(item => (
+                  <div key={item.key} className="flex items-center gap-1 truncate">
+                    <span className={`px-1 py-0.2 rounded-xs text-[9px] font-medium border ${getTransformationBadge(item.labelZh)}`}>
+                      {isEn ? item.labelEn : item.labelZh.replace('化', '')}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-red-50 text-red-700 border-red-200">Quan</span>
-                      <span>{chart.fourTransformationsEn.quan}</span>
+                    <span className="truncate">
+                      {isEn
+                        ? `${item.starEn} · ${item.palaceNameEn}`
+                        : `${item.starZh}·${item.palaceNameZh}`}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-blue-50 text-blue-700 border-blue-200">Ke</span>
-                      <span>{chart.fourTransformationsEn.ke}</span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-amber-50 text-amber-800 border-amber-200">Ji</span>
-                      <span>{chart.fourTransformationsEn.ji}</span>
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="flex items-center gap-1">
-                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-emerald-50 text-emerald-700 border-emerald-200">禄</span>
-                      <span>{chart.fourTransformations.lu}</span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-red-50 text-red-700 border-red-200">权</span>
-                      <span>{chart.fourTransformations.quan}</span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-blue-50 text-blue-700 border-blue-200">科</span>
-                      <span>{chart.fourTransformations.ke}</span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="px-1 py-0.5 rounded-xs text-[9px] font-medium border bg-amber-50 text-amber-800 border-amber-200">忌</span>
-                      <span>{chart.fourTransformations.ji}</span>
-                    </span>
-                  </>
-                )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -277,35 +359,7 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                       </span>
                     </div>
 
-                    {/* 主星群 */}
-                    <div className="space-y-0.5 my-1 min-h-[38px]">
-                      {palace.majorStars.map((st, sIdx) => (
-                        <div key={sIdx} className="flex items-center justify-between text-[11px]">
-                          <span className="font-medium text-[#171717]">
-                            {isEn ? (st.nameEn || st.name) : st.name}
-                          </span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-[10px] text-[#71717A]">
-                              {isEn ? (st.brightnessEn || st.brightness) : st.brightness}
-                            </span>
-                            {st.transformation && (
-                              <span
-                                className={`px-1 py-0.2 rounded-xs text-[9px] font-medium border ${getTransformationBadge(
-                                  st.transformation
-                                )}`}
-                              >
-                                {isEn ? (st.transformationEn || st.transformation) : st.transformation}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                      {palace.majorStars.length === 0 && (
-                        <span className="text-[10px] text-[#A1A1AA] italic font-serif">
-                          {isEn ? 'Opposite Star' : '对宫借星'}
-                        </span>
-                      )}
-                    </div>
+                    {renderPalaceStarsSummary(palace, false)}
                   </div>
 
                   <div className="pt-1.5 border-t border-[#E4E4E7] flex justify-between items-center text-[10px] text-[#52525B]">
@@ -328,42 +382,30 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
           <div className="p-4 rounded-sm bg-white border border-[#E4E4E7] text-left">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-medium tracking-[0.15em] text-[#52525B] uppercase">
-                {isEn ? 'Center Hologram' : '天盘核心'}
+                {isEn ? 'Chart Core' : '天盘核心'}
               </span>
               <span className="text-[11px] text-[#52525B]">
-                {isEn ? chart.bureau.nameEn : chart.bureau.nameZh}
+                {isEn ? `${chart.bureau.nameEn} · ${chart.decadalDirectionEn}` : `${chart.bureau.nameZh} · ${chart.decadalDirectionZh}`}
               </span>
             </div>
             <div className="text-[13px] font-medium text-[#171717] mb-1">
               {isEn
-                ? `Life Palace [${BRANCH_EN_MAP[chart.lifePalaceBranch] || chart.lifePalaceBranch}] · Body Palace [${BRANCH_EN_MAP[chart.bodyPalaceBranch] || chart.bodyPalaceBranch}] · Star: ${chart.dayMasterStarEn}`
-                : `命宫【${chart.lifePalaceBranch}】 · 身宫【${chart.bodyPalaceBranch}】 · 主星：${chart.dayMasterStar}`}
+                ? `Life [${chart.lifePalaceStem}${chart.lifePalaceBranch}] · Body [${BRANCH_NAMES_EN[chart.bodyPalaceBranch] || chart.bodyPalaceBranch}] · ${chart.dayMasterStarEn}`
+                : `命宫【${chart.lifePalaceStem}${chart.lifePalaceBranch}】 · 身宫【${chart.bodyPalaceBranch}】 · ${chart.dayMasterStar}`}
             </div>
-            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#E4E4E7] text-[10px]">
-              <span className="flex items-center gap-1">
-                <span className="px-1 py-0.2 rounded-xs border bg-emerald-50 text-emerald-700 border-emerald-200">
-                  {isEn ? 'Lu' : '禄'}
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-[#E4E4E7] text-[10px]">
+              {chart.transformationLocations.map(item => (
+                <span key={item.key} className="flex items-center gap-1">
+                  <span className={`px-1 py-0.2 rounded-xs border ${getTransformationBadge(item.labelZh)}`}>
+                    {isEn ? item.labelEn : item.labelZh.replace('化', '')}
+                  </span>
+                  <span>
+                    {isEn
+                      ? `${item.starEn} (${item.palaceNameEn})`
+                      : `${item.starZh}·${item.palaceNameZh}`}
+                  </span>
                 </span>
-                <span>{isEn ? (STAR_NAMES_EN[chart.fourTransformations.lu] || chart.fourTransformations.lu) : chart.fourTransformations.lu}</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="px-1 py-0.2 rounded-xs border bg-red-50 text-red-700 border-red-200">
-                  {isEn ? 'Quan' : '权'}
-                </span>
-                <span>{isEn ? (STAR_NAMES_EN[chart.fourTransformations.quan] || chart.fourTransformations.quan) : chart.fourTransformations.quan}</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="px-1 py-0.2 rounded-xs border bg-blue-50 text-blue-700 border-blue-200">
-                  {isEn ? 'Ke' : '科'}
-                </span>
-                <span>{isEn ? (STAR_NAMES_EN[chart.fourTransformations.ke] || chart.fourTransformations.ke) : chart.fourTransformations.ke}</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="px-1 py-0.2 rounded-xs border bg-amber-50 text-amber-800 border-amber-200">
-                  {isEn ? 'Ji' : '忌'}
-                </span>
-                <span>{isEn ? (STAR_NAMES_EN[chart.fourTransformations.ji] || chart.fourTransformations.ji) : chart.fourTransformations.ji}</span>
-              </span>
+              ))}
             </div>
           </div>
 
@@ -437,30 +479,7 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                       </span>
                     </div>
 
-                    <div className="my-1 text-[11px] min-h-[32px] space-y-0.5">
-                      {palace.majorStars.length > 0 ? (
-                        palace.majorStars.map((s, idx) => (
-                          <div key={idx} className="flex items-center justify-between">
-                            <span className="text-[#171717] font-medium">
-                              {isEn ? (s.nameEn || s.name) : s.name}
-                            </span>
-                            {s.transformation && (
-                              <span
-                                className={`px-1 rounded-xs text-[9px] border ${getTransformationBadge(
-                                  s.transformation
-                                )}`}
-                              >
-                                {isEn ? (s.transformationEn || s.transformation) : s.transformation}
-                              </span>
-                            )}
-                          </div>
-                        ))
-                      ) : (
-                        <span className="text-[10px] text-[#A1A1AA] italic">
-                          {isEn ? 'Opposite Star' : '对宫借星'}
-                        </span>
-                      )}
-                    </div>
+                    {renderPalaceStarsSummary(palace, true)}
 
                     <div className="pt-1 border-t border-[#E4E4E7] flex justify-between items-center text-[10px] text-[#52525B]">
                       <span>{isEn ? `Age ${palace.decadalRange}` : `${palace.decadalRange} 岁`}</span>
@@ -473,7 +492,6 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
             /* 移动端横向滑动 4x4 方阵包含器 */
             <div className="overflow-x-auto pb-2">
               <div className="min-w-[620px] grid grid-cols-4 grid-rows-4 gap-2 p-2.5 rounded-sm bg-[#FAFAFA] border border-[#E4E4E7]">
-                {/* 移动端 4x4 盘面中的中心格 */}
                 <div className="col-start-2 col-span-2 row-start-2 row-span-2 rounded-sm bg-white border border-[#E4E4E7] p-3 flex flex-col justify-between text-center">
                   <div>
                     <span className="text-[10px] font-medium text-[#52525B] uppercase block">
@@ -484,13 +502,13 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                     </h3>
                     <p className="text-[11px] text-[#52525B] mt-0.5">
                       {isEn
-                        ? `${chart.bureau.nameEn} · Life [${BRANCH_EN_MAP[chart.lifePalaceBranch] || chart.lifePalaceBranch}] Body [${BRANCH_EN_MAP[chart.bodyPalaceBranch] || chart.bodyPalaceBranch}]`
-                        : `${chart.bureau.nameZh} · 命【${chart.lifePalaceBranch}】 身【${chart.bodyPalaceBranch}】`}
+                        ? `${chart.bureau.nameEn} · Life [${chart.lifePalaceStem}${chart.lifePalaceBranch}]`
+                        : `${chart.bureau.nameZh} · 命【${chart.lifePalaceStem}${chart.lifePalaceBranch}】 身【${chart.bodyPalaceBranch}】`}
                     </p>
                   </div>
                   <div className="p-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[11px] text-left">
                     <span className="font-medium text-[#171717] block">
-                      {isEn ? `Star: ${chart.dayMasterStarEn}` : `主星：${chart.dayMasterStar}`}
+                      {isEn ? `Life: ${chart.dayMasterStarEn}` : `主星：${chart.dayMasterStar}`}
                     </span>
                   </div>
                 </div>
@@ -524,27 +542,10 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                             {palace.stem}{palace.branch}
                           </span>
                         </div>
-                        <div className="space-y-0.5 my-1 min-h-[30px] text-[10px]">
-                          {palace.majorStars.map((st, sIdx) => (
-                            <div key={sIdx} className="flex items-center justify-between">
-                              <span className="font-medium text-[#171717]">
-                                {isEn ? (st.nameEn || st.name) : st.name}
-                              </span>
-                              {st.transformation && (
-                                <span
-                                  className={`px-1 rounded-xs text-[8px] border ${getTransformationBadge(
-                                    st.transformation
-                                  )}`}
-                                >
-                                  {isEn ? (st.transformationEn || st.transformation) : st.transformation}
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                        {renderPalaceStarsSummary(palace, true)}
                       </div>
                       <div className="pt-1 border-t border-[#E4E4E7] text-[9px] text-[#52525B]">
-                        {palace.decadalRange} 岁
+                        {isEn ? `Age ${palace.decadalRange}` : `${palace.decadalRange} 岁`}
                       </div>
                     </button>
                   );
@@ -555,39 +556,43 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
         </div>
       </div>
 
-      {/* 选中宫位深层推演报告 */}
+      {/* 选中宫位实盘详情 */}
       <div className="w-full rounded-sm bg-white border border-[#E4E4E7] p-5 sm:p-6 mb-8">
         <div className="flex items-center justify-between mb-4 border-b border-[#E4E4E7] pb-3 flex-wrap gap-2">
           <div>
             <span className="text-[11px] font-medium tracking-[0.15em] text-[#52525B] uppercase block">
-              {isEn ? 'Palace Deep Analysis' : '当前宫位解析'}
+              {isEn ? 'Palace Inspection' : '当前宫位实况'}
             </span>
             <h3 className="font-serif text-[18px] sm:text-[20px] font-normal text-[#171717] mt-0.5">
               {isEn
-                ? `【${selectedPalace.nameEn}】 · ${BRANCH_EN_MAP[selectedPalace.branch] || selectedPalace.branch} Palace`
+                ? `【${selectedPalace.nameEn}】 · ${selectedPalace.stem}${selectedPalace.branch} (${BRANCH_NAMES_EN[selectedPalace.branch] || selectedPalace.branch})`
                 : `【${selectedPalace.name}】 · ${selectedPalace.stem}${selectedPalace.branch}宫`}
             </h3>
           </div>
           <span className="text-[12px] font-medium text-[#171717] bg-[#F5F5F6] px-2.5 py-1 rounded-sm border border-[#E4E4E7]">
-            {isEn ? `Decadal Range: Age ${selectedPalace.decadalRange}` : `大限运势：${selectedPalace.decadalRange} 岁`}
+            {isEn ? `Decadal Range: Age ${selectedPalace.decadalRange}` : `大限区间：${selectedPalace.decadalRange} 岁`}
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
           <div className="p-3.5 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7]">
             <span className="text-[11px] font-medium text-[#52525B] block mb-1">
-              {isEn ? 'Major Stars' : '主星坐镇'}
+              {isEn ? 'Major Stars' : '本宫主星'}
             </span>
-            <span className="font-serif font-medium text-[13px] sm:text-[14px] text-[#171717]">
-              {isEn
-                ? (selectedPalace.majorStars.map(s => `${s.nameEn || s.name} (${s.brightnessEn || 'Flourishing'})`).join(', ') || 'Opposite Celestial Energy')
-                : (selectedPalace.majorStars.map(s => `${s.name}(${s.brightness || '旺'})`).join('、') || '对宫天马借气')}
+            <span className="font-serif font-medium text-[13px] sm:text-[14px] text-[#171717] block">
+              {selectedPalace.majorStars.length > 0
+                ? (isEn
+                    ? selectedPalace.majorStars.map(s => `${s.nameEn || s.name}${s.brightnessEn ? ` (${s.brightnessEn})` : ''}`).join(', ')
+                    : selectedPalace.majorStars.map(s => `${s.name}${s.brightness ? `(${s.brightness})` : ''}`).join('、'))
+                : (isEn
+                    ? `Empty Palace (no major stars; opposite ${BRANCH_NAMES_EN[selectedPalace.oppositeBranch]}: ${selectedPalace.oppositeMajorStarNamesEn.join(', ') || 'Empty'})`
+                    : `空宫（无主星；对宫${selectedPalace.oppositeBranch}有：${selectedPalace.oppositeMajorStarNames.join('、') || '亦无主星'}）`)}
             </span>
           </div>
 
           <div className="p-3.5 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7]">
             <span className="text-[11px] font-medium text-[#52525B] block mb-1">
-              {isEn ? 'Four Transformations' : '四化引动'}
+              {isEn ? 'Natal Four Transformations' : '生年四化落宫'}
             </span>
             <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
               {selectedPalace.transformations.length > 0 ? (
@@ -603,7 +608,7 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
                 ))
               ) : (
                 <span className="text-[12px] text-[#71717A]">
-                  {isEn ? 'None in this palace' : '无本宫生年四化'}
+                  {isEn ? 'None in this palace' : '本宫无生年四化'}
                 </span>
               )}
             </div>
@@ -611,44 +616,74 @@ export function ZiweiChartWidget({ lang = 'zh' }: { lang?: string }) {
 
           <div className="p-3.5 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7]">
             <span className="text-[11px] font-medium text-[#52525B] block mb-1">
-              {isEn ? 'Minor Lucky Stars' : '辅耀吉煞'}
+              {isEn ? 'Auxiliary Stars (Kui/Yue/Chang/Qu/Fu/Bi)' : '辅星（魁钺昌曲辅弼）'}
             </span>
-            <span className="font-serif font-medium text-[13px] sm:text-[14px] text-[#171717]">
-              {isEn
-                ? (selectedPalace.minorStars.map(m => m.nameEn || m.name).join(', ') || 'None')
-                : (selectedPalace.minorStars.map(m => m.name).join('、') || '本宫无辅星')}
-            </span>
+            <div className="flex flex-wrap items-center gap-1.5 font-serif font-medium text-[13px] sm:text-[14px] text-[#171717]">
+              {selectedPalace.minorStars.length > 0 ? (
+                selectedPalace.minorStars.map((m, idx) => (
+                  <span key={idx} className="inline-flex items-center gap-1">
+                    <span>{isEn ? (m.nameEn || m.name) : m.name}</span>
+                    {m.transformation && (
+                      <span
+                        className={`px-1 py-0.2 rounded-xs text-[10px] font-sans border ${getTransformationBadge(
+                          m.transformation
+                        )}`}
+                      >
+                        {isEn ? (m.transformationEn || m.transformation) : `化${m.transformation}`}
+                      </span>
+                    )}
+                    {idx < selectedPalace.minorStars.length - 1 && (
+                      <span className="text-[#A1A1AA]">{isEn ? ',' : '、'}</span>
+                    )}
+                  </span>
+                ))
+              ) : (
+                <span className="text-[12px] font-sans font-normal text-[#71717A]">
+                  {isEn ? 'None in this palace' : '本宫无辅星'}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         <p className="text-[13px] sm:text-[14px] leading-relaxed text-[#52525B] bg-[#FAFAFA] p-4 rounded-sm border border-[#E4E4E7]">
-          {isEn
-            ? (selectedPalace.name === '命宫'
-                ? chart.overallProfileEn.personality
-                : selectedPalace.name === '官禄宫'
-                ? chart.overallProfileEn.career
-                : selectedPalace.name === '财帛宫'
-                ? chart.overallProfileEn.wealth
-                : selectedPalace.name === '夫妻宫'
-                ? chart.overallProfileEn.marriage
-                : `${selectedPalace.nameEn} holds harmonious celestial alignment. The ruling stars offer steady support and disciplined guidance.`)
-            : (selectedPalace.name === '命宫'
-                ? chart.overallProfileZh.personality
-                : selectedPalace.name === '官禄宫'
-                ? chart.overallProfileZh.career
-                : selectedPalace.name === '财帛宫'
-                ? chart.overallProfileZh.wealth
-                : selectedPalace.name === '夫妻宫'
-                ? chart.overallProfileZh.marriage
-                : `${selectedPalace.name}气象和泰，主星拱照，遇事有规有矩，循道而行即为上吉。`)}
+          {isEn ? selectedPalace.summaryEn : selectedPalace.summaryZh}
         </p>
+
+        {/* 口径、四化落宫全表与流派边界（折叠说明） */}
+        <details className="mt-4 rounded-sm border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3 text-[12px] text-[#52525B]">
+          <summary className="cursor-pointer font-medium text-[#171717] select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]">
+            {isEn
+              ? 'Chart Convention, Transformation Placement & Scope Boundary'
+              : '排盘口径、生年四化落宫与流派边界说明'}
+          </summary>
+          <div className="mt-3 pt-3 border-t border-[#E4E4E7] space-y-2 leading-relaxed">
+            <div className="font-mono text-[11px] text-[#171717]">
+              {isEn ? 'Four Transformations: ' : '生年四化落宫：'}
+              {chart.transformationLocations
+                .map(t =>
+                  isEn
+                    ? `${t.labelEn} ${t.starEn} -> ${t.palaceNameEn} (${t.palaceStem}${t.palaceBranch})`
+                    : `${t.labelZh}${t.starZh}→${t.palaceNameZh}(${t.palaceStem}${t.palaceBranch})`
+                )
+                .join(isEn ? ' · ' : ' ｜ ')}
+            </div>
+            <p>{isEn ? chart.convention.rulesEn : chart.convention.rulesZh}</p>
+            <p className="text-[#71717A]">{isEn ? chart.convention.unsupportedEn : chart.convention.unsupportedZh}</p>
+            <p className="text-[11px] text-[#71717A]">
+              {isEn
+                ? `Four Transformations Key (Year Stem ${chart.lunarDate.yearGanZhi[0]}): Lu=${STAR_NAMES_EN[chart.fourTransformations.lu] || chart.fourTransformations.lu}, Quan=${STAR_NAMES_EN[chart.fourTransformations.quan] || chart.fourTransformations.quan}, Ke=${STAR_NAMES_EN[chart.fourTransformations.ke] || chart.fourTransformations.ke}, Ji=${STAR_NAMES_EN[chart.fourTransformations.ji] || chart.fourTransformations.ji}`
+                : `年干【${chart.lunarDate.yearGanZhi[0]}】四化：化禄${chart.fourTransformations.lu}、化权${chart.fourTransformations.quan}、化科${chart.fourTransformations.ke}、化忌${chart.fourTransformations.ji}`}
+            </p>
+          </div>
+        </details>
 
         <div className="pt-4 mt-5 border-t border-[#E4E4E7] flex justify-end">
           <Link
             href={`/${lang}/east/ziwei-marriage`}
             className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#171717] hover:text-[#52525B] transition-colors"
           >
-            <span>{isEn ? 'Compare two charts? Open Ziwei Marriage Synastry' : '想看两人紫微命盘合婚？进入【紫微合婚专厅】'}</span>
+            <span>{isEn ? 'Compare two charts? Open Ziwei Synastry' : '想对照两张紫微命盘？进入【紫微合盘】'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
