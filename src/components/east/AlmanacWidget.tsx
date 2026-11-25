@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import type { AlmanacDay, AlmanacPurpose, AlmanacSearch, AlmanacStatus } from '@/lib/metaphysics/almanac';
+import type { AlmanacDay, AlmanacHour, AlmanacPurpose, AlmanacSearch, AlmanacStatus } from '@/lib/metaphysics/almanac';
 
 const COPY = {
   zh: {
@@ -38,6 +38,13 @@ const COPY = {
     pillar: '日干支',
     officer: '建除值日',
     zodiac: '冲生肖',
+    expandHours: '展开 12 时辰宜忌',
+    collapseHours: '收起时辰宜忌',
+    hoursHeading: '当日 12 时辰传统宜忌',
+    hoursUnlisted: '未列所选事项（不作吉论）',
+    ziConvention: '子时口径：按 lunar-typescript 传统历法，00:00–00:59（早子时）随当日日柱，丑至亥为 01:00–22:59；23:00–23:59（晚子时）按 23:00 换日计入次日日柱，可在次日早子时查看。',
+    hourSuffix: '时',
+    hourLoadFailed: '暂时无法加载时辰宜忌。',
   },
   en: {
     formTitle: 'Choose an activity and date range',
@@ -72,6 +79,13 @@ const COPY = {
     pillar: 'Day pillar',
     officer: 'Day officer',
     zodiac: 'Zodiac clash',
+    expandHours: 'Show 12-hour details',
+    collapseHours: 'Hide 12-hour details',
+    hoursHeading: '12 traditional hours',
+    hoursUnlisted: 'Selected activity not listed (not treated as favorable)',
+    ziConvention: 'Zi-hour convention: following lunar-typescript, 00:00–00:59 (early Zi) uses this date’s day pillar and Chou–Hai cover 01:00–22:59. 23:00–23:59 (late Zi) rolls over to the next day’s pillar and appears under the next date’s Zi hour.',
+    hourSuffix: '',
+    hourLoadFailed: 'Could not load hourly indications.',
   },
 };
 
@@ -97,6 +111,9 @@ export function AlmanacWidget({ lang }: { lang: 'zh' | 'en' }) {
   const [results, setResults] = useState<Results | null>(null);
   const [error, setError] = useState<SearchError | null>(null);
   const [pending, setPending] = useState(false);
+  const [expandedHours, setExpandedHours] = useState<Record<string, AlmanacHour[]>>({});
+  const [openDates, setOpenDates] = useState<Record<string, boolean>>({});
+  const [hourErrorDate, setHourErrorDate] = useState<string | null>(null);
   const inFlight = useRef(false);
   const invalidStart = error === 'start';
   const invalidEnd = error === 'end' || error === 'reversed' || error === 'span';
@@ -115,14 +132,44 @@ export function AlmanacWidget({ lang }: { lang: 'zh' | 'en' }) {
     try {
       const { searchAlmanacDates } = await import('@/lib/metaphysics/almanac');
       const found = searchAlmanacDates(purpose, start, end);
-      if (found.ok) setResults({ purpose, start, end, days: found.days });
-      else setError(found.error);
+      if (found.ok) {
+        setResults({ purpose, start, end, days: found.days });
+        setExpandedHours({});
+        setOpenDates({});
+        setHourErrorDate(null);
+      } else {
+        setError(found.error);
+      }
     } catch {
       setError('failed');
     } finally {
       inFlight.current = false;
       setPending(false);
     }
+  }
+
+  async function toggleHours(dateStr: string) {
+    if (!results) return;
+    if (openDates[dateStr]) {
+      setOpenDates((prev) => ({ ...prev, [dateStr]: false }));
+      return;
+    }
+    setHourErrorDate(null);
+    if (!expandedHours[dateStr]) {
+      try {
+        const { getAlmanacDayHours } = await import('@/lib/metaphysics/almanac');
+        const found = getAlmanacDayHours(results.purpose, dateStr);
+        if (!found.ok) {
+          setHourErrorDate(dateStr);
+          return;
+        }
+        setExpandedHours((prev) => ({ ...prev, [dateStr]: found.hours }));
+      } catch {
+        setHourErrorDate(dateStr);
+        return;
+      }
+    }
+    setOpenDates((prev) => ({ ...prev, [dateStr]: true }));
   }
 
   return (
@@ -201,29 +248,84 @@ export function AlmanacWidget({ lang }: { lang: 'zh' | 'en' }) {
                 </div>
                 <p className="mt-1 text-sm leading-6 text-neutral-600">{copy.statusHelp[status]}</p>
                 <ul className="mt-3 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {group.map((day) => (
-                    <li key={day.date} data-almanac-date={day.date} data-almanac-status={day.status} className="min-w-0 rounded-lg border border-neutral-200 p-4">
-                      <time dateTime={day.date} className="font-semibold tabular-nums">{day.date}</time>
-                      {!!(day.favorable.length || day.unfavorable.length) && (
-                        <ul className="mt-2 space-y-1 text-sm leading-6">
-                          {!!day.favorable.length && <li><strong>{copy.favorable}:</strong> {day.favorable.map((entry) => isEn ? EN_EVIDENCE[entry] : entry).join(isEn ? '; ' : '、')}</li>}
-                          {!!day.unfavorable.length && <li><strong>{copy.unfavorable}:</strong> {day.unfavorable.map((entry) => isEn ? EN_EVIDENCE[entry] : entry).join(isEn ? '; ' : '、')}</li>}
-                        </ul>
-                      )}
-                      <dl className="mt-3 grid gap-1 border-t border-neutral-200 pt-3 text-sm leading-6 text-neutral-600">
-                        <div className="flex flex-wrap gap-x-2">
-                          <dt>{copy.pillar}</dt>
-                          <dd>{isEn ? `${STEMS[day.dayPillar[0]]} ${BRANCHES[day.dayPillar[1]]}` : day.dayPillar}</dd>
+                  {group.map((day) => {
+                    const isOpen = !!openDates[day.date];
+                    const hours = expandedHours[day.date];
+                    const hoursId = `almanac-hours-${day.date}`;
+                    return (
+                      <li key={day.date} data-almanac-date={day.date} data-almanac-status={day.status} className="min-w-0 rounded-lg border border-neutral-200 p-4">
+                        <time dateTime={day.date} className="font-semibold tabular-nums">{day.date}</time>
+                        {!!(day.favorable.length || day.unfavorable.length) && (
+                          <ul className="mt-2 space-y-1 text-sm leading-6">
+                            {!!day.favorable.length && <li><strong>{copy.favorable}:</strong> {day.favorable.map((entry) => isEn ? EN_EVIDENCE[entry] : entry).join(isEn ? '; ' : '、')}</li>}
+                            {!!day.unfavorable.length && <li><strong>{copy.unfavorable}:</strong> {day.unfavorable.map((entry) => isEn ? EN_EVIDENCE[entry] : entry).join(isEn ? '; ' : '、')}</li>}
+                          </ul>
+                        )}
+                        <dl className="mt-3 grid gap-1 border-t border-neutral-200 pt-3 text-sm leading-6 text-neutral-600">
+                          <div className="flex flex-wrap gap-x-2">
+                            <dt>{copy.pillar}</dt>
+                            <dd>{isEn ? `${STEMS[day.dayPillar[0]]} ${BRANCHES[day.dayPillar[1]]}` : day.dayPillar}</dd>
+                          </div>
+                          <div className="flex flex-wrap gap-x-2">
+                            <dt>{copy.officer}</dt><dd>{isEn ? EN_OFFICER[day.dayOfficer] : day.dayOfficer}</dd>
+                          </div>
+                          <div className="flex flex-wrap gap-x-2">
+                            <dt>{copy.zodiac}</dt><dd>{isEn ? EN_ZODIAC[day.conflictingZodiac] : day.conflictingZodiac}</dd>
+                          </div>
+                        </dl>
+                        <div className="mt-3 border-t border-neutral-200 pt-3">
+                          <button
+                            type="button"
+                            aria-expanded={isOpen}
+                            aria-controls={hoursId}
+                            onClick={() => toggleHours(day.date)}
+                            className="min-h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-left text-xs font-medium text-neutral-900 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+                          >
+                            {isOpen ? copy.collapseHours : copy.expandHours}
+                          </button>
+                          {hourErrorDate === day.date && (
+                            <p role="alert" className="mt-2 text-xs text-neutral-900">{copy.hourLoadFailed}</p>
+                          )}
+                          {isOpen && hours && (
+                            <div id={hoursId} className="mt-3 space-y-2 border-t border-neutral-200 pt-3">
+                              <h4 className="text-xs font-semibold uppercase tracking-wide text-neutral-700">{copy.hoursHeading}</h4>
+                              <ul className="space-y-2 text-xs leading-5">
+                                {hours.map((hour) => (
+                                  <li key={hour.branch + hour.minHm} className="rounded border border-neutral-200 p-2">
+                                    <div className="flex flex-wrap items-center justify-between gap-1 font-medium text-neutral-900">
+                                      <span>
+                                        {isEn ? BRANCHES[hour.branch] : `${hour.branch}${copy.hourSuffix}`}
+                                        {' · '}
+                                        <span className="tabular-nums text-neutral-600">{hour.minHm}–{hour.maxHm}</span>
+                                        {' · '}
+                                        {isEn ? `${STEMS[hour.pillar[0]]} ${BRANCHES[hour.pillar[1]]}` : hour.pillar}
+                                      </span>
+                                      <span className="rounded border border-neutral-300 px-1.5 py-0.5 text-[11px] text-neutral-800">
+                                        {copy.status[hour.status]}
+                                      </span>
+                                    </div>
+                                    {hour.favorable.length || hour.unfavorable.length ? (
+                                      <div className="mt-1 space-y-0.5 text-neutral-700">
+                                        {!!hour.favorable.length && (
+                                          <p><strong>{copy.favorable}:</strong> {hour.favorable.map((entry) => isEn ? EN_EVIDENCE[entry] : entry).join(isEn ? '; ' : '、')}</p>
+                                        )}
+                                        {!!hour.unfavorable.length && (
+                                          <p><strong>{copy.unfavorable}:</strong> {hour.unfavorable.map((entry) => isEn ? EN_EVIDENCE[entry] : entry).join(isEn ? '; ' : '、')}</p>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p className="mt-1 text-neutral-600">{copy.hoursUnlisted}</p>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
+                              <p className="text-xs leading-5 text-neutral-600">{copy.ziConvention}</p>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex flex-wrap gap-x-2">
-                          <dt>{copy.officer}</dt><dd>{isEn ? EN_OFFICER[day.dayOfficer] : day.dayOfficer}</dd>
-                        </div>
-                        <div className="flex flex-wrap gap-x-2">
-                          <dt>{copy.zodiac}</dt><dd>{isEn ? EN_ZODIAC[day.conflictingZodiac] : day.conflictingZodiac}</dd>
-                        </div>
-                      </dl>
-                    </li>
-                  ))}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             );

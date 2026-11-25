@@ -72,6 +72,40 @@ test('every sampled chart has unique gates, rotating stars and deities, without 
       assert.equal(chart.palaces[chart.zhishiPalace - 1].currentGate, chart.zhishiGate);
       const duty = chart.palaces[chart.zhifuPalace - 1];
       assert.equal([duty.currentStar, duty.companionStar].includes(chart.zhifuStar), true);
+
+      // Hour Xunkong: exactly 2 branches placed on outer palaces, never in center palace 5.
+      assert.equal(center.xunkongBranches.length, 0);
+      assert.equal(center.yimaBranch, null);
+      const placedXunkong = outer.flatMap((p) => p.xunkongBranches);
+      assert.deepEqual([...placedXunkong].sort(), [...chart.hourXunkong].sort());
+      const yimaPalaces = outer.filter((p) => p.yimaBranch !== null);
+      assert.equal(yimaPalaces.length, 1);
+      assert.equal(yimaPalaces[0].palaceId, chart.yima.palace);
+      assert.equal(yimaPalaces[0].yimaBranch, chart.yima.branch);
     }
   }
+});
+
+test('marks hour Xunkong branches on palaces, distinguishes hour vs day Xun, and applies Sanhe Yi Ma rules', () => {
+  const sample = cast('2024-06-15T14:30');
+  assert.equal(sample.hourCycleHead, '甲戌');
+  assert.equal(sample.dayCycleHead, '甲辰');
+  assert.deepEqual(sample.hourXunkong, ['申', '酉']);
+  assert.deepEqual(sample.dayXunkong, ['寅', '卯']);
+  assert.deepEqual(sample.palaces[1].xunkongBranches, ['申']);
+  assert.deepEqual(sample.palaces[6].xunkongBranches, ['酉']);
+  assert.equal(sample.palaces.filter((p) => p.xunkongBranches.length > 0).length, 2);
+  assert.deepEqual(
+    [sample.yima.hourBranch, sample.yima.sanheGroup, sample.yima.branch, sample.yima.palace],
+    ['未', '亥卯未', '巳', 4],
+  );
+  assert.equal(sample.palaces[3].yimaBranch, '巳');
+
+  // Verify all four Sanhe Yi Ma groups across hours of the same day.
+  const shenZiChen = cast('2024-06-15T16:30'); // 申时
+  assert.deepEqual([shenZiChen.yima.sanheGroup, shenZiChen.yima.branch, shenZiChen.yima.palace], ['申子辰', '寅', 8]);
+  const yinWuXu = cast('2024-06-15T12:30'); // 午时
+  assert.deepEqual([yinWuXu.yima.sanheGroup, yinWuXu.yima.branch, yinWuXu.yima.palace], ['寅午戌', '申', 2]);
+  const siYouChou = cast('2024-06-15T18:30'); // 酉时
+  assert.deepEqual([siYouChou.yima.sanheGroup, siYouChou.yima.branch, siYouChou.yima.palace], ['巳酉丑', '亥', 6]);
 });

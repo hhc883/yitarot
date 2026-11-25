@@ -22,6 +22,22 @@ export interface QimenPalace {
   companionStar: string | null;
   companionStem: string | null;
   isAuspiciousGate: boolean;
+  /** Hour Xunkong (时旬空) Earthly Branches falling in this palace. */
+  xunkongBranches: string[];
+  xunkongBranchesEn: string[];
+  /** Hour-branch Yi Ma (时支驿马) branch if it lands on this palace, otherwise null. */
+  yimaBranch: string | null;
+  yimaBranchEn: string | null;
+}
+
+export interface QimenYimaInfo {
+  branch: string;
+  branchEn: string;
+  palace: OuterPalace;
+  hourBranch: string;
+  hourBranchEn: string;
+  sanheGroup: string;
+  sanheGroupEn: string;
 }
 
 export interface QimenChartResult {
@@ -37,6 +53,18 @@ export interface QimenChartResult {
   dunTypeEn: string;
   juNumber: number;
   cycleHead: string;
+  /** Hour cycle head (时旬首), same as cycleHead, kept explicit alongside dayCycleHead. */
+  hourCycleHead: string;
+  /** Day cycle head (日旬首), used only for Chaibu five-day epoch selection. */
+  dayCycleHead: string;
+  /** Hour Xunkong (时旬空) two empty branches applied to the nine palaces. */
+  hourXunkong: [string, string];
+  hourXunkongEn: [string, string];
+  /** Day Xunkong (日旬空), shown for reference only (not placed on the palaces). */
+  dayXunkong: [string, string];
+  dayXunkongEn: [string, string];
+  /** Hour-branch Yi Ma (时支驿马) by the four Sanhe groups. */
+  yima: QimenYimaInfo;
   zhifuStar: string;
   zhifuStarEn: string;
   zhifuPalace: OuterPalace;
@@ -57,6 +85,35 @@ const STEMS = "甲乙丙丁戊己庚辛壬癸";
 const BRANCHES = "子丑寅卯辰巳午未申酉戌亥";
 const EARTH_STEMS = ["戊", "己", "庚", "辛", "壬", "癸", "丁", "丙", "乙"];
 const CYCLE_HEADS = ["甲子", "甲戌", "甲申", "甲午", "甲辰", "甲寅"];
+const BRANCH_EN: Record<string, string> = {
+  子: "Zi", 丑: "Chou", 寅: "Yin", 卯: "Mao", 辰: "Chen", 巳: "Si",
+  午: "Wu", 未: "Wei", 申: "Shen", 酉: "You", 戌: "Xu", 亥: "Hai",
+};
+const XUN_KONG_BRANCHES: readonly [string, string][] = [
+  ["戌", "亥"],
+  ["申", "酉"],
+  ["午", "未"],
+  ["辰", "巳"],
+  ["寅", "卯"],
+  ["子", "丑"],
+];
+const BRANCH_PALACE: Record<string, OuterPalace> = {
+  子: 1, 丑: 8, 寅: 8, 卯: 3, 辰: 4, 巳: 4, 午: 9, 未: 2, 申: 2, 酉: 7, 戌: 6, 亥: 6,
+};
+const YIMA_RULES: Record<string, { branch: string; palace: OuterPalace; sanheGroup: string; sanheGroupEn: string }> = {
+  申: { branch: "寅", palace: 8, sanheGroup: "申子辰", sanheGroupEn: "Shen-Zi-Chen" },
+  子: { branch: "寅", palace: 8, sanheGroup: "申子辰", sanheGroupEn: "Shen-Zi-Chen" },
+  辰: { branch: "寅", palace: 8, sanheGroup: "申子辰", sanheGroupEn: "Shen-Zi-Chen" },
+  寅: { branch: "申", palace: 2, sanheGroup: "寅午戌", sanheGroupEn: "Yin-Wu-Xu" },
+  午: { branch: "申", palace: 2, sanheGroup: "寅午戌", sanheGroupEn: "Yin-Wu-Xu" },
+  戌: { branch: "申", palace: 2, sanheGroup: "寅午戌", sanheGroupEn: "Yin-Wu-Xu" },
+  巳: { branch: "亥", palace: 6, sanheGroup: "巳酉丑", sanheGroupEn: "Si-You-Chou" },
+  酉: { branch: "亥", palace: 6, sanheGroup: "巳酉丑", sanheGroupEn: "Si-You-Chou" },
+  丑: { branch: "亥", palace: 6, sanheGroup: "巳酉丑", sanheGroupEn: "Si-You-Chou" },
+  亥: { branch: "巳", palace: 4, sanheGroup: "亥卯未", sanheGroupEn: "Hai-Mao-Wei" },
+  卯: { branch: "巳", palace: 4, sanheGroup: "亥卯未", sanheGroupEn: "Hai-Mao-Wei" },
+  未: { branch: "巳", palace: 4, sanheGroup: "亥卯未", sanheGroupEn: "Hai-Mao-Wei" },
+};
 
 const PALACE = {
   1: { bagua: "坎", directionZh: "正北", directionEn: "North", elementZh: "水", elementEn: "Water", star: "天蓬", starEn: "Tianpeng", gate: "休门", gateEn: "Rest Gate" },
@@ -170,7 +227,8 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
   const solarTermZh = term.getName();
   if (!Object.hasOwn(TERMS, solarTermZh)) throw new RangeError("Unsupported solar term.");
   const [solarTermEn, ...juByEpoch] = TERMS[solarTermZh as keyof typeof TERMS];
-  const epochIndex = getEpochIndex(cycleIndex(ganzhi.day));
+  const dayIndex = cycleIndex(ganzhi.day);
+  const epochIndex = getEpochIndex(dayIndex);
   const [epoch, epochEn] = EPOCHS[epochIndex];
   const juNumber = juByEpoch[epochIndex];
   const yang = YANG_TERMS.has(solarTermZh);
@@ -183,10 +241,31 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
     if (!id) throw new RangeError("Invalid Qimen stem.");
     return id;
   };
+  const dayCycleHeadIndex = Math.floor(dayIndex / 10);
+  const dayCycleHead = CYCLE_HEADS[dayCycleHeadIndex];
+  const dayXunkong = XUN_KONG_BRANCHES[dayCycleHeadIndex];
+  const dayXunkongEn: [string, string] = [BRANCH_EN[dayXunkong[0]], BRANCH_EN[dayXunkong[1]]];
+
   const hourIndex = cycleIndex(ganzhi.hour);
   const cycleHeadIndex = Math.floor(hourIndex / 10);
   const cycleHeadStem = EARTH_STEMS[cycleHeadIndex];
   const cycleHead = CYCLE_HEADS[cycleHeadIndex];
+  const hourXunkong = XUN_KONG_BRANCHES[cycleHeadIndex];
+  const hourXunkongEn: [string, string] = [BRANCH_EN[hourXunkong[0]], BRANCH_EN[hourXunkong[1]]];
+
+  const hourBranch = ganzhi.hour[1];
+  const yimaRule = YIMA_RULES[hourBranch];
+  if (!yimaRule) throw new RangeError("Invalid hour branch.");
+  const yima: QimenYimaInfo = {
+    branch: yimaRule.branch,
+    branchEn: BRANCH_EN[yimaRule.branch],
+    palace: yimaRule.palace,
+    hourBranch,
+    hourBranchEn: BRANCH_EN[hourBranch],
+    sanheGroup: yimaRule.sanheGroup,
+    sanheGroupEn: yimaRule.sanheGroupEn,
+  };
+
   const officeHome = palaceOf(cycleHeadStem);
   const officeRingHome = hostedPalace(officeHome);
   const hourStep = hourIndex % 10;
@@ -206,6 +285,8 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
         ...base, currentStar: null, currentStarEn: null, currentGate: null, currentGateEn: null,
         currentDeity: null, currentDeityEn: null, heavenStem: null,
         companionStar: null, companionStem: null, isAuspiciousGate: false,
+        xunkongBranches: [], xunkongBranchesEn: [],
+        yimaBranch: null, yimaBranchEn: null,
       };
     }
     const ringIndex = OUTER_RING.indexOf(palaceId);
@@ -214,6 +295,9 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
     const gate = PALACE[OUTER_RING[mod(ringIndex - gateShift, 8)]];
     const [deity, deityEn] = DEITIES[mod(sign * (ringIndex - OUTER_RING.indexOf(zhifuPalace)), 8)];
     const hostsCenter = starHome === CENTER_HOST;
+    const xunkongBranches = hourXunkong.filter((branch) => BRANCH_PALACE[branch] === palaceId);
+    const xunkongBranchesEn = xunkongBranches.map((branch) => BRANCH_EN[branch]);
+    const hasYima = yima.palace === palaceId;
     return {
       ...base,
       currentStar: star.star,
@@ -226,6 +310,10 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
       companionStar: hostsCenter ? PALACE[5].star : null,
       companionStem: hostsCenter ? earthByPalace[4] : null,
       isAuspiciousGate: ["生门", "开门", "休门"].includes(gate.gate),
+      xunkongBranches,
+      xunkongBranchesEn,
+      yimaBranch: hasYima ? yima.branch : null,
+      yimaBranchEn: hasYima ? yima.branchEn : null,
     };
   });
 
@@ -241,6 +329,13 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
     dunTypeEn: yang ? "Yang Dun" : "Yin Dun",
     juNumber,
     cycleHead,
+    hourCycleHead: cycleHead,
+    dayCycleHead,
+    hourXunkong,
+    hourXunkongEn,
+    dayXunkong,
+    dayXunkongEn,
+    yima,
     zhifuStar: PALACE[officeHome].star,
     zhifuStarEn: PALACE[officeHome].starEn,
     zhifuPalace,

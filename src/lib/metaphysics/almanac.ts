@@ -14,6 +14,20 @@ export type AlmanacDay = {
   conflictingZodiac: string;
 };
 
+export type AlmanacHour = {
+  branch: string;
+  pillar: string;
+  minHm: string;
+  maxHm: string;
+  status: AlmanacStatus;
+  favorable: AlmanacEvidence[];
+  unfavorable: AlmanacEvidence[];
+};
+
+export type AlmanacDayHours =
+  | { ok: true; date: string; dayPillar: string; hours: AlmanacHour[] }
+  | { ok: false; error: 'date' };
+
 export type AlmanacSearch =
   | { ok: true; days: AlmanacDay[] }
   | { ok: false; error: 'start' | 'end' | 'reversed' | 'span' };
@@ -76,4 +90,40 @@ export function searchAlmanacDates(
   });
 
   return { ok: true, days };
+}
+
+/**
+ * Compute traditional Yi/Ji for the 12 hours (子–亥) of a single civil date on demand.
+ * Zi-hour convention: lunar-typescript's `getTimes()` places early Zi (00:00-00:59) on the
+ * selected date's pillar and Chou–Hai on 01:00-22:59, while 23:00-23:59 (late Zi) rolls over
+ * to the next day's pillar (matching 23:00 day rollover). Slicing the first 12 entries yields
+ * the 12 traditional hours belonging to this civil date.
+ */
+export function getAlmanacDayHours(purpose: AlmanacPurpose, dateStr: string): AlmanacDayHours {
+  const date = parseCalendarDate(dateStr);
+  if (!date) return { ok: false, error: 'date' };
+  const lunar = Solar.fromYmd(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate()).getLunar();
+  const activities: readonly AlmanacEvidence[] = ACTIVITIES[purpose];
+  const hours = lunar.getTimes().slice(0, 12).map((time): AlmanacHour => {
+    const listedYi = time.getYi();
+    const listedJi = time.getJi();
+    const favorable = activities.filter((activity) => listedYi.includes(activity));
+    const unfavorable = activities.filter((activity) => listedJi.includes(activity));
+    return {
+      branch: time.getZhi(),
+      pillar: time.getGanZhi(),
+      minHm: time.getMinHm(),
+      maxHm: time.getMaxHm(),
+      status: classify(favorable, unfavorable),
+      favorable,
+      unfavorable,
+    };
+  });
+
+  return {
+    ok: true,
+    date: dateStr,
+    dayPillar: lunar.getDayInGanZhi(),
+    hours,
+  };
 }

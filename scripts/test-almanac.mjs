@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { searchAlmanacDates } from '../src/lib/metaphysics/almanac.ts';
+import { getAlmanacDayHours, searchAlmanacDates } from '../src/lib/metaphysics/almanac.ts';
+import { Solar } from 'lunar-typescript';
 
 function dates(purpose, start, end = start) {
   const result = searchAlmanacDates(purpose, start, end);
@@ -57,4 +58,43 @@ test('contract uses only the traditional trade and agreement entries as its prox
   const found = dates('contract', '2026-12-06', '2026-12-13');
   assert.deepEqual([found[0].status, found[0].favorable], ['candidate', ['立券', '交易']]);
   assert.deepEqual([found[7].status, found[7].unfavorable], ['caution', ['交易']]);
+});
+
+test('getAlmanacDayHours computes 12 hours on demand, filters only selected activity, and keeps unlisted neutral', () => {
+  const [day] = dates('moving', '2026-12-04');
+  assert.equal('hours' in day, false);
+
+  const result = getAlmanacDayHours('moving', '2026-12-04');
+  assert.equal(result.ok, true);
+  assert.equal(result.hours.length, 12);
+  assert.deepEqual(
+    result.hours.map((h) => h.branch),
+    ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'],
+  );
+  assert.equal(result.hours[0].minHm, '00:00');
+  assert.equal(result.hours[0].maxHm, '00:59');
+  assert.equal(result.hours[11].minHm, '21:00');
+  assert.equal(result.hours[11].maxHm, '22:59');
+
+  const allowed = new Set(['入宅', '移徙']);
+  const lunar = Solar.fromYmd(2026, 12, 4).getLunar();
+  const rawTimes = lunar.getTimes().slice(0, 12);
+  for (let i = 0; i < 12; i += 1) {
+    const h = result.hours[i];
+    const expectedYi = rawTimes[i].getYi().filter((item) => allowed.has(item));
+    const expectedJi = rawTimes[i].getJi().filter((item) => allowed.has(item));
+    assert.deepEqual([...h.favorable].sort(), [...expectedYi].sort());
+    assert.deepEqual([...h.unfavorable].sort(), [...expectedJi].sort());
+    if (!h.favorable.length && !h.unfavorable.length) {
+      assert.equal(h.status, 'unlisted');
+    }
+  }
+
+  // Zi-hour convention: 23:00-23:59 on 2026-12-04 rolls over to 2026-12-05's early Zi (00:00-00:59).
+  const lateZi = lunar.getTimes()[12];
+  const nextDayEarlyZi = getAlmanacDayHours('moving', '2026-12-05');
+  assert.equal(nextDayEarlyZi.ok, true);
+  assert.equal(nextDayEarlyZi.hours[0].pillar, lateZi.getGanZhi());
+
+  assert.deepEqual(getAlmanacDayHours('moving', '2026-02-29'), { ok: false, error: 'date' });
 });

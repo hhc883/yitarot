@@ -8,6 +8,7 @@ import {
   QIMEN_TIME_MIN,
   type QimenChartResult,
   type QimenPalace,
+  type QimenYimaInfo,
 } from '@/lib/metaphysics/qimen';
 
 const PALACE_ORDER = [4, 9, 2, 3, 5, 7, 8, 1, 6];
@@ -133,6 +134,20 @@ export function QimenBoardWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
                   {palace?.isAuspiciousGate && (
                     <span className={`mt-1 block text-xs ${pressed ? 'text-neutral-300' : 'text-neutral-600'}`}>{isEn ? 'Traditional favorable gate' : '传统吉门'}</span>
                   )}
+                  {palace && (palace.xunkongBranches.length > 0 || palace.yimaBranch) && (
+                    <span className={`mt-1 flex flex-wrap gap-1 text-[11px] ${pressed ? 'text-neutral-200' : 'text-neutral-700'}`}>
+                      {palace.xunkongBranches.length > 0 && (
+                        <span className="rounded border border-current/25 px-1 py-0.5">
+                          {isEn ? `Void ${palace.xunkongBranchesEn.join(', ')}` : `旬空 ${palace.xunkongBranches.join('、')}`}
+                        </span>
+                      )}
+                      {palace.yimaBranch && (
+                        <span className="rounded border border-current/25 px-1 py-0.5">
+                          {isEn ? `Yima ${palace.yimaBranchEn}` : `驿马 ${palace.yimaBranch}`}
+                        </span>
+                      )}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -140,7 +155,7 @@ export function QimenBoardWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
 
           <div id="qimen-palace-detail" className="min-w-0 rounded-lg border border-neutral-200 p-4 sm:p-5">
             <p className="text-sm text-neutral-600">{isEn ? 'Selected palace' : '选中的宫位'}</p>
-            {selected && <PalaceDetail palace={selected} isEn={isEn} />}
+            {selected && <PalaceDetail palace={selected} yima={chart?.yima} isEn={isEn} />}
           </div>
         </div>
       </section>
@@ -209,26 +224,58 @@ function ChartConfiguration({ chart, isEn }: { chart: QimenChartResult; isEn: bo
           </div>
         ))}
         <div className="flex gap-1">
-          <dt className="text-neutral-600">{isEn ? 'Cycle head' : '旬首'}</dt>
-          <dd className="font-medium" lang={isEn ? 'zh' : undefined}>{chart.cycleHead}</dd>
+          <dt className="text-neutral-600">{isEn ? 'Hour cycle head' : '时旬首'}</dt>
+          <dd className="font-medium" lang={isEn ? 'zh' : undefined}>{chart.hourCycleHead}</dd>
+        </div>
+        <div className="flex gap-1">
+          <dt className="text-neutral-600">{isEn ? 'Hour Xunkong' : '时旬空'}</dt>
+          <dd className="font-medium">{isEn ? chart.hourXunkongEn.join(', ') : chart.hourXunkong.join('、')}</dd>
+        </div>
+        <div className="flex gap-1">
+          <dt className="text-neutral-600">{isEn ? 'Day cycle head (epoch)' : '日旬首（定三元）'}</dt>
+          <dd className="font-medium" lang={isEn ? 'zh' : undefined}>{chart.dayCycleHead}</dd>
+        </div>
+        <div className="flex gap-1">
+          <dt className="text-neutral-600">{isEn ? 'Day Xunkong (ref.)' : '日旬空（参考）'}</dt>
+          <dd className="font-medium">{isEn ? chart.dayXunkongEn.join(', ') : chart.dayXunkong.join('、')}</dd>
+        </div>
+        <div className="flex gap-1">
+          <dt className="text-neutral-600">{isEn ? 'Hour Yima' : '时支驿马'}</dt>
+          <dd className="font-medium">
+            {isEn
+              ? `${chart.yima.branchEn} · Palace ${chart.yima.palace} (${chart.yima.hourBranchEn}, ${chart.yima.sanheGroupEn} → ${chart.yima.branchEn})`
+              : `${chart.yima.branch} · ${chart.yima.palace} 宫（时支${chart.yima.hourBranch}，${chart.yima.sanheGroup}→${chart.yima.branch}）`}
+          </dd>
         </div>
       </dl>
       <p className="mt-4 text-sm leading-6 text-neutral-600">
-        {isEn ? 'Hourly rotating chart, using Chaibu (solar terms and five-day cycles) with day rollover at 23:00. The central palace is hosted by Kun (palace 2); other conventions may give different results.' : '口径：时家转盘拆补，按实际交节定节气，23:00 换日，中五寄坤二；其他排盘法的结果可能不同。'}
+        {isEn
+          ? 'Hourly rotating chart, using Chaibu (solar terms and five-day cycles) with day rollover at 23:00 and center hosted by Kun (palace 2). Xunkong and Post Horse (Yima) on the palaces follow the hour pillar; the day pillar and day cycle head are used only for the five-day epoch. Other conventions may give different results.'
+          : '口径：时家转盘拆补，按实际交节定节气，23:00 换日，中五寄坤二。本盘旬空与驿马均按时柱（时旬空、时支三合安马）入宫；日柱及其旬首仅用于拆补定三元符头。其他排盘法的结果可能不同。'}
       </p>
     </div>
   );
 }
 
-function PalaceDetail({ palace, isEn }: { palace: QimenPalace; isEn: boolean }) {
+function PalaceDetail({ palace, yima, isEn }: { palace: QimenPalace; yima?: QimenYimaInfo; isEn: boolean }) {
   const direction = isEn ? palace.directionEn : palace.directionZh;
+  const xunkongValue = palace.xunkongBranches.length
+    ? (isEn ? palace.xunkongBranchesEn.join(', ') : palace.xunkongBranches.join('、'))
+    : '—';
+  const yimaValue = palace.yimaBranch
+    ? (yima
+        ? (isEn ? `${palace.yimaBranchEn} (${yima.sanheGroupEn} → ${yima.branchEn})` : `${palace.yimaBranch}（${yima.sanheGroup}→${yima.branch}）`)
+        : (isEn ? palace.yimaBranchEn : palace.yimaBranch))
+    : '—';
   const attributes = [
     { label: isEn ? 'Gate' : '八门', value: isEn ? palace.currentGateEn : palace.currentGate },
     { label: isEn ? 'Star' : '九星', value: isEn ? palace.currentStarEn : palace.currentStar },
     { label: isEn ? 'Deity' : '八神', value: isEn ? palace.currentDeityEn : palace.currentDeity },
     { label: isEn ? 'Element' : '五行', value: isEn ? palace.elementEn : palace.elementZh },
     { label: isEn ? 'Heaven stem' : '天盘干', value: palace.heavenStem, isChinese: true },
-    { label: isEn ? 'Earth stem' : '地盘干', value: palace.earthStem, isChinese: true }
+    { label: isEn ? 'Earth stem' : '地盘干', value: palace.earthStem, isChinese: true },
+    { label: isEn ? 'Hour Xunkong' : '时旬空', value: xunkongValue },
+    { label: isEn ? 'Hour Yima' : '时支驿马', value: yimaValue },
   ];
   return (
     <>
