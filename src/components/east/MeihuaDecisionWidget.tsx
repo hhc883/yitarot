@@ -2,7 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { divineMeihua, MeihuaDivinationResult } from '@/lib/metaphysics/meihua';
+import {
+  divineMeihua,
+  MEIHUA_TIME_MAX,
+  MEIHUA_TIME_MIN,
+  MeihuaDivinationResult,
+  parseMeihuaBeijingTime
+} from '@/lib/metaphysics/meihua';
 
 const PRESET_DECISIONS_ZH = [
   '当前这笔重要的商业合作，是否应当果断推进？',
@@ -26,12 +32,18 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
 
   const [question, setQuestion] = useState('');
   const [mode, setMode] = useState<'time' | 'numbers'>('time');
+  const [customTime, setCustomTime] = useState('');
   const [numA, setNumA] = useState(3);
   const [numB, setNumB] = useState(7);
   const [numMoving, setNumMoving] = useState(2);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [result, setResult] = useState<MeihuaDivinationResult | null>(null);
+
+  const handleUseCurrentTime = () => {
+    setCustomTime('');
+    if (errorMessage) setErrorMessage(null);
+  };
 
   const handleCast = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,21 +58,41 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
       return;
     }
 
-    if (
-      mode === 'numbers' &&
-      (Number.isNaN(numA) ||
-        Number.isNaN(numB) ||
-        Number.isNaN(numMoving) ||
+    if (mode === 'numbers') {
+      if (
+        !Number.isInteger(numA) ||
+        !Number.isInteger(numB) ||
+        !Number.isInteger(numMoving) ||
         numA <= 0 ||
         numB <= 0 ||
-        numMoving <= 0)
-    ) {
-      setErrorMessage(
-        isEn
-          ? 'Please enter positive integers for all three numbers.'
-          : '请为上卦、下卦和动爻输入有效的正整数。'
-      );
-      return;
+        numMoving <= 0
+      ) {
+        setErrorMessage(
+          isEn
+            ? 'Please enter positive integers for all three numbers.'
+            : '请为上卦、下卦和动爻输入有效的正整数。'
+        );
+        return;
+      }
+    }
+
+    let targetDate: Date | undefined;
+    if (mode === 'time') {
+      const trimmedTime = customTime.trim();
+      if (trimmedTime) {
+        const parsed = parseMeihuaBeijingTime(trimmedTime);
+        if (!parsed) {
+          setErrorMessage(
+            isEn
+              ? 'Please enter a valid Beijing time (UTC+08:00) between 1900 and 2100.'
+              : '请输入 1900—2100 年间有效的北京时间（UTC+08:00）。'
+          );
+          return;
+        }
+        targetDate = parsed;
+      } else {
+        targetDate = new Date();
+      }
     }
 
     try {
@@ -68,7 +100,8 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
       const res = divineMeihua(
         trimmedQuestion,
         mode,
-        mode === 'numbers' ? [numA, numB, numMoving] : undefined
+        mode === 'numbers' ? [numA, numB, numMoving] : undefined,
+        targetDate
       );
       setResult(res);
     } catch {
@@ -164,7 +197,10 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
               </span>
               <button
                 type="button"
-                onClick={() => setMode('time')}
+                onClick={() => {
+                  setMode('time');
+                  if (errorMessage) setErrorMessage(null);
+                }}
                 aria-pressed={mode === 'time'}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-900 ${
                   mode === 'time'
@@ -172,11 +208,14 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
                     : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
                 }`}
               >
-                {isEn ? 'Present Time' : '时辰起卦'}
+                {isEn ? 'Time (Beijing)' : '时间起卦'}
               </button>
               <button
                 type="button"
-                onClick={() => setMode('numbers')}
+                onClick={() => {
+                  setMode('numbers');
+                  if (errorMessage) setErrorMessage(null);
+                }}
                 aria-pressed={mode === 'numbers'}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-900 ${
                   mode === 'numbers'
@@ -184,17 +223,43 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
                     : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
                 }`}
               >
-                {isEn ? 'Custom Numbers' : '数字起卦'}
+                {isEn ? 'Three Numbers (Site Rule)' : '三数起卦（站内规则）'}
               </button>
             </div>
 
-            {mode === 'numbers' && (
+            {mode === 'time' ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <label className="flex items-center gap-1.5 text-xs text-zinc-600">
+                  <span>{isEn ? 'Beijing Time' : '北京时间'}</span>
+                  <input
+                    type="datetime-local"
+                    min={MEIHUA_TIME_MIN.slice(0, 16)}
+                    max={MEIHUA_TIME_MAX.slice(0, 16)}
+                    aria-label={isEn ? 'Beijing Time (UTC+08:00)' : '北京时间 (UTC+08:00)'}
+                    value={customTime}
+                    onChange={e => {
+                      setCustomTime(e.target.value);
+                      if (errorMessage) setErrorMessage(null);
+                    }}
+                    className="px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-zinc-900 tabular-nums focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleUseCurrentTime}
+                  className="px-2.5 py-1 rounded-md text-xs border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                >
+                  {isEn ? 'Current' : '当前时间'}
+                </button>
+              </div>
+            ) : (
               <div className="flex items-center gap-2 flex-wrap">
                 <label className="flex items-center gap-1 text-xs text-zinc-600">
                   <span>{isEn ? 'Upper' : '上'}</span>
                   <input
                     type="number"
                     min="1"
+                    step="1"
                     aria-label={isEn ? 'Upper Trigram Number' : '上卦数'}
                     value={numA}
                     onChange={e => setNumA(Number(e.target.value))}
@@ -206,6 +271,7 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
                   <input
                     type="number"
                     min="1"
+                    step="1"
                     aria-label={isEn ? 'Lower Trigram Number' : '下卦数'}
                     value={numB}
                     onChange={e => setNumB(Number(e.target.value))}
@@ -217,6 +283,7 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
                   <input
                     type="number"
                     min="1"
+                    step="1"
                     aria-label={isEn ? 'Moving Line Number' : '动爻数'}
                     value={numMoving}
                     onChange={e => setNumMoving(Number(e.target.value))}
@@ -282,6 +349,12 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
                   </div>
 
                   <div className="text-center my-4">
+                    <div
+                      aria-hidden="true"
+                      className="text-3xl leading-none text-zinc-900 mb-1.5 font-serif"
+                    >
+                      {result.primaryHexagram.symbol}
+                    </div>
                     <div className="font-serif font-bold text-xl sm:text-2xl text-zinc-900 mb-1">
                       {isEn
                         ? result.primaryHexagram.fullNameEn ||
@@ -336,6 +409,14 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
                   </div>
 
                   <div className="text-center my-4">
+                    {result.mutualHexagram.symbol && (
+                      <div
+                        aria-hidden="true"
+                        className="text-2xl leading-none text-zinc-800 mb-1.5 font-serif"
+                      >
+                        {result.mutualHexagram.symbol}
+                      </div>
+                    )}
                     <div className="font-serif font-bold text-xl sm:text-2xl text-zinc-900 mb-1">
                       {isEn
                         ? result.mutualHexagram.fullNameEn ||
@@ -371,6 +452,14 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
                   </div>
 
                   <div className="text-center my-4">
+                    {result.transformedHexagram.symbol && (
+                      <div
+                        aria-hidden="true"
+                        className="text-2xl leading-none text-zinc-800 mb-1.5 font-serif"
+                      >
+                        {result.transformedHexagram.symbol}
+                      </div>
+                    )}
                     <div className="font-serif font-bold text-xl sm:text-2xl text-zinc-900 mb-1">
                       {isEn
                         ? result.transformedHexagram.fullNameEn ||
@@ -393,6 +482,46 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
                 </div>
               </article>
             </div>
+
+            {/* 起卦依据与取数余数（折叠说明） */}
+            <details className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-700">
+              <summary className="cursor-pointer font-medium text-zinc-900 select-none focus:outline-none focus:ring-1 focus:ring-zinc-900 rounded">
+                {isEn
+                  ? `Casting Basis · ${result.basis.methodEn}`
+                  : `起卦依据 · ${result.basis.methodZh}`}
+              </summary>
+              <div className="mt-3 pt-3 border-t border-zinc-200 space-y-2 leading-relaxed">
+                {result.basis.mode === 'time' ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-[11px] text-zinc-800">
+                      <div>
+                        {isEn ? 'Input Time (UTC+08:00): ' : '输入北京时间：'}
+                        {result.basis.beijingTime}
+                      </div>
+                      <div>
+                        {isEn
+                          ? `Lunar: ${result.basis.lunarYearGanZhi} Year (${result.basis.yearBranchEn} ${result.basis.yearBranchNum}) · M${result.basis.lunarMonth} · D${result.basis.lunarDay} · Hour ${result.basis.hourBranchEn} (${result.basis.hourBranchNum})`
+                          : `农历：${result.basis.lunarYearGanZhi}年（年支${result.basis.yearBranch}序 ${result.basis.yearBranchNum}）· ${result.basis.lunarMonthZh}（${result.basis.lunarMonth}）· ${result.basis.lunarDayZh}（${result.basis.lunarDay}）· 时支${result.basis.hourBranch}（${result.basis.hourBranchNum}）`}
+                      </div>
+                    </div>
+                    <div className="font-mono text-[11px] text-zinc-700">
+                      {isEn
+                        ? `Upper: (${result.basis.yearBranchNum} + ${result.basis.lunarMonth} + ${result.basis.lunarDay}) = ${result.basis.sumUpper} mod 8 = ${result.basis.remainders.upperRawMod} -> ${result.basis.remainders.upper} | Lower: (${result.basis.sumUpper} + ${result.basis.hourBranchNum}) = ${result.basis.sumLower} mod 8 = ${result.basis.remainders.lowerRawMod} -> ${result.basis.remainders.lower} | Moving: ${result.basis.sumLower} mod 6 = ${result.basis.remainders.movingRawMod} -> Line ${result.basis.remainders.moving}`
+                        : `上卦：(${result.basis.yearBranchNum} + ${result.basis.lunarMonth} + ${result.basis.lunarDay}) = ${result.basis.sumUpper}，% 8 余 ${result.basis.remainders.upperRawMod} 取 ${result.basis.remainders.upper}｜下卦：(${result.basis.sumUpper} + ${result.basis.hourBranchNum}) = ${result.basis.sumLower}，% 8 余 ${result.basis.remainders.lowerRawMod} 取 ${result.basis.remainders.lower}｜动爻：${result.basis.sumLower} % 6 余 ${result.basis.remainders.movingRawMod} 取第 ${result.basis.remainders.moving} 爻`}
+                    </div>
+                  </>
+                ) : (
+                  <div className="font-mono text-[11px] text-zinc-800">
+                    {isEn
+                      ? `Input Numbers: [${result.basis.inputNumbers?.join(', ')}] | Upper: mod 8 = ${result.basis.remainders.upperRawMod} -> ${result.basis.remainders.upper} | Lower: mod 8 = ${result.basis.remainders.lowerRawMod} -> ${result.basis.remainders.lower} | Moving: mod 6 = ${result.basis.remainders.movingRawMod} -> Line ${result.basis.remainders.moving}`
+                      : `输入三数：[${result.basis.inputNumbers?.join('、')}]｜上卦：% 8 余 ${result.basis.remainders.upperRawMod} 取 ${result.basis.remainders.upper}｜下卦：% 8 余 ${result.basis.remainders.lowerRawMod} 取 ${result.basis.remainders.lower}｜动爻：% 6 余 ${result.basis.remainders.movingRawMod} 取第 ${result.basis.remainders.moving} 爻`}
+                  </div>
+                )}
+                <p className="text-zinc-600">
+                  {isEn ? result.basis.conventionNoteEn : result.basis.conventionNoteZh}
+                </p>
+              </div>
+            </details>
           </section>
 
           {/* 体用生克断语与行动建议 */}

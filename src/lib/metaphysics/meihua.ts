@@ -1,5 +1,15 @@
+import { Solar } from 'lunar-typescript';
 import { findMatchingMeihuaCase, getTrigramImagery, type MeihuaCaseEntry, type TrigramWanwuDetail } from '@/lib/kb/meihua';
-import { lookupEntryByBinary } from './hexagrams64';
+import { hexagramSymbol, lookupEntryByBinary } from './hexagrams64';
+
+export const MEIHUA_TIME_MIN = '1900-01-01T00:00:00';
+export const MEIHUA_TIME_MAX = '2100-12-31T23:59:59';
+const BEIJING_OFFSET_MS = 8 * 60 * 60 * 1000;
+const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'] as const;
+const BRANCHES_EN: Record<string, string> = {
+  子: 'Zi', 丑: 'Chou', 寅: 'Yin', 卯: 'Mao', 辰: 'Chen', 巳: 'Si',
+  午: 'Wu', 未: 'Wei', 申: 'Shen', 酉: 'You', 戌: 'Xu', 亥: 'Hai'
+};
 
 export interface TrigramInfo {
   number: number; // 1 to 8
@@ -24,10 +34,43 @@ export const TRIGRAMS: Record<number, TrigramInfo> = {
   8: { number: 8, nameZh: "坤", nameEn: "Kun (Earth)", symbol: "☷", natureZh: "地", natureEn: "Earth", element: "Earth", elementZh: "土", lines: [false, false, false] }
 };
 
+export interface MeihuaCalculationBasis {
+  mode: 'time' | 'numbers';
+  methodZh: string;
+  methodEn: string;
+  beijingTime?: string;
+  lunarYearGanZhi?: string;
+  yearBranch?: string;
+  yearBranchEn?: string;
+  yearBranchNum?: number;
+  lunarMonth?: number;
+  lunarMonthZh?: string;
+  isLeapMonth?: boolean;
+  lunarDay?: number;
+  lunarDayZh?: string;
+  hourBranch?: string;
+  hourBranchEn?: string;
+  hourBranchNum?: number;
+  sumUpper?: number;
+  sumLower?: number;
+  inputNumbers?: [number, number, number];
+  remainders: {
+    upper: number;
+    lower: number;
+    moving: number;
+    upperRawMod: number;
+    lowerRawMod: number;
+    movingRawMod: number;
+  };
+  conventionNoteZh: string;
+  conventionNoteEn: string;
+}
+
 export interface MeihuaDivinationResult {
   question: string;
   castMode: "time" | "numbers";
   numbers: [number, number, number];
+  basis: MeihuaCalculationBasis;
   primaryHexagram: {
     upper: TrigramInfo;
     lower: TrigramInfo;
@@ -41,17 +84,20 @@ export interface MeihuaDivinationResult {
     trigram: TrigramInfo;
     position: "upper" | "lower";
     role: "体卦 (我方/所占之事)";
+    roleEn?: string;
   };
   applicationTrigram: {
     trigram: TrigramInfo;
     position: "upper" | "lower";
     role: "用卦 (事态/对方境遇)";
+    roleEn?: string;
   };
   mutualHexagram: {
     upper: TrigramInfo;
     lower: TrigramInfo;
     fullNameZh: string;
     fullNameEn?: string;
+    symbol?: string;
     summaryZh: string;
     summaryEn?: string;
   };
@@ -60,6 +106,7 @@ export interface MeihuaDivinationResult {
     lower: TrigramInfo;
     fullNameZh: string;
     fullNameEn?: string;
+    symbol?: string;
     changedApplication: TrigramInfo;
     summaryZh: string;
     summaryEn?: string;
@@ -124,35 +171,149 @@ const ELEMENT_OVERCOMING: Record<string, string> = {
 };
 
 /**
+ * Parse a manually entered Beijing standard wall time (UTC+08:00) without host timezone rollover.
+ */
+export function parseMeihuaBeijingTime(input: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(input)) return null;
+  const wall = input.length === 16 ? input + ':00' : input;
+  if (wall < MEIHUA_TIME_MIN || wall > MEIHUA_TIME_MAX) return null;
+  const instant = new Date(wall + '+08:00');
+  if (!Number.isFinite(instant.getTime())) return null;
+  return new Date(instant.getTime() + BEIJING_OFFSET_MS).toISOString().slice(0, 19) === wall ? instant : null;
+}
+
+/**
+ * Format an instant as Beijing standard wall time (YYYY-MM-DDTHH:mm:ss).
+ */
+export function formatMeihuaBeijingTime(date: Date = new Date()): string {
+  const beijing = new Date(date.getTime() + BEIJING_OFFSET_MS);
+  return beijing.toISOString().slice(0, 19);
+}
+
+/**
  * 梅花易数核心推演函数
  */
 export function divineMeihua(
   question: string,
   mode: "time" | "numbers" = "time",
-  customNumbers?: [number, number, number]
+  customNumbers?: [number, number, number],
+  targetDate: Date = new Date()
 ): MeihuaDivinationResult {
   let numUpper = 1;
   let numLower = 1;
   let numMoving = 1;
+  let basis: MeihuaCalculationBasis;
 
-  if (mode === "numbers" && customNumbers) {
-    numUpper = customNumbers[0];
-    numLower = customNumbers[1];
-    numMoving = customNumbers[2];
+  if (mode === "numbers") {
+    if (
+      !customNumbers ||
+      customNumbers.length !== 3 ||
+      customNumbers.some(n => !Number.isInteger(n) || n < 1)
+    ) {
+      throw new RangeError('Custom numbers must be three positive integers.');
+    }
+    const [rawUpper, rawLower, rawMoving] = customNumbers;
+    const upperRawMod = rawUpper % 8;
+    const lowerRawMod = rawLower % 8;
+    const movingRawMod = rawMoving % 6;
+
+    numUpper = upperRawMod || 8;
+    numLower = lowerRawMod || 8;
+    numMoving = movingRawMod || 6;
+
+    basis = {
+      mode: 'numbers',
+      methodZh: '站内数字直取规则（三正整数分别取上卦、下卦、动爻）',
+      methodEn: 'Site Three-Number Rule (direct positive integers for Upper, Lower, Moving Line)',
+      inputNumbers: [rawUpper, rawLower, rawMoving],
+      remainders: {
+        upper: numUpper,
+        lower: numLower,
+        moving: numMoving,
+        upperRawMod,
+        lowerRawMod,
+        movingRawMod
+      },
+      conventionNoteZh: '本模式为站内快捷数字规则（三数分别对 8、8、6 取余，余 0 取 8 或 6），并非《梅花易数》经典“二数加时取动爻”法。',
+      conventionNoteEn: 'This mode uses the site direct three-number rule (modulo 8, 8, 6 with 0 mapped to 8 or 6), rather than the classical two-number-plus-hour method.'
+    };
   } else {
-    // 依据当下时空年月日时起卦
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth() + 1;
-    const d = now.getDate();
-    const h = now.getHours();
+    if (!Number.isFinite(targetDate.getTime())) {
+      throw new RangeError('Invalid target date for Meihua time casting.');
+    }
+    const beijing = new Date(targetDate.getTime() + BEIJING_OFFSET_MS);
+    const wallIso = beijing.toISOString().slice(0, 19);
+    if (wallIso < MEIHUA_TIME_MIN || wallIso > MEIHUA_TIME_MAX) {
+      throw new RangeError('Target date outside supported Meihua range (1900-2100).');
+    }
 
-    const sumA = y + m + d;
-    const sumB = sumA + h;
+    // 固定使用北京时间 (UTC+08:00) 口径，脱离宿主设备时区；遵循《梅花易数》卷一「年月日時起例」
+    const solar = Solar.fromYmdHms(
+      beijing.getUTCFullYear(),
+      beijing.getUTCMonth() + 1,
+      beijing.getUTCDate(),
+      beijing.getUTCHours(),
+      beijing.getUTCMinutes(),
+      beijing.getUTCSeconds()
+    );
+    const lunar = solar.getLunar();
 
-    numUpper = (sumA % 8) || 8;
-    numLower = (sumB % 8) || 8;
-    numMoving = (sumB % 6) || 6;
+    const yearBranchIndex = lunar.getYearZhiIndex(); // 0=子..11=亥 (农历正月初一换年)
+    const yearBranchNum = yearBranchIndex + 1; // 1..12
+    const yearBranch = BRANCHES[yearBranchIndex];
+    const yearGanZhi = lunar.getYearInGanZhi();
+
+    const rawLunarMonth = lunar.getMonth();
+    const isLeapMonth = rawLunarMonth < 0;
+    const lunarMonth = Math.abs(rawLunarMonth);
+    const lunarMonthZh = lunar.getMonthInChinese() + '月';
+    const lunarDay = lunar.getDay();
+    const lunarDayZh = lunar.getDayInChinese();
+
+    const hourBranchIndex = lunar.getTimeZhiIndex(); // 0=子..11=亥 (23:00-00:59 为子时)
+    const hourBranchNum = hourBranchIndex + 1; // 1..12
+    const hourBranch = BRANCHES[hourBranchIndex];
+
+    const sumUpper = yearBranchNum + lunarMonth + lunarDay;
+    const sumLower = sumUpper + hourBranchNum;
+    const upperRawMod = sumUpper % 8;
+    const lowerRawMod = sumLower % 8;
+    const movingRawMod = sumLower % 6;
+
+    numUpper = upperRawMod || 8;
+    numLower = lowerRawMod || 8;
+    numMoving = movingRawMod || 6;
+
+    basis = {
+      mode: 'time',
+      methodZh: '《梅花易数》卷一「年月日时起例」（北京时间 UTC+08:00）',
+      methodEn: 'Meihua Yishu Vol. 1 Time Method (Beijing Time UTC+08:00)',
+      beijingTime: wallIso.replace('T', ' '),
+      lunarYearGanZhi: yearGanZhi,
+      yearBranch,
+      yearBranchEn: BRANCHES_EN[yearBranch] || yearBranch,
+      yearBranchNum,
+      lunarMonth,
+      lunarMonthZh,
+      isLeapMonth,
+      lunarDay,
+      lunarDayZh,
+      hourBranch,
+      hourBranchEn: BRANCHES_EN[hourBranch] || hourBranch,
+      hourBranchNum,
+      sumUpper,
+      sumLower,
+      remainders: {
+        upper: numUpper,
+        lower: numLower,
+        moving: numMoving,
+        upperRawMod,
+        lowerRawMod,
+        movingRawMod
+      },
+      conventionNoteZh: '口径：固定北京时间（UTC+08:00）；年支按农历正月初一换年（子1至亥12），月日取农历实数（闰月按本月数计），23:00–00:59 作子时（1）且归当日，余 0 取 8（卦）或 6（爻）。',
+      conventionNoteEn: 'Convention: fixed Beijing time (UTC+08:00); year branch follows the lunar new year (Zi=1 to Hai=12), month/day use lunar numbers (leap month uses its base month number), 23:00–00:59 is Zi hour (1) on the same day, remainder 0 resolves to 8 (trigram) or 6 (line).'
+    };
   }
 
   const upperIndex = ((numUpper - 1) % 8) + 1;
@@ -274,6 +435,8 @@ export function divineMeihua(
   // 查文王 64 卦序号与匹配梅花历史经典卦案
   const primaryBinary = allLines.map(b => (b ? '1' : '0')).join('');
   const primaryEntry = lookupEntryByBinary(primaryBinary);
+  const mutualBinary = [...mutualLower.lines, ...mutualUpper.lines].map(b => (b ? '1' : '0')).join('');
+  const mutualEntry = lookupEntryByBinary(mutualBinary);
   const changedBinary = changedLines.map(b => (b ? '1' : '0')).join('');
   const changedEntry = lookupEntryByBinary(changedBinary);
 
@@ -287,30 +450,34 @@ export function divineMeihua(
     question: question || "当前关键决策与事态走向",
     castMode: mode,
     numbers: [numUpper, numLower, numMoving],
+    basis,
     primaryHexagram: {
       upper: upperTri,
       lower: lowerTri,
       fullNameZh: primaryName,
-      fullNameEn: `${upperTri.nameEn || upperTri.nameZh} over ${lowerTri.nameEn || lowerTri.nameZh}`,
-      symbol: `䷀`,
+      fullNameEn: `${primaryEntry.nameEn} (${upperTri.natureEn || upperTri.nameEn} over ${lowerTri.natureEn || lowerTri.nameEn})`,
+      symbol: hexagramSymbol(primaryEntry.number),
       lines: allLines
     },
     movingLine,
     bodyTrigram: {
       trigram: bodyTri,
       position: isMovingInLower ? "upper" : "lower",
-      role: "体卦 (我方/所占之事)"
+      role: "体卦 (我方/所占之事)",
+      roleEn: "Body (Self / Subject)"
     },
     applicationTrigram: {
       trigram: useTri,
       position: isMovingInLower ? "lower" : "upper",
-      role: "用卦 (事态/对方境遇)"
+      role: "用卦 (事态/对方境遇)",
+      roleEn: "Application (Situation / Object)"
     },
     mutualHexagram: {
       upper: mutualUpper,
       lower: mutualLower,
       fullNameZh: mutualName,
-      fullNameEn: `${mutualUpper.nameEn || mutualUpper.nameZh} over ${mutualLower.nameEn || mutualLower.nameZh}`,
+      fullNameEn: `${mutualEntry.nameEn} (${mutualUpper.natureEn || mutualUpper.nameEn} over ${mutualLower.natureEn || mutualLower.nameEn})`,
+      symbol: hexagramSymbol(mutualEntry.number),
       summaryZh: `互卦见【${mutualName}】，反映事态中间阶段的暗流隐动与转折关口。`,
       summaryEn: `Nuclear hexagram reveals underlying dynamics and transitional nuances of the development stage.`
     },
@@ -318,7 +485,8 @@ export function divineMeihua(
       upper: changedUpper,
       lower: changedLower,
       fullNameZh: changedName,
-      fullNameEn: `${changedUpper.nameEn || changedUpper.nameZh} over ${changedLower.nameEn || changedLower.nameZh}`,
+      fullNameEn: `${changedEntry.nameEn} (${changedUpper.natureEn || changedUpper.nameEn} over ${changedLower.natureEn || changedLower.nameEn})`,
+      symbol: hexagramSymbol(changedEntry.number),
       changedApplication: changedUseTri,
       summaryZh: `动爻引动显化为变卦【${changedName}】，预示后续最终归宿与定局气象。`,
       summaryEn: `The moving line triggers evolution into the transformed hexagram, indicating the final resolution.`
