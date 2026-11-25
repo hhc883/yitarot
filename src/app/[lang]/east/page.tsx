@@ -72,8 +72,8 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="east-liuyao" />,
       titleEn: 'Liu Yao Divination',
       titleZh: '周易六爻神谕',
-      descEn: 'Classic 3D coin toss oracle, changing lines, and hexagram shifts for timely decisions.',
-      descZh: '乾隆通宝 3D 物理掷币起卦，自下而上筑爻断卦，以变爻洞察局势转机。',
+      descEn: 'Ask about a specific situation, such as whether to pursue a partnership.',
+      descZh: '为一件具体的事问卦，比如合作要不要推进。',
       actionEn: 'Cast coins',
       actionZh: '进入起卦'
     },
@@ -82,8 +82,8 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="east-bazi" />,
       titleEn: 'BaZi Birth Chart',
       titleZh: '四柱八字排盘',
-      descEn: 'Four Pillars of Destiny calculated from your exact birth date and time, five elements & ten gods.',
-      descZh: '依据出生年月日时推算四柱八字、节气换柱、五行生克与日主元神格局。',
+      descEn: 'Use your birth time to explore personality tendencies and life cycles.',
+      descZh: '用出生时间排八字，了解自己的性格倾向和大运。',
       actionEn: 'Calculate chart',
       actionZh: '排生辰盘'
     },
@@ -92,8 +92,8 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="east-ziwei" />,
       titleEn: 'ZiWei Astrology',
       titleZh: '紫微斗数排盘',
-      descEn: 'Traditional Eastern star chart mapping 12 life palaces and 14 major stars.',
-      descZh: '十二命宫、十四主星与生年四化星曜互动，深入剖析人生轨迹。',
+      descEn: 'Explore career, relationship, and wealth themes in your birth chart.',
+      descZh: '查看自己的事业、感情和财运趋势。',
       actionEn: 'Open star chart',
       actionZh: '排斗数盘'
     },
@@ -102,8 +102,8 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="east-meihua" />,
       titleEn: 'Plum Blossom Divination',
       titleZh: '梅花易数决策',
-      descEn: 'Time and number based spontaneous I Ching divination for clear daily decisions.',
-      descZh: '以先天心易神数、体用生克决断吉凶，简明快捷，应机决断。',
+      descEn: 'Cast a hexagram when you need perspective on a choice.',
+      descZh: '拿不定主意时，为眼前的选择起一卦。',
       actionEn: 'Cast Meihua',
       actionZh: '起梅花卦'
     },
@@ -112,8 +112,8 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="east-compatibility" />,
       titleEn: 'Zodiac & Chart Compatibility',
       titleZh: '生肖干支合盘',
-      descEn: '144 pairwise combinations, examining earthly branch harmonies and energetic friction.',
-      descZh: '144 组干支配对，天作六合、三合与相冲相刑分析，洞察彼此共振点。',
+      descEn: 'Compare how two people may get along based on their zodiac signs.',
+      descZh: '按生肖比较两个人是否合拍。',
       actionEn: 'Compare charts',
       actionZh: '开始合盘'
     },
@@ -122,8 +122,8 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="east-bazi-daily" />,
       titleEn: 'Daily BaZi',
       titleZh: '每日八字',
-      descEn: 'Use your birth date and hour to explore a daily reading and its twelve time periods.',
-      descZh: '用出生日期和小时，查看今日八字、宜忌与十二时辰的解读。',
+      descEn: 'See which activities and times may suit you today.',
+      descZh: '查看今天宜做什么，挑个合适的时段。',
       actionEn: 'View today',
       actionZh: '查看今日'
     },
@@ -132,8 +132,8 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="east-qimen" />,
       titleEn: 'Qimen Dunjia',
       titleZh: '奇门遁甲',
-      descEn: 'Cast a rotating nine-palace chart using Beijing time and explore its gates, stars, and directions.',
-      descZh: '按北京时间排出时家转盘拆补局，查看各宫位的门、星和方位。',
+      descEn: 'Check directions for a specific time when planning an outing or activity.',
+      descZh: '查指定时刻的方位，为出行或办事作参考。',
       actionEn: 'Open Qimen',
       actionZh: '排奇门局'
     },
@@ -142,8 +142,8 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="east-almanac" />,
       titleEn: 'Chinese Almanac Date Finder',
       titleZh: '黄历择日',
-      descEn: 'Compare traditional almanac entries for moving, opening a business, and signing a contract.',
-      descZh: '按传统黄历宜忌，查看入宅搬家、开业或签约的候选日期。',
+      descEn: 'Find dates for moving, opening a business, or signing a contract.',
+      descZh: '为搬家、开业或签约选日期。',
       actionEn: 'Find dates',
       actionZh: '查看候选日期'
     },
@@ -152,8 +152,8 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="east-relationship" />,
       titleEn: 'Relationship Synastry Hub',
       titleZh: '关系合盘中心',
-      descEn: 'Nine distinct relationship synastry types including marriage, partnership, and family.',
-      descZh: '涵盖合婚、恋爱、事业搭档等九大合盘维度，多视角解析互动契机。',
+      descEn: 'Explore how you get along with a partner, relative, friend, or colleague.',
+      descZh: '看看你和伴侣、家人、朋友或搭档怎么相处。',
       actionEn: 'Explore hub',
       actionZh: '合盘中心'
     }

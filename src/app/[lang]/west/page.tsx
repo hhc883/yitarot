@@ -72,8 +72,8 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="west-draw" />,
       titleEn: 'Free Tarot Draw',
       titleZh: '自由抽牌',
-      descEn: 'Draw 1 to 6 cards freely from the 78-card deck for immediate reflection and focus.',
-      descZh: '从 78 张经典牌堆中自由选牌，可选 1–6 张，沉淀当下思绪，获得清澈明晰的直观启示。',
+      descEn: 'Draw cards to reflect on whatever is on your mind.',
+      descZh: '随手抽牌，理一理眼下最在意的事。',
       actionEn: 'Draw cards',
       actionZh: '开始抽牌'
     },
@@ -82,8 +82,8 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="west-reading" />,
       titleEn: 'AI Tarot Reading',
       titleZh: 'AI 塔罗深度占卜',
-      descEn: 'Personalized readings based on classic Rider-Waite symbolism and structured inquiries.',
-      descZh: '带着具体问题进入占卜，结合经典象征体系与潜意识原型进行深度推演。',
+      descEn: 'Enter a specific question to get a tarot reading about it.',
+      descZh: '输入一个具体问题，获取针对它的塔罗解读。',
       actionEn: 'Start reading',
       actionZh: '进入占卜'
     },
@@ -92,8 +92,8 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="west-daily" />,
       titleEn: 'Daily Card',
       titleZh: '每日一牌 · 晨间神谕',
-      descEn: 'Draw a single card each morning for guidance, clarity, and daily mindfulness.',
-      descZh: '每日晨起抽取一张心境指引牌，感知今日能量原型与行动觉察。',
+      descEn: 'Draw a card to find something worth paying attention to today.',
+      descZh: '抽一张牌，想想今天值得关注什么。',
       actionEn: 'See today',
       actionZh: '抽取今日'
     },
@@ -102,8 +102,8 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="west-spreads" />,
       titleEn: 'Spread Library',
       titleZh: '经典牌阵专区',
-      descEn: 'Three-Card Spread, Celtic Cross, Two-Choice, and specialized relationship layouts.',
-      descZh: '圣三角、凯尔特十字、二选一与关系融通等经典几何牌阵研习与排布。',
+      descEn: 'Choose a spread for a relationship question, a tough decision, or another concern.',
+      descZh: '按感情、两难选择等问题挑选合适的牌阵。',
       actionEn: 'Browse spreads',
       actionZh: '查看牌阵'
     },
@@ -112,8 +112,8 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="west-cards" />,
       titleEn: '78 Card Meanings',
       titleZh: '78 牌义大全',
-      descEn: 'Comprehensive guide to 22 Major Arcana and 56 Minor Arcana in upright and reversed positions.',
-      descZh: '涵盖 22 张大阿卡纳与 56 张小阿卡纳正逆位详尽象征、意象与现实映射。',
+      descEn: 'Look up what a tarot card means upright or reversed.',
+      descZh: '查一张塔罗牌正位和逆位时的含义。',
       actionEn: 'Explore meanings',
       actionZh: '查阅牌义'
     },
@@ -122,8 +122,8 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="west-yes-no" />,
       titleEn: 'Yes / No Tarot',
       titleZh: '是否塔罗 · 快速决断',
-      descEn: 'Single-card oracle providing a clear directional tendency for pressing questions.',
-      descZh: '单张神谕直截了当，为心中摇摆不定的选择提供清晰的决断倾向。',
+      descEn: 'Ask a question that can be answered with yes or no.',
+      descZh: '问一个能用「是」或「否」回答的问题。',
       actionEn: 'Ask yes or no',
       actionZh: '即刻决断'
     },
@@ -132,8 +132,8 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="west-love" />,
       titleEn: 'Love & Relationship Tarot',
       titleZh: '爱情与关系塔罗',
-      descEn: 'Three-dimensional mirror of emotional ties, hidden friction, and mutual growth.',
-      descZh: '深入探寻双方心意连结、潜在阻碍与关系融通之路，映照真实渴望。',
+      descEn: 'Reflect on how your relationship is going and what to do next.',
+      descZh: '梳理两个人的相处状态，想清下一步怎么走。',
       actionEn: 'Explore love',
       actionZh: '测算关系'
     },
@@ -142,8 +142,8 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="west-weekly" />,
       titleEn: 'Weekly Tarot',
       titleZh: '每周塔罗',
-      descEn: 'Draw five cards to reflect on the week ahead: its theme, work, relationships, finances, and your next step.',
-      descZh: '用五张牌梳理未来一周的整体主题、工作、关系、财务和行动方向。',
+      descEn: 'Reflect on what to prioritize in work, relationships, and spending this week.',
+      descZh: '梳理这周在工作、相处和开销上该关注什么。',
       actionEn: 'View weekly spread',
       actionZh: '查看本周'
     }
