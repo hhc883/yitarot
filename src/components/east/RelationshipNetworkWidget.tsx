@@ -134,8 +134,8 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
         </h1>
         <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-1.5 max-w-lg mx-auto">
           {isEn
-            ? 'Centered on your Day Master natal core, mapping multi-dimensional synastry networks across spouse, parents, children, partners, and peers.'
-            : '以你为天心原点，全景映射夫妻、父母、子女、合伙人与密友的多维命盘气场网络。'}
+            ? 'This is a sample relationship network. Nodes, scores, and descriptions are preset for demonstration. Select a relationship to open the personal synastry tool.'
+            : '这是关系图谱示例。节点、评分与说明均为预设。选择一项关系，即可进入对应的个人合盘工具。'}
         </p>
       </div>
 
@@ -188,7 +188,7 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
               textAnchor="middle"
               className="text-xs font-serif font-black fill-white select-none"
             >
-              {isEn ? 'Natal Core' : '本命元神'}
+              {isEn ? 'Sample Core' : '示例原点'}
             </text>
             <text
               x="250"
@@ -196,7 +196,7 @@ export function RelationshipNetworkWidget({ lang = 'zh' }: { lang?: string }) {
               textAnchor="middle"
               className="text-[9px] font-serif fill-neutral-300 select-none"
             >
-              {isEn ? 'Self (Day Master)' : '我 (日主)'}
+              {isEn ? 'Demo Day Master' : '示例日主'}
             </text>
 
             {/* 周围各关系节点 */}
