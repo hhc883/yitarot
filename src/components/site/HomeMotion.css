@@ -9,8 +9,12 @@
   overflow-x: clip;
 }
 
+.yitatro-home-intro-stage {
+  position: relative;
+}
+
 .yitatro-home-taiji {
-  transform-origin: center bottom;
+  transform-origin: center center;
 }
 
 .yitatro-home-taiji-spin {
@@ -44,17 +48,73 @@
   0% {
     opacity: 1;
     visibility: visible;
-    transform: scale(1);
+    transform: translateY(0svh) scale(1);
   }
-  40% {
+  14% {
     opacity: 1;
     visibility: visible;
-    transform: scale(1.5);
+    transform: translateY(0svh) scale(1.48);
+  }
+  33.3% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0svh) scale(2.35);
+  }
+  43% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(11.6svh) scale(2.62);
+  }
+  50% {
+    opacity: 0.88;
+    visibility: visible;
+    transform: translateY(20svh) scale(2.82);
+  }
+  58% {
+    opacity: 0.65;
+    visibility: visible;
+    transform: translateY(20svh) scale(3.05);
+  }
+  78% {
+    opacity: 0.16;
+    visibility: visible;
+    transform: translateY(20svh) scale(3.2);
   }
   100% {
     opacity: 0;
     visibility: hidden;
-    transform: scale(1.7);
+    transform: translateY(20svh) scale(3.28);
+  }
+}
+
+@keyframes yitatro-intro-copy-exit {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  9%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+}
+
+@keyframes yitatro-intro-chrome-exit {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+  16% {
+    opacity: 0;
+    visibility: visible;
+  }
+  17% {
+    opacity: 0;
+    visibility: hidden;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
   }
 }
 
@@ -90,17 +150,39 @@
     transform: translateX(3px);
   }
 
-  @supports (animation-timeline: view()) and (animation-range: exit 0% exit 100%) and (view-timeline-name: --yitatro-intro-view) {
+  @supports (animation-timeline: view()) and (animation-range: contain 0% exit 100%) and (view-timeline-name: --yitatro-intro-view) {
     .yitatro-home-intro {
+      min-height: 140svh;
       view-timeline-name: --yitatro-intro-view;
       view-timeline-axis: block;
+    }
+
+    .yitatro-home-intro-stage {
+      position: sticky;
+      top: 0;
+      overflow: clip;
     }
 
     .yitatro-home-taiji {
       animation: yitatro-taiji-intro-exit 1ms linear both;
       animation-timeline: --yitatro-intro-view;
-      animation-range: exit 0% exit 70%;
+      animation-range: contain 0% exit 80%;
       will-change: transform, opacity;
+    }
+
+    .yitatro-home-intro-copy {
+      animation: yitatro-intro-copy-exit 1ms linear both;
+      animation-timeline: --yitatro-intro-view;
+      animation-range: contain 0% exit 80%;
+      will-change: transform, opacity;
+    }
+
+    .yitatro-home-intro-topbar,
+    .yitatro-home-intro-cue {
+      animation: yitatro-intro-chrome-exit 1ms linear both;
+      animation-timeline: --yitatro-intro-view;
+      animation-range: contain 0% exit 80%;
+      will-change: opacity;
     }
 
     .yitatro-home-portal-stage-east {
