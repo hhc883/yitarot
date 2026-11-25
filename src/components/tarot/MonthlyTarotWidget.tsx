@@ -1,43 +1,54 @@
 'use client';
 
-import React, { useState } from 'react';
-import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
+import React, { useEffect, useState } from 'react';
+import {
+  drawRandomCards,
+  DrawnCard,
+  getDaysInMonth,
+  getMonthlyPhases,
+  type MonthPhase
+} from '@/lib/tarot/deck';
 import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
 
-interface MonthPhase {
-  nameZh: string;
-  nameEn: string;
-  timingZh: string;
-  timingEn: string;
-  themeZh: string;
-  themeEn: string;
-}
-
-const PHASES: MonthPhase[] = [
-  { nameZh: '第一周 · 启序播种', nameEn: 'Week 1 · Inception', timingZh: '第 1 - 7 天', timingEn: 'Days 1 - 7', themeZh: '新机缘萌发与目标确立', themeEn: 'Germination & Goal Setting' },
-  { nameZh: '第二周 · 磨砺探索', nameEn: 'Week 2 · Friction', timingZh: '第 8 - 14 天', timingEn: 'Days 8 - 14', themeZh: '遭遇现实摩擦与策略微调', themeEn: 'Reality Friction & Calibration' },
-  { nameZh: '第三周 · 聚力突破', nameEn: 'Week 3 · Breakthrough', timingZh: '第 15 - 21 天', timingEn: 'Days 15 - 21', themeZh: '主线推进与关键成果涌现', themeEn: 'Momentum & Peak Milestones' },
-  { nameZh: '第四周 · 沉淀融通', nameEn: 'Week 4 · Integration', timingZh: '第 22 - 30 天', timingEn: 'Days 22 - 30', themeZh: '盘整收尾与下一阶段蓄力', themeEn: 'Harvest & Resetting Cycle' }
-];
+export type { MonthPhase };
+export { getDaysInMonth, getMonthlyPhases };
 
 export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
   const isEn = lang === 'en';
+  const cardLang: 'zh' | 'en' = isEn ? 'en' : 'zh';
   const d = getDictionary(lang);
   const t = d.fortune;
 
-  const [cards, setCards] = useState<DrawnCard[]>(() => drawRandomCards(5));
+  const [cards, setCards] = useState<DrawnCard[]>([]);
   const [activeTab, setActiveTab] = useState<'anchor' | number>('anchor');
+  const [monthMeta, setMonthMeta] = useState<{ year: number; month: number; monthName: string }>(() => ({
+    year: 2026,
+    month: 1,
+    monthName: isEn ? 'This Month' : '本月'
+  }));
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const now = new Date();
+      setMonthMeta({
+        year: now.getFullYear(),
+        month: now.getMonth() + 1,
+        monthName: now.toLocaleDateString(isEn ? 'en-US' : 'zh-CN', { month: 'long' })
+      });
+      setCards(prev => (prev.length === 5 ? prev : drawRandomCards(5)));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isEn]);
 
   const handleShuffle = () => {
     setCards(drawRandomCards(5));
     setActiveTab('anchor');
   };
 
-  const anchorCard = cards[0];
-  const weeklyCards = cards.slice(1);
+  const phases = getMonthlyPhases(monthMeta.year, monthMeta.month);
 
   const getMeaning = (dc: DrawnCard): string => {
     if (isEn) {
@@ -49,9 +60,27 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
     return dc.isReversed ? dc.card.reversedMeaning : dc.card.uprightMeaning;
   };
 
-  const monthName = new Date().toLocaleDateString(isEn ? 'en-US' : 'zh-CN', {
-    month: 'long'
-  });
+  if (cards.length < 5) {
+    return (
+      <div className="w-full max-w-5xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#171717] tracking-tight">
+            {t.monthlyTitle}
+          </h1>
+          <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-2">
+            {t.monthlySubtitle}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-white border border-[#E4E4E7] p-8 text-center text-xs font-serif text-[#52525B]">
+          {isEn ? 'Preparing your monthly spread...' : '正在洗牌推演月度运势...'}
+        </div>
+      </div>
+    );
+  }
+
+  const anchorCard = cards[0];
+  const weeklyCards = cards.slice(1);
+  const { monthName } = monthMeta;
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -73,9 +102,11 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
         {/* 月度核心大牌 + 四周卡片展示 */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* 月度锚点大牌 */}
-          <div
+          <button
+            type="button"
             onClick={() => setActiveTab('anchor')}
-            className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-between ${
+            aria-pressed={activeTab === 'anchor'}
+            className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-between text-center ${
               activeTab === 'anchor'
                 ? 'bg-[#171717] text-white border-[#171717]'
                 : 'bg-[#F5F5F6] text-[#171717] border-[#E4E4E7] hover:bg-[#EBEBEF]'
@@ -85,7 +116,7 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
               <span className={`text-[10px] font-mono uppercase tracking-wider block ${
                 activeTab === 'anchor' ? 'text-white/60' : 'text-[#52525B]'
               }`}>
-                Core Anchor
+                {isEn ? 'Core Anchor' : '本月主轴'}
               </span>
               <span className="text-xs font-serif font-bold">
                 {isEn ? 'Monthly Master Archetype' : '全月统摄原型'}
@@ -98,6 +129,7 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                 isReversed={anchorCard.isReversed}
                 isFlipped={true}
                 size="sm"
+                lang={cardLang}
               />
             </div>
 
@@ -111,18 +143,20 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                 {isEn ? (anchorCard.isReversed ? 'Reversed' : 'Upright') : (anchorCard.isReversed ? '逆位' : '正位')}
               </span>
             </div>
-          </div>
+          </button>
 
           {/* 4 周 progression */}
           {weeklyCards.map((drawn, idx) => {
-            const phase = PHASES[idx];
+            const phase = phases[idx];
             const isSelected = activeTab === idx;
 
             return (
-              <div
+              <button
                 key={idx}
+                type="button"
                 onClick={() => setActiveTab(idx)}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-between ${
+                aria-pressed={isSelected}
+                className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-between text-center ${
                   isSelected
                     ? 'bg-[#171717] text-white border-[#171717]'
                     : 'bg-[#F5F5F6] text-[#171717] border-[#E4E4E7] hover:bg-[#EBEBEF]'
@@ -145,6 +179,7 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                     isReversed={drawn.isReversed}
                     isFlipped={true}
                     size="sm"
+                    lang={cardLang}
                   />
                 </div>
 
@@ -158,7 +193,7 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                     {isEn ? (drawn.isReversed ? 'Reversed' : 'Upright') : (drawn.isReversed ? '逆位' : '正位')}
                   </span>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -167,13 +202,15 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
         <div className="p-6 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] space-y-4">
           {activeTab === 'anchor' ? (
             <div>
-              <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between">
+              <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between flex-wrap gap-2">
                 <div>
                   <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
-                    MONTHLY MASTER LESSON
+                    {isEn ? 'MONTHLY MASTER LESSON' : '本月核心课题'}
                   </span>
                   <h3 className="font-serif font-black text-lg text-[#171717]">
-                    {monthName} {isEn ? 'Core Lesson' : '核心课题'} · {isEn ? anchorCard.card.nameEn : anchorCard.card.nameZh}（{isEn ? (anchorCard.isReversed ? 'Reversed' : 'Upright') : (anchorCard.isReversed ? '逆位' : '正位')}）
+                    {isEn
+                      ? `${monthName} Core Lesson · ${anchorCard.card.nameEn} (${anchorCard.isReversed ? 'Reversed' : 'Upright'})`
+                      : `${monthName} 核心课题 · ${anchorCard.card.nameZh}（${anchorCard.isReversed ? '逆位' : '正位'}）`}
                   </h3>
                 </div>
                 <span className="text-xs font-serif text-[#52525B]">
@@ -184,7 +221,7 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
               <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
                 <div>
                   <span className="font-bold text-[#52525B] block mb-0.5">
-                    {isEn ? '【Monthly Evolutionary Leitmotif】' : '【本月心智成长主旋律】'}
+                    {isEn ? 'Monthly Evolutionary Leitmotif' : '【本月心智成长主旋律】'}
                   </span>
                   <p className="text-[#171717]">
                     {getMeaning(anchorCard)}
@@ -192,7 +229,7 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                 </div>
                 <div>
                   <span className="font-bold text-[#52525B] block mb-0.5">
-                    {isEn ? '【Strategic Counsel】' : '【月度战略建议】'}
+                    {isEn ? 'Strategic Counsel' : '【月度战略建议】'}
                   </span>
                   <p className="text-[#171717]">
                     {isEn
@@ -205,17 +242,19 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
           ) : (
             <div>
               {(() => {
-                const phase = PHASES[activeTab as number];
+                const phase = phases[activeTab as number];
                 const card = weeklyCards[activeTab as number];
                 return (
                   <div>
-                    <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between">
+                    <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between flex-wrap gap-2">
                       <div>
                         <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
-                          WEEKLY EVOLUTION · {isEn ? phase.timingEn : phase.timingZh}
+                          {isEn ? `WEEKLY EVOLUTION · ${phase.timingEn}` : `周度演进 · ${phase.timingZh}`}
                         </span>
                         <h3 className="font-serif font-black text-lg text-[#171717]">
-                          {isEn ? phase.nameEn : phase.nameZh} · {isEn ? card.card.nameEn : card.card.nameZh}（{isEn ? (card.isReversed ? 'Reversed' : 'Upright') : (card.isReversed ? '逆位' : '正位')}）
+                          {isEn
+                            ? `${phase.nameEn} · ${card.card.nameEn} (${card.isReversed ? 'Reversed' : 'Upright'})`
+                            : `${phase.nameZh} · ${card.card.nameZh}（${card.isReversed ? '逆位' : '正位'}）`}
                         </h3>
                       </div>
                       <span className="text-xs font-serif text-[#52525B]">
@@ -226,7 +265,7 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                     <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
                       <div>
                         <span className="font-bold text-[#52525B] block mb-0.5">
-                          {isEn ? '【Phase Dynamics】' : '【阶段能量特征】'}
+                          {isEn ? 'Phase Dynamics' : '【阶段能量特征】'}
                         </span>
                         <p className="text-[#171717]">
                           {getMeaning(card)}
@@ -234,7 +273,7 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
                       </div>
                       <div>
                         <span className="font-bold text-[#52525B] block mb-0.5">
-                          {isEn ? '【Weekly Focus】' : '【当周践行要点】'}
+                          {isEn ? 'Weekly Focus' : '【当周践行要点】'}
                         </span>
                         <p className="text-[#171717]">
                           {isEn

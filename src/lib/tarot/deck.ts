@@ -2424,12 +2424,69 @@ export function getMinorArcana(suit?: TarotSuit): TarotCardData[] {
   return TAROT_DECK.filter(c => c.arcana === 'minor' && (!suit || c.suit === suit));
 }
 
-// 抽取卡牌逻辑
-export function drawRandomCards(count: number, allowReversed = true): DrawnCard[] {
-  const shuffled = [...TAROT_DECK].sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, count);
+// Fisher-Yates 洗牌算法（无偏、不修改原数组）
+export function shuffleArray<T>(items: readonly T[], rng: () => number = Math.random): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// 抽取卡牌逻辑（保证单次抽取不重复，保留原有 35% 逆位概率）
+export function drawRandomCards(
+  count: number,
+  allowReversed = true,
+  rng: () => number = Math.random
+): DrawnCard[] {
+  if (!Number.isFinite(count) || count <= 0) return [];
+  const safeCount = Math.min(Math.floor(count), TAROT_DECK.length);
+  const selected = shuffleArray(TAROT_DECK, rng).slice(0, safeCount);
   return selected.map(card => ({
     card,
-    isReversed: allowReversed ? Math.random() < 0.35 : false // 35% 几率逆位
+    isReversed: allowReversed ? rng() < 0.35 : false // 35% 几率逆位
   }));
+}
+
+export type YearlySpreadMap = Record<number, DrawnCard[]>;
+
+export function getOrCreateYearSpread(
+  map: YearlySpreadMap,
+  year: number,
+  drawFn: (count: number) => DrawnCard[] = drawRandomCards
+): YearlySpreadMap {
+  if (map[year] && map[year].length === 5) return map;
+  return { ...map, [year]: drawFn(5) };
+}
+
+export function redrawYearSpread(
+  map: YearlySpreadMap,
+  year: number,
+  drawFn: (count: number) => DrawnCard[] = drawRandomCards
+): YearlySpreadMap {
+  return { ...map, [year]: drawFn(5) };
+}
+
+export interface MonthPhase {
+  nameZh: string;
+  nameEn: string;
+  timingZh: string;
+  timingEn: string;
+  themeZh: string;
+  themeEn: string;
+}
+
+export function getDaysInMonth(year: number, month1To12: number): number {
+  return new Date(year, month1To12, 0).getDate();
+}
+
+export function getMonthlyPhases(year: number, month1To12: number): MonthPhase[] {
+  const lastDay = getDaysInMonth(year, month1To12);
+  return [
+    { nameZh: '第一周 · 启序播种', nameEn: 'Week 1 · Inception', timingZh: '第 1 - 7 天', timingEn: 'Days 1 - 7', themeZh: '新机缘萌发与目标确立', themeEn: 'Germination & Goal Setting' },
+    { nameZh: '第二周 · 磨砺探索', nameEn: 'Week 2 · Friction', timingZh: '第 8 - 14 天', timingEn: 'Days 8 - 14', themeZh: '遭遇现实摩擦与策略微调', themeEn: 'Reality Friction & Calibration' },
+    { nameZh: '第三周 · 聚力突破', nameEn: 'Week 3 · Breakthrough', timingZh: '第 15 - 21 天', timingEn: 'Days 15 - 21', themeZh: '主线推进与关键成果涌现', themeEn: 'Momentum & Peak Milestones' },
+    { nameZh: '第四周 · 沉淀融通', nameEn: 'Week 4 · Integration', timingZh: `第 22 - ${lastDay} 天`, timingEn: `Days 22 - ${lastDay}`, themeZh: '盘整收尾与下一阶段蓄力', themeEn: 'Harvest & Resetting Cycle' }
+  ];
 }

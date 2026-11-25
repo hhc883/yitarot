@@ -6,7 +6,7 @@ import { useGSAP } from '@gsap/react';
 import { Draggable } from 'gsap/Draggable';
 import { InertiaPlugin } from 'gsap/InertiaPlugin';
 import { TarotSpread } from '@/lib/tarot/spreads';
-import { TAROT_DECK, TarotCardData, DrawnCard } from '@/lib/tarot/deck';
+import { TAROT_DECK, TarotCardData, DrawnCard, shuffleArray } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import {
   Sparkles,
@@ -36,14 +36,9 @@ interface FanCardItem {
   angle: number;
 }
 
-// 洗乱全套 78 张韦特塔罗牌并构建圆弧孔雀扇形角度
+// 洗乱全套 78 张韦特塔罗牌并构建圆弧孔雀扇形角度（保留 50% 正逆概率）
 function generateShuffledFanDeck(): FanCardItem[] {
-  const deck = [...TAROT_DECK];
-  // Fisher-Yates 洗牌算法
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [deck[i], deck[j]] = [deck[j], deck[i]];
-  }
+  const deck = shuffleArray(TAROT_DECK);
 
   // 78 张卡牌沿 -50° 至 +50° 均匀孔雀扇形放射排布
   const step = 100 / (deck.length - 1);
@@ -140,18 +135,36 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
   const [drawnCards, setDrawnCards] = useState<DrawnCard[]>([]);
   const [flippedStates, setFlippedStates] = useState<boolean[]>([]);
 
+  const drawnIndicesRef = useRef<number[]>([]);
+  const drawnCountRef = useRef<number>(0);
+  const autoDrawTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearAutoDrawTimers = useCallback(() => {
+    autoDrawTimersRef.current.forEach(timer => clearTimeout(timer));
+    autoDrawTimersRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearAutoDrawTimers();
+    };
+  }, [clearAutoDrawTimers]);
+
   const prevSpreadIdRef = useRef(spread.id);
 
   // 当牌阵规格改变时，重置抽牌状态
   useEffect(() => {
     if (prevSpreadIdRef.current !== spread.id) {
       prevSpreadIdRef.current = spread.id;
+      clearAutoDrawTimers();
+      drawnIndicesRef.current = [];
+      drawnCountRef.current = 0;
       setFanDeck(generateShuffledFanDeck());
       setDrawnIndices([]);
       setDrawnCards([]);
       setFlippedStates([]);
     }
-  }, [spread.id]);
+  }, [clearAutoDrawTimers, spread.id]);
 
   // 使用 GSAP quickSetter 极速更新旋转，开销比常规 setState/gsap.set 低 250%
   const syncRotationFromProxy = useCallback(() => {
@@ -256,16 +269,18 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
     if (isDraggingRef.current) return;
     if (shuffling) return;
 
-    if (drawnCards.length >= spread.cardCount) return;
-    if (drawnIndices.includes(fanIdx)) return;
+    if (drawnCountRef.current >= spread.cardCount) return;
+    if (drawnIndicesRef.current.includes(fanIdx)) return;
 
     const targetCard = fanDeck[fanIdx];
     if (!targetCard) return;
 
-    const currentSlotIdx = drawnCards.length;
+    const currentSlotIdx = drawnCountRef.current;
+    drawnIndicesRef.current = [...drawnIndicesRef.current, fanIdx];
+    drawnCountRef.current = currentSlotIdx + 1;
 
     // 1. 记录已抽取索引 (仅引发该张 FanCardLeaf 局部 re-render，其他 77 张完全不动)
-    setDrawnIndices(prev => [...prev, fanIdx]);
+    setDrawnIndices(prev => (prev.includes(fanIdx) ? prev : [...prev, fanIdx]));
 
     // 2. 存入已抽取牌阵
     const targetPos = spread.positions[currentSlotIdx];
@@ -296,27 +311,28 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
         }
       }, 50);
     }
-  }, [drawnCards.length, drawnIndices, fanDeck, isEn, shuffling, spread.cardCount, spread.positions]);
+  }, [fanDeck, isEn, shuffling, spread.cardCount, spread.positions]);
 
-  // 宇宙随缘盲抽：一键按节奏从扇面中抽取剩余卡牌
+  // 宇宙随缘盲抽：一键按节奏从扇面中抽取剩余卡牌（使用 Fisher-Yates 保证不重复）
   const handleAutoDraw = () => {
     contextSafe(() => {
-      if (drawnCards.length >= spread.cardCount || shuffling) return;
+      if (drawnCountRef.current >= spread.cardCount || shuffling) return;
 
-      const needed = spread.cardCount - drawnCards.length;
+      clearAutoDrawTimers();
+      const needed = spread.cardCount - drawnCountRef.current;
       const availableIndices = fanDeck
-        .map((_, idx) => (!drawnIndices.includes(idx) ? idx : -1))
+        .map((_, idx) => (!drawnIndicesRef.current.includes(idx) ? idx : -1))
         .filter(idx => idx !== -1);
 
       if (availableIndices.length < needed) return;
 
-      const shuffledAvailable = [...availableIndices].sort(() => Math.random() - 0.5);
-      const chosenIndices = shuffledAvailable.slice(0, needed);
+      const chosenIndices = shuffleArray(availableIndices).slice(0, needed);
 
       chosenIndices.forEach((fanIdx, i) => {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           handleCardSelect(fanIdx);
         }, i * 220);
+        autoDrawTimersRef.current.push(timer);
       });
     })();
   };
@@ -325,7 +341,17 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
   const handleReshuffle = () => {
     contextSafe(() => {
       if (shuffling) return;
+      clearAutoDrawTimers();
       setShuffling(true);
+
+      const resetDeck = () => {
+        drawnIndicesRef.current = [];
+        drawnCountRef.current = 0;
+        setFanDeck(generateShuffledFanDeck());
+        setDrawnIndices([]);
+        setDrawnCards([]);
+        setFlippedStates([]);
+      };
 
       if (fanPivotRef.current) {
         gsap.to(fanPivotRef.current, {
@@ -334,10 +360,7 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
           duration: 0.35,
           ease: 'power2.in',
           onComplete: () => {
-            setFanDeck(generateShuffledFanDeck());
-            setDrawnIndices([]);
-            setDrawnCards([]);
-            setFlippedStates([]);
+            resetDeck();
             if (proxyRef.current) gsap.set(proxyRef.current, { x: 0 });
             setRotationRef.current?.(0);
             gsap.set(fanPivotRef.current, { scale: 1, autoAlpha: 1 });
@@ -347,10 +370,7 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
           }
         });
       } else {
-        setFanDeck(generateShuffledFanDeck());
-        setDrawnIndices([]);
-        setDrawnCards([]);
-        setFlippedStates([]);
+        resetDeck();
         setTimeout(() => {
           setShuffling(false);
         }, 350);
@@ -504,9 +524,11 @@ export function DeckShuffler({ spread, onCardsReady, lang = 'zh' }: DeckShuffler
                   >
                     {idx + 1}. {posTitle}
                   </span>
-                  <p className="text-[10px] text-neutral-500 max-w-[160px] line-clamp-1">
-                    {pos.description}
-                  </p>
+                  {!isEn && pos.description ? (
+                    <p className="text-[10px] text-neutral-500 max-w-[160px] line-clamp-1">
+                      {pos.description}
+                    </p>
+                  ) : null}
                 </div>
 
                 {/* 卡牌实体 或 等待抽取占位 */}
