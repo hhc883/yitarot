@@ -3,6 +3,16 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { CONTAINER } from '@/components/site/constants';
 import { HexagramGraphic } from '@/components/site/HexagramGraphic';
+import { FeatureCard } from '@/components/site/FeatureCard';
+import { ToolCardGridMotion } from '@/components/site/ToolCardGridMotion';
+import {
+  IconCoinLiuYao,
+  IconLove,
+  IconScrollBaZi,
+  IconSparklesDraw,
+  IconZodiacDragon
+} from '@/components/icons/QiIcons';
+import { Calendar, CalendarDays, Compass, LayoutGrid } from 'lucide-react';
 import { JsonLd } from '@/components/seo/JsonLd';
 
 export const instant = false;
@@ -66,6 +76,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
   const tools = [
     {
       href: `/${lang}/east/liuyao`,
+      icon: <IconCoinLiuYao size={26} />,
       titleEn: 'Liu Yao Divination',
       titleZh: '周易六爻神谕',
       descEn: 'Classic 3D coin toss oracle, changing lines, and hexagram shifts for timely decisions.',
@@ -75,6 +86,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/bazi`,
+      icon: <IconScrollBaZi size={26} />,
       titleEn: 'BaZi Birth Chart',
       titleZh: '四柱八字排盘',
       descEn: 'Four Pillars of Destiny calculated from your exact birth date and time, five elements & ten gods.',
@@ -84,6 +96,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/ziwei`,
+      icon: <Compass className="h-6 w-6" strokeWidth={1.6} />,
       titleEn: 'ZiWei Astrology',
       titleZh: '紫微斗数排盘',
       descEn: 'Traditional Eastern star chart mapping 12 life palaces and 14 major stars.',
@@ -93,6 +106,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/meihua`,
+      icon: <IconSparklesDraw size={26} />,
       titleEn: 'Plum Blossom Divination',
       titleZh: '梅花易数决策',
       descEn: 'Time and number based spontaneous I Ching divination for clear daily decisions.',
@@ -102,6 +116,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/compatibility`,
+      icon: <IconZodiacDragon size={26} />,
       titleEn: 'Zodiac & Chart Compatibility',
       titleZh: '生肖干支合盘',
       descEn: '144 pairwise combinations, examining earthly branch harmonies and energetic friction.',
@@ -111,6 +126,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/bazi-daily`,
+      icon: <CalendarDays className="h-6 w-6" strokeWidth={1.6} />,
       titleEn: 'Daily BaZi',
       titleZh: '每日八字',
       descEn: 'Use your birth date and hour to explore a daily reading and its twelve time periods.',
@@ -120,6 +136,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/qimen`,
+      icon: <LayoutGrid className="h-6 w-6" strokeWidth={1.6} />,
       titleEn: 'Qimen Dunjia',
       titleZh: '奇门遁甲',
       descEn: 'Cast a rotating nine-palace chart using Beijing time and explore its gates, stars, and directions.',
@@ -129,6 +146,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/almanac`,
+      icon: <Calendar className="h-6 w-6" strokeWidth={1.6} />,
       titleEn: 'Chinese Almanac Date Finder',
       titleZh: '黄历择日',
       descEn: 'Compare traditional almanac entries for moving, opening a business, and signing a contract.',
@@ -138,6 +156,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/relationship`,
+      icon: <IconLove size={24} />,
       titleEn: 'Relationship Synastry Hub',
       titleZh: '关系合盘中心',
       descEn: 'Nine distinct relationship synastry types including marriage, partnership, and family.',
@@ -254,37 +273,21 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
             </span>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {tools.map((tool) => (
-              <Link
+          <ToolCardGridMotion className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+            {tools.map((tool, index) => (
+              <FeatureCard
                 key={tool.href}
                 href={tool.href}
+                icon={tool.icon}
+                title={isEn ? tool.titleEn : tool.titleZh}
+                subtitle={isEn ? tool.titleZh : tool.titleEn}
+                desc={isEn ? tool.descEn : tool.descZh}
+                action={isEn ? tool.actionEn : tool.actionZh}
+                featured={index === 0}
                 prefetch={tool.href.endsWith('/east/almanac') ? false : undefined}
-                className="group flex flex-col justify-between rounded-sm border border-[#E4E4E7] bg-white p-6 transition-[border-color,background-color] hover:border-[#171717] hover:bg-[#F5F5F6]/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-              >
-                <div>
-                  <h3 className="font-serif text-[17px] font-normal tracking-tight text-[#171717] transition-colors group-hover:text-[#171717]">
-                    {isEn ? tool.titleEn : tool.titleZh}
-                  </h3>
-                  {!isEn && (
-                    <p className="mt-1 text-[12px] tracking-wide text-[#52525B]">
-                      {tool.titleEn}
-                    </p>
-                  )}
-                  <p className="mt-3 text-[13.5px] leading-relaxed text-[#52525B]">
-                    {isEn ? tool.descEn : tool.descZh}
-                  </p>
-                </div>
-
-                <div className="mt-6 flex min-h-[44px] items-center gap-1.5 border-t border-[#E4E4E7] pt-4 text-[13px] font-medium text-[#171717]">
-                  <span>{isEn ? tool.actionEn : tool.actionZh}</span>
-                  <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
-                    →
-                  </span>
-                </div>
-              </Link>
+              />
             ))}
-          </div>
+          </ToolCardGridMotion>
         </div>
       </section>
     </div>

@@ -3,6 +3,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 import { CONTAINER } from '@/components/site/constants';
+import { FeatureCard } from '@/components/site/FeatureCard';
+import { ToolCardGridMotion } from '@/components/site/ToolCardGridMotion';
+import {
+  IconBook78,
+  IconCrystalBall,
+  IconDecision,
+  IconLove,
+  IconTarotCards
+} from '@/components/icons/QiIcons';
+import { CalendarRange, Layers, Sun } from 'lucide-react';
 import { JsonLd } from '@/components/seo/JsonLd';
 
 export const instant = false;
@@ -66,6 +76,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
   const tools = [
     {
       href: `/${lang}/draw`,
+      icon: <IconTarotCards size={26} />,
       titleEn: 'Free Tarot Draw',
       titleZh: '自由抽牌',
       descEn: 'Draw 1 to 6 cards freely from the 78-card deck for immediate reflection and focus.',
@@ -75,6 +86,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/reading`,
+      icon: <IconCrystalBall size={26} />,
       titleEn: 'AI Tarot Reading',
       titleZh: 'AI 塔罗深度占卜',
       descEn: 'Personalized readings based on classic Rider-Waite symbolism and structured inquiries.',
@@ -84,6 +96,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/fortune/daily`,
+      icon: <Sun className="h-6 w-6" strokeWidth={1.6} />,
       titleEn: 'Daily Card',
       titleZh: '每日一牌 · 晨间神谕',
       descEn: 'Draw a single card each morning for guidance, clarity, and daily mindfulness.',
@@ -93,6 +106,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/spreads`,
+      icon: <Layers className="h-6 w-6" strokeWidth={1.6} />,
       titleEn: 'Spread Library',
       titleZh: '经典牌阵专区',
       descEn: 'Three-Card Spread, Celtic Cross, Two-Choice, and specialized relationship layouts.',
@@ -102,6 +116,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/cards`,
+      icon: <IconBook78 size={26} />,
       titleEn: '78 Card Meanings',
       titleZh: '78 牌义大全',
       descEn: 'Comprehensive guide to 22 Major Arcana and 56 Minor Arcana in upright and reversed positions.',
@@ -111,6 +126,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/yes-no`,
+      icon: <IconDecision size={24} />,
       titleEn: 'Yes / No Tarot',
       titleZh: '是否塔罗 · 快速决断',
       descEn: 'Single-card oracle providing a clear directional tendency for pressing questions.',
@@ -120,6 +136,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/love`,
+      icon: <IconLove size={24} />,
       titleEn: 'Love & Relationship Tarot',
       titleZh: '爱情与关系塔罗',
       descEn: 'Three-dimensional mirror of emotional ties, hidden friction, and mutual growth.',
@@ -129,6 +146,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/fortune/weekly`,
+      icon: <CalendarRange className="h-6 w-6" strokeWidth={1.6} />,
       titleEn: 'Weekly Tarot',
       titleZh: '每周塔罗',
       descEn: 'Draw five cards to reflect on the week ahead: its theme, work, relationships, finances, and your next step.',
@@ -263,36 +281,20 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
             </span>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {tools.map((tool) => (
-              <Link
+          <ToolCardGridMotion className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+            {tools.map((tool, index) => (
+              <FeatureCard
                 key={tool.href}
                 href={tool.href}
-                className="group flex flex-col justify-between rounded-sm border border-[#E4E4E7] bg-white p-6 transition-[border-color,background-color] hover:border-[#171717] hover:bg-[#F5F5F6]/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
-              >
-                <div>
-                  <h3 className="font-serif text-[17px] font-normal tracking-tight text-[#171717] transition-colors group-hover:text-[#171717]">
-                    {isEn ? tool.titleEn : tool.titleZh}
-                  </h3>
-                  {!isEn && (
-                    <p className="mt-1 text-[12px] tracking-wide text-[#52525B]">
-                      {tool.titleEn}
-                    </p>
-                  )}
-                  <p className="mt-3 text-[13.5px] leading-relaxed text-[#52525B]">
-                    {isEn ? tool.descEn : tool.descZh}
-                  </p>
-                </div>
-
-                <div className="mt-6 flex min-h-[44px] items-center gap-1.5 border-t border-[#E4E4E7] pt-4 text-[13px] font-medium text-[#171717]">
-                  <span>{isEn ? tool.actionEn : tool.actionZh}</span>
-                  <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
-                    →
-                  </span>
-                </div>
-              </Link>
+                icon={tool.icon}
+                title={isEn ? tool.titleEn : tool.titleZh}
+                subtitle={isEn ? tool.titleZh : tool.titleEn}
+                desc={isEn ? tool.descEn : tool.descZh}
+                action={isEn ? tool.actionEn : tool.actionZh}
+                featured={index === 0}
+              />
             ))}
-          </div>
+          </ToolCardGridMotion>
         </div>
       </section>
     </div>
