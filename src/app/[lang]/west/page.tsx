@@ -282,7 +282,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
           </div>
 
           <ToolCardGridMotion className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-            {tools.map((tool, index) => (
+            {tools.map((tool) => (
               <FeatureCard
                 key={tool.href}
                 href={tool.href}
@@ -291,7 +291,6 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
                 subtitle={isEn ? tool.titleZh : tool.titleEn}
                 desc={isEn ? tool.descEn : tool.descZh}
                 action={isEn ? tool.actionEn : tool.actionZh}
-                featured={index === 0}
               />
             ))}
           </ToolCardGridMotion>
