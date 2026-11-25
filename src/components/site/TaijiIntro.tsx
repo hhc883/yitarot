@@ -69,7 +69,9 @@ export function TaijiIntro({ lang = 'zh' }: { lang?: string }) {
             height: 'min(30svh, 52vw, 280px)'
           }}
         >
-          <TaijiMark size="100%" ink="#171717" paper="#FFFFFF" className="h-full w-full" />
+          <div className="yitatro-home-taiji-spin h-full w-full">
+            <TaijiMark size="100%" ink="#171717" paper="#FFFFFF" className="h-full w-full" />
+          </div>
         </div>
 
         <h1 className="mt-4 sm:mt-6 font-serif text-[clamp(22px,4vw,42px)] font-normal leading-tight tracking-[0.02em] text-[#171717]">
