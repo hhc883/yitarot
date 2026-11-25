@@ -18,12 +18,17 @@ export async function POST(req: NextRequest) {
     const spend = await verifyReadingSpend(body.points_ref);
     if (!spend.ok) return pointsErrorResponse(spend.status);
 
+    const gender = body.gender === 'male' || body.gender === 'female' ? body.gender : undefined;
+    const rawYunSect = (body as BaziAiRequest & { yunSect?: unknown }).yunSect;
+    const yunSect = rawYunSect === 1 || rawYunSect === 2 ? rawYunSect : undefined;
+
     const baziData = calculateBaZi(
       body.year,
       body.month,
       body.day,
       body.hour ?? 12,
-      body.minute ?? 0
+      body.minute ?? 0,
+      { gender, yunSect }
     );
 
     const encoder = new TextEncoder();

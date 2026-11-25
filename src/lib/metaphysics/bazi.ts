@@ -1,6 +1,30 @@
-import { Solar } from "lunar-typescript";
+import { Solar, LunarUtil, EightChar } from "lunar-typescript";
 
 export type WuXing = "Wood" | "Fire" | "Earth" | "Metal" | "Water";
+export type BaZiGender = "male" | "female";
+export type BaZiYunSect = 1 | 2;
+
+export const TEN_GOD_EN_MAP: Record<string, string> = {
+  日主: "Day Master",
+  比肩: "Friend",
+  劫财: "Rob Wealth",
+  食神: "Eating God",
+  伤官: "Hurting Officer",
+  偏财: "Indirect Wealth",
+  正财: "Direct Wealth",
+  七杀: "Seven Killings",
+  正官: "Direct Officer",
+  偏印: "Indirect Resource",
+  正印: "Direct Resource",
+};
+
+export interface HiddenStemDetail {
+  gan: string;
+  element: WuXing;
+  elementZh: string;
+  shiShenZh: string;
+  shiShenEn: string;
+}
 
 export interface StemInfo {
   char: string;
@@ -31,6 +55,14 @@ export interface PillarData {
   naYin: string;
   lifeDomainEn: string;
   lifeDomainZh: string;
+  ganShiShenZh: string;
+  ganShiShenEn: string;
+  hideGan: string[];
+  hideGanShiShenZh: string[];
+  hiddenStems: HiddenStemDetail[];
+  diShi: string;
+  xun: string;
+  xunKong: string;
 }
 
 export interface DayMasterProfile {
@@ -57,9 +89,57 @@ export interface ElementBalance {
   elementZh: string;
   count: number;
   percentage: number;
+  /** @deprecated Legacy compatibility field for synastry; do not treat surface count as strength verdict. */
   status: "Lacking" | "Balanced" | "Dominant";
+  /** @deprecated Legacy compatibility field for synastry; do not treat surface count as strength verdict. */
   statusZh: "偏弱" | "均衡" | "旺盛";
   colorHex: string;
+  surfaceLabelZh: string;
+  surfaceLabelEn: string;
+}
+
+export interface DaYunStep {
+  index: number;
+  ganZhi: string;
+  gan: string;
+  zhi: string;
+  ganElement: WuXing;
+  ganElementZh: string;
+  ganShiShenZh: string;
+  ganShiShenEn: string;
+  startYear: number;
+  endYear: number;
+  startAge: number;
+  endAge: number;
+}
+
+export interface BaZiYunResult {
+  gender: BaZiGender;
+  sect: BaZiYunSect;
+  sectNoteZh: string;
+  sectNoteEn: string;
+  ageCaliberZh: string;
+  ageCaliberEn: string;
+  forward: boolean;
+  directionZh: string;
+  directionEn: string;
+  startYearOffset: number;
+  startMonthOffset: number;
+  startDayOffset: number;
+  startHourOffset: number;
+  startSolarYmd: string;
+  preLuck: {
+    startYear: number;
+    endYear: number;
+    startAge: number;
+    endAge: number;
+  } | null;
+  steps: DaYunStep[];
+}
+
+export interface BaZiCalculationOptions {
+  gender?: BaZiGender;
+  yunSect?: BaZiYunSect;
 }
 
 export interface BaZiCalculationResult {
@@ -73,6 +153,9 @@ export interface BaZiCalculationResult {
   lunarString: string;
   zodiacSignEn: string;
   zodiacSignZh: string;
+  eightCharSect: 2;
+  ziHourRuleZh: string;
+  ziHourRuleEn: string;
   pillars: {
     year: PillarData;
     month: PillarData;
@@ -85,6 +168,9 @@ export interface BaZiCalculationResult {
   lackingElement: WuXing | null;
   elementRecommendationsEn: string;
   elementRecommendationsZh: string;
+  surfaceElementsNoteEn: string;
+  surfaceElementsNoteZh: string;
+  yun: BaZiYunResult | null;
 }
 
 export const STEMS_MAP: Record<string, StemInfo> = {
@@ -304,16 +390,210 @@ export const ELEMENT_ZH_MAP: Record<WuXing, string> = {
   Water: "水"
 };
 
+function assertValidSolarInputs(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number
+): void {
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day) ||
+    !Number.isInteger(hour) ||
+    !Number.isInteger(minute)
+  ) {
+    throw new Error("Birth date and time fields must all be valid integers.");
+  }
+  if (year < 1800 || year > 2100) {
+    throw new Error(`Birth year out of supported range (1800-2100): ${year}`);
+  }
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    throw new Error(`Invalid solar month/day: ${year}-${month}-${day}`);
+  }
+  const calendar = new Date(Date.UTC(year, month - 1, day));
+  if (
+    calendar.getUTCFullYear() !== year ||
+    calendar.getUTCMonth() !== month - 1 ||
+    calendar.getUTCDate() !== day
+  ) {
+    throw new Error(`Non-existent solar calendar date: ${year}-${month}-${day}`);
+  }
+  if (hour < 0 || hour > 23) {
+    throw new Error(`Birth hour out of range (0-23): ${hour}`);
+  }
+  if (minute < 0 || minute > 59) {
+    throw new Error(`Birth minute out of range (0-59): ${minute}`);
+  }
+}
+
+function mapTenGodEn(shiShenZh: string): string {
+  return TEN_GOD_EN_MAP[shiShenZh] || shiShenZh;
+}
+
+function buildPillarData(params: {
+  nameEn: string;
+  nameZh: string;
+  gan: string;
+  zhi: string;
+  naYin: string;
+  lifeDomainEn: string;
+  lifeDomainZh: string;
+  ganShiShenZh: string;
+  hideGan: string[];
+  hideGanShiShenZh: string[];
+  diShi: string;
+  xun: string;
+  xunKong: string;
+}): PillarData {
+  const ganInfo = STEMS_MAP[params.gan] || STEMS_MAP["甲"];
+  const zhiInfo = BRANCHES_MAP[params.zhi] || BRANCHES_MAP["子"];
+  const hiddenStems: HiddenStemDetail[] = params.hideGan.map((hg, index) => {
+    const hgInfo = STEMS_MAP[hg] || STEMS_MAP["甲"];
+    const shiShenZh = params.hideGanShiShenZh[index] || "";
+    return {
+      gan: hg,
+      element: hgInfo.element,
+      elementZh: ELEMENT_ZH_MAP[hgInfo.element],
+      shiShenZh,
+      shiShenEn: mapTenGodEn(shiShenZh),
+    };
+  });
+
+  return {
+    nameEn: params.nameEn,
+    nameZh: params.nameZh,
+    gan: params.gan,
+    ganInfo,
+    zhi: params.zhi,
+    zhiInfo,
+    naYin: params.naYin,
+    lifeDomainEn: params.lifeDomainEn,
+    lifeDomainZh: params.lifeDomainZh,
+    ganShiShenZh: params.ganShiShenZh,
+    ganShiShenEn: mapTenGodEn(params.ganShiShenZh),
+    hideGan: [...params.hideGan],
+    hideGanShiShenZh: [...params.hideGanShiShenZh],
+    hiddenStems,
+    diShi: params.diShi,
+    xun: params.xun,
+    xunKong: params.xunKong,
+  };
+}
+
+function buildYunResult(
+  eightChar: EightChar,
+  birthYear: number,
+  gender: BaZiGender,
+  sect: BaZiYunSect = 1
+): BaZiYunResult {
+  const genderCode = gender === "male" ? 1 : 0;
+  const yun = eightChar.getYun(genderCode, sect);
+  const daYunList = yun.getDaYun(11);
+  const dayGan = eightChar.getDayGan();
+  const forward = yun.isForward();
+
+  const pre = daYunList[0];
+  const preLuck =
+    pre && pre.getEndYear() >= pre.getStartYear()
+      ? {
+          startYear: pre.getStartYear(),
+          endYear: pre.getEndYear(),
+          startAge: pre.getStartAge(),
+          endAge: pre.getEndAge(),
+        }
+      : null;
+
+  const steps: DaYunStep[] = daYunList.slice(1).map((dy) => {
+    const ganZhi = dy.getGanZhi();
+    const gan = ganZhi.slice(0, 1);
+    const zhi = ganZhi.slice(1, 2);
+    const ganInfo = STEMS_MAP[gan] || STEMS_MAP["甲"];
+    const ganShiShenZh = LunarUtil.SHI_SHEN[dayGan + gan] || "";
+    return {
+      index: dy.getIndex(),
+      ganZhi,
+      gan,
+      zhi,
+      ganElement: ganInfo.element,
+      ganElementZh: ELEMENT_ZH_MAP[ganInfo.element],
+      ganShiShenZh,
+      ganShiShenEn: mapTenGodEn(ganShiShenZh),
+      startYear: dy.getStartYear(),
+      endYear: dy.getEndYear(),
+      startAge: dy.getStartAge(),
+      endAge: dy.getEndAge(),
+    };
+  });
+
+  const sectNoteZh =
+    sect === 2
+      ? "起运口径：lunar-typescript EightChar.getYun(gender, 2)（按出生时刻至相邻节气的精确分钟差折算，4320 分钟 = 1 年；阳男阴女顺行，阴男阳女逆行）。"
+      : "起运口径：lunar-typescript EightChar.getYun(gender, 1)（传统三天折一年、一天折四个月、一时辰折十天；阳男阴女顺行，阴男阳女逆行）。";
+  const sectNoteEn =
+    sect === 2
+      ? "Method: lunar-typescript EightChar.getYun(gender, 2) (exact minute delta to adjacent solar term: 4,320 min = 1 yr; Yang-male/Yin-female forward)."
+      : "Method: lunar-typescript EightChar.getYun(gender, 1) (3 days = 1 yr, 1 day = 4 mo, 1 two-hour = 10 days; Yang-male/Yin-female forward).";
+
+  return {
+    gender,
+    sect,
+    sectNoteZh,
+    sectNoteEn,
+    ageCaliberZh:
+      "年龄口径：虚岁（出生当年计 1 岁，起运年龄 = 起运公历年 - 出生公历年 + 1）；按用户输入当地时间计算，未做真太阳时或国际时区换算。",
+    ageCaliberEn:
+      "Age caliber: Nominal East Asian age (1 at birth year; startAge = startYear - birthYear + 1). Computed from local input time without unverified timezone conversion.",
+    forward,
+    directionZh: forward ? "顺行" : "逆行",
+    directionEn: forward ? "Forward" : "Backward",
+    startYearOffset: yun.getStartYear(),
+    startMonthOffset: yun.getStartMonth(),
+    startDayOffset: yun.getStartDay(),
+    startHourOffset: yun.getStartHour(),
+    startSolarYmd: yun.getStartSolar().toYmd(),
+    preLuck,
+    steps,
+  };
+}
+
 /**
- * Calculates BaZi Four Pillars, Day Master and Five Elements distribution
+ * Calculates BaZi DaYun (Major Luck Cycles) using lunar-typescript EightChar.getYun.
+ * Requires explicit birth date, time, and gender; never guesses missing birth conditions.
+ */
+export function calculateBaZiYun(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  gender: BaZiGender,
+  sect: BaZiYunSect = 1
+): BaZiYunResult {
+  assertValidSolarInputs(year, month, day, hour, minute);
+  if (gender !== "male" && gender !== "female") {
+    throw new Error("Gender ('male' | 'female') is required to compute DaYun.");
+  }
+  const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
+  const eightChar = solar.getLunar().getEightChar();
+  return buildYunResult(eightChar, year, gender, sect);
+}
+
+/**
+ * Calculates BaZi Four Pillars, hidden stems, Ten Gods, surface 8-char Five Elements count,
+ * and optional DaYun (when gender is provided).
  */
 export function calculateBaZi(
   year: number,
   month: number,
   day: number,
   hour: number = 12,
-  minute: number = 0
+  minute: number = 0,
+  options?: BaZiCalculationOptions
 ): BaZiCalculationResult {
+  assertValidSolarInputs(year, month, day, hour, minute);
+
   const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
   const lunar = solar.getLunar();
   const eightChar = lunar.getEightChar();
@@ -327,60 +607,75 @@ export function calculateBaZi(
   const timeGan = eightChar.getTimeGan();
   const timeZhi = eightChar.getTimeZhi();
 
-  const yearGanInfo = STEMS_MAP[yearGan] || STEMS_MAP["甲"];
-  const yearZhiInfo = BRANCHES_MAP[yearZhi] || BRANCHES_MAP["子"];
-  const monthGanInfo = STEMS_MAP[monthGan] || STEMS_MAP["甲"];
-  const monthZhiInfo = BRANCHES_MAP[monthZhi] || BRANCHES_MAP["子"];
-  const dayGanInfo = STEMS_MAP[dayGan] || STEMS_MAP["甲"];
-  const dayZhiInfo = BRANCHES_MAP[dayZhi] || BRANCHES_MAP["子"];
-  const timeGanInfo = STEMS_MAP[timeGan] || STEMS_MAP["甲"];
-  const timeZhiInfo = BRANCHES_MAP[timeZhi] || BRANCHES_MAP["子"];
+  const yearPillar = buildPillarData({
+    nameEn: "Year Pillar",
+    nameZh: "年柱",
+    gan: yearGan,
+    zhi: yearZhi,
+    naYin: eightChar.getYearNaYin(),
+    lifeDomainEn: "Ancestry, Social Persona & Generational Theme",
+    lifeDomainZh: "祖业根基、外在气象与早年社会运势",
+    ganShiShenZh: eightChar.getYearShiShenGan(),
+    hideGan: eightChar.getYearHideGan(),
+    hideGanShiShenZh: eightChar.getYearShiShenZhi(),
+    diShi: eightChar.getYearDiShi(),
+    xun: eightChar.getYearXun(),
+    xunKong: eightChar.getYearXunKong(),
+  });
+
+  const monthPillar = buildPillarData({
+    nameEn: "Month Pillar",
+    nameZh: "月柱",
+    gan: monthGan,
+    zhi: monthZhi,
+    naYin: eightChar.getMonthNaYin(),
+    lifeDomainEn: "Career Calling, Parents & Societal Drive",
+    lifeDomainZh: "事业格局、父母家风与青年进取运势",
+    ganShiShenZh: eightChar.getMonthShiShenGan(),
+    hideGan: eightChar.getMonthHideGan(),
+    hideGanShiShenZh: eightChar.getMonthShiShenZhi(),
+    diShi: eightChar.getMonthDiShi(),
+    xun: eightChar.getMonthXun(),
+    xunKong: eightChar.getMonthXunKong(),
+  });
+
+  const dayPillar = buildPillarData({
+    nameEn: "Day Pillar (The Core)",
+    nameZh: "日柱（命核）",
+    gan: dayGan,
+    zhi: dayZhi,
+    naYin: eightChar.getDayNaYin(),
+    lifeDomainEn: "The True Self (Day Master) & Intimate Palace",
+    lifeDomainZh: "本命日主元神与夫妻婚姻内宫",
+    ganShiShenZh: eightChar.getDayShiShenGan(),
+    hideGan: eightChar.getDayHideGan(),
+    hideGanShiShenZh: eightChar.getDayShiShenZhi(),
+    diShi: eightChar.getDayDiShi(),
+    xun: eightChar.getDayXun(),
+    xunKong: eightChar.getDayXunKong(),
+  });
+
+  const hourPillar = buildPillarData({
+    nameEn: "Hour Pillar",
+    nameZh: "时柱",
+    gan: timeGan,
+    zhi: timeZhi,
+    naYin: eightChar.getTimeNaYin(),
+    lifeDomainEn: "Inner Ambition, Children & Late-Life Legacy",
+    lifeDomainZh: "深层潜意识、子女晚景与晚年归宿",
+    ganShiShenZh: eightChar.getTimeShiShenGan(),
+    hideGan: eightChar.getTimeHideGan(),
+    hideGanShiShenZh: eightChar.getTimeShiShenZhi(),
+    diShi: eightChar.getTimeDiShi(),
+    xun: eightChar.getTimeXun(),
+    xunKong: eightChar.getTimeXunKong(),
+  });
 
   const pillars = {
-    year: {
-      nameEn: "Year Pillar",
-      nameZh: "年柱",
-      gan: yearGan,
-      ganInfo: yearGanInfo,
-      zhi: yearZhi,
-      zhiInfo: yearZhiInfo,
-      naYin: eightChar.getYearNaYin(),
-      lifeDomainEn: "Ancestry, Social Persona & Generational Theme",
-      lifeDomainZh: "祖业根基、外在气象与早年社会运势"
-    },
-    month: {
-      nameEn: "Month Pillar",
-      nameZh: "月柱",
-      gan: monthGan,
-      ganInfo: monthGanInfo,
-      zhi: monthZhi,
-      zhiInfo: monthZhiInfo,
-      naYin: eightChar.getMonthNaYin(),
-      lifeDomainEn: "Career Calling, Parents & Societal Drive",
-      lifeDomainZh: "事业格局、父母家风与青年进取运势"
-    },
-    day: {
-      nameEn: "Day Pillar (The Core)",
-      nameZh: "日柱（命核）",
-      gan: dayGan,
-      ganInfo: dayGanInfo,
-      zhi: dayZhi,
-      zhiInfo: dayZhiInfo,
-      naYin: eightChar.getDayNaYin(),
-      lifeDomainEn: "The True Self (Day Master) & Intimate Palace",
-      lifeDomainZh: "本命日主元神与夫妻婚姻内宫"
-    },
-    hour: {
-      nameEn: "Hour Pillar",
-      nameZh: "时柱",
-      gan: timeGan,
-      ganInfo: timeGanInfo,
-      zhi: timeZhi,
-      zhiInfo: timeZhiInfo,
-      naYin: eightChar.getTimeNaYin(),
-      lifeDomainEn: "Inner Ambition, Children & Late-Life Legacy",
-      lifeDomainZh: "深层潜意识、子女晚景与归宿归宿"
-    }
+    year: yearPillar,
+    month: monthPillar,
+    day: dayPillar,
+    hour: hourPillar,
   };
 
   // Day Master
@@ -390,7 +685,7 @@ export function calculateBaZi(
     ...dayMasterDetails
   };
 
-  // Count elements from 4 stems + 4 branches (total 8 elements base)
+  // Surface count across the 8 visible stems & branches (4 stems + 4 branches = 8 surface characters)
   const elementCounts: Record<WuXing, number> = {
     Wood: 0,
     Fire: 0,
@@ -399,12 +694,18 @@ export function calculateBaZi(
     Water: 0
   };
 
-  [yearGanInfo.element, monthGanInfo.element, dayGanInfo.element, timeGanInfo.element].forEach(
-    el => elementCounts[el]++
-  );
-  [yearZhiInfo.element, monthZhiInfo.element, dayZhiInfo.element, timeZhiInfo.element].forEach(
-    el => elementCounts[el]++
-  );
+  [
+    yearPillar.ganInfo.element,
+    monthPillar.ganInfo.element,
+    dayPillar.ganInfo.element,
+    hourPillar.ganInfo.element,
+    yearPillar.zhiInfo.element,
+    monthPillar.zhiInfo.element,
+    dayPillar.zhiInfo.element,
+    hourPillar.zhiInfo.element,
+  ].forEach((el) => {
+    elementCounts[el]++;
+  });
 
   const total = 8;
   const elementsOrder: WuXing[] = ["Wood", "Fire", "Earth", "Metal", "Water"];
@@ -429,51 +730,51 @@ export function calculateBaZi(
       percentage: pct,
       status,
       statusZh,
-      colorHex: ELEMENT_COLORS[el]
+      colorHex: ELEMENT_COLORS[el],
+      surfaceLabelZh: count === 0 ? "表层未见" : `表层 ${count} 字`,
+      surfaceLabelEn: `${count} of 8 surface`,
     };
   });
 
-  // Sort to find dominant and lacking
+  // Sort for legacy compatibility fields (dominantElement / lackingElement)
   const sorted = [...fiveElements].sort((a, b) => b.count - a.count);
   const dominantElement = sorted[0].element;
+  const leastElement = sorted[sorted.length - 1];
   const lacking = [...fiveElements].find(e => e.count === 0 || e.status === "Lacking");
   const lackingElement = lacking ? lacking.element : null;
 
-  // Recommendations
-  let elementRecommendationsEn = "";
-  let elementRecommendationsZh = "";
+  const surfaceElementsNoteZh =
+    "以上仅统计四柱天干与地支共 8 个表层字的五行出现次数（未计入地支藏干、月令旺衰与刑冲合害），不能仅凭字数断定命局“旺盛”“偏弱”，亦不可直接替代喜用神判断。";
+  const surfaceElementsNoteEn =
+    "Counts only the 8 surface stems and branches (excluding hidden stems, seasonal strength, and branch interactions). Surface counts never determine constitutional strength or YongShen.";
 
-  if (lackingElement === "Wood") {
-    elementRecommendationsEn = "Your chart lacks Wood energy. Nurture vitality with living green plants, botanical scents, spending time in forests, and wearing jade or forest green hues.";
-    elementRecommendationsZh = "命局木气偏弱，宜亲近自然、多养阔叶绿植，起居多用青绿色、木质家居，保持蓬勃朝气。";
-  } else if (lackingElement === "Fire") {
-    elementRecommendationsEn = "Your chart lacks Fire energy. Cultivate warmth through morning sunshine, bright lighting, dynamic cardiovascular movement, and wearing red or warm amber accents.";
-    elementRecommendationsZh = "命局火气偏弱，宜多迎晨光朝阳，多做有氧运动，佩戴暖色晶石或着红紫色系衣物，激发内心热情。";
-  } else if (lackingElement === "Earth") {
-    elementRecommendationsEn = "Your chart lacks Earth energy. Ground your spirit through mindful walking, ceramics, pottery, balanced warm whole foods, and grounding brown/ochre tones.";
-    elementRecommendationsZh = "命局土气偏弱，宜常做赤足接地气冥想，接触陶艺奇石，饮食宜温厚甘润，家居选用米黄色系增添定力。";
-  } else if (lackingElement === "Metal") {
-    elementRecommendationsEn = "Your chart lacks Metal energy. Sharpen your precision through minimalist decluttering, structured routines, breathwork, and wearing refined platinum/white jewelry.";
-    elementRecommendationsZh = "命局金气偏弱，宜崇尚极简断舍离，培养规律作息与决断力，佩戴纯银白金饰品以聚肃整之气。";
-  } else if (lackingElement === "Water") {
-    elementRecommendationsEn = "Your chart lacks Water energy. Refresh your intuition through hydrating waterscapes, deep swimming, reflective journaling, and wearing navy/abyssal black.";
-    elementRecommendationsZh = "命局水气偏弱，宜临水安居或常置流水风水轮，多饮优质好水与深层静修，着深蓝墨黑色调以润灵台。";
-  } else {
-    elementRecommendationsEn = "Your five elements are remarkably harmonized. Focus on steady internal rhythm, conscious breathing, and mindful self-regulation to sustain your natural equilibrium.";
-    elementRecommendationsZh = "五行气场流转相对中和平衡，平日重在修心养性、顺应四时节气，自得安泰吉祥。";
-  }
+  const elementRecommendationsZh = `在八个表层字中，【${sorted[0].elementZh}】出现 ${sorted[0].count} 次，【${leastElement.elementZh}】出现 ${leastElement.count} 次。${surfaceElementsNoteZh}`;
+  const elementRecommendationsEn = `Across the 8 surface chart characters, ${sorted[0].element} appears ${sorted[0].count}/8 times and ${leastElement.element} appears ${leastElement.count}/8 times. ${surfaceElementsNoteEn}`;
+
+  const yun =
+    options?.gender === "male" || options?.gender === "female"
+      ? buildYunResult(eightChar, year, options.gender, options.yunSect ?? 1)
+      : null;
 
   return {
     birthSolar: { year, month, day, hour, minute },
     lunarString: `${lunar.getYearInGanZhi()}年 (${lunar.getYearShengXiao()}) ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`,
-    zodiacSignEn: yearZhiInfo.animalEn,
-    zodiacSignZh: yearZhiInfo.animalZh,
+    zodiacSignEn: yearPillar.zhiInfo.animalEn,
+    zodiacSignZh: yearPillar.zhiInfo.animalZh,
+    eightCharSect: 2,
+    ziHourRuleZh:
+      "子时与历法口径：采用 lunar-typescript EightChar 默认流派 2（日柱按 00:00 换日，23:00–23:59 晚子时柱按次日日干五鼠遁起推）；年柱以立春交节换年，月柱以十二节交节换月，均按输入当地时间计算。",
+    ziHourRuleEn:
+      "Calendar & Zi-hour rule: Uses lunar-typescript EightChar sect=2 (daily pillar switches at 00:00; 23:00–23:59 late-Zi hour stem uses next day's stem). Year/month pillars switch at exact solar terms in local input time.",
     pillars,
     dayMaster,
     fiveElements,
     dominantElement,
     lackingElement,
     elementRecommendationsEn,
-    elementRecommendationsZh
+    elementRecommendationsZh,
+    surfaceElementsNoteEn,
+    surfaceElementsNoteZh,
+    yun,
   };
 }

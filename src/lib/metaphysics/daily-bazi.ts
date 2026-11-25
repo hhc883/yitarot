@@ -1,14 +1,26 @@
-import { Solar } from "lunar-typescript";
-import { calculateBaZi, WuXing, ELEMENT_ZH_MAP, STEMS_MAP, BRANCHES_MAP } from "./bazi";
+import { Solar, LunarUtil } from "lunar-typescript";
+import {
+  calculateBaZi,
+  WuXing,
+  ELEMENT_ZH_MAP,
+  STEMS_MAP,
+  BRANCHES_MAP,
+  TEN_GOD_EN_MAP
+} from "./bazi";
 
 export interface HourlyFortune {
   hourIndex: number;
+  sampleHour: number;
   timeRange: string;
   branchName: string;
   branchNameEn?: string;
   stemName: string;
+  ganZhi: string;
+  stemElement?: WuXing;
+  tenGodZh: string;
+  tenGodEn: string;
   element: WuXing;
-  score: number; // 0-100
+  score: number; // 0-100 (site heuristic)
   verdict: string;
   verdictEn?: string;
   isFavorable: boolean;
@@ -51,7 +63,7 @@ export interface DailyBaziFortuneResult {
     cosmicThemeEn?: string;
   };
   scores: {
-    overall: number; // 0-100
+    overall: number; // 0-100 (site heuristic)
     career: number;
     wealth: number;
     romance: number;
@@ -83,6 +95,16 @@ export interface DailyBaziFortuneResult {
     mindsetEn?: string;
   };
   hourlyTimeline: HourlyFortune[];
+  lateZiHour: HourlyFortune;
+  nextDayGanZhi: string;
+  isLateZiHour: boolean;
+  currentTimeGanZhi: string;
+  currentTimeTenGodZh: string;
+  currentTimeTenGodEn: string;
+  ziHourRuleZh: string;
+  ziHourRuleEn: string;
+  methodologyNoteZh: string;
+  methodologyNoteEn: string;
 }
 
 // 十神推导算法：根据日主天干与流日天干推导十神
@@ -169,8 +191,113 @@ export function getTenGod(dayMasterStem: string, targetStem: string) {
   return { zh: "比肩", en: "Friend", desc: "平稳自律之日", theme: "从容中道" };
 }
 
+type ElementRelation = "generates" | "overcomes" | "same" | "generatedBy" | "overcomeBy";
+
+function getElementRelation(dmElement: WuXing, targetElement: WuXing): ElementRelation {
+  if (targetElement === dmElement) return "same";
+  if (ELEMENT_GENERATION[targetElement] === dmElement) return "generatedBy";
+  if (ELEMENT_GENERATION[dmElement] === targetElement) return "generates";
+  if (ELEMENT_OVERCOMING[dmElement] === targetElement) return "overcomes";
+  return "overcomeBy";
+}
+
+const BRANCH_EN_MAP: Record<string, string> = {
+  子: "Rat (Zi)", 丑: "Ox (Chou)", 寅: "Tiger (Yin)", 卯: "Rabbit (Mao)",
+  辰: "Dragon (Chen)", 巳: "Snake (Si)", 午: "Horse (Wu)", 未: "Goat (Wei)",
+  申: "Monkey (Shen)", 酉: "Rooster (You)", 戌: "Dog (Xu)", 亥: "Pig (Hai)"
+};
+
+const STEM_RELATION_SCORE_DELTA: Record<ElementRelation, number> = {
+  generatedBy: 5,
+  same: 4,
+  generates: 2,
+  overcomes: 1,
+  overcomeBy: -4,
+};
+
+const BRANCH_RELATION_SCORE_DELTA: Record<ElementRelation, number> = {
+  generatedBy: 4,
+  same: 3,
+  generates: 1,
+  overcomes: 0,
+  overcomeBy: -3,
+};
+
+function buildHourlyPeriod(params: {
+  hourIndex: number;
+  sampleHour: number;
+  timeRange: string;
+  branchNameZh: string;
+  branchNameEn: string;
+  targetYear: number;
+  targetMonth: number;
+  targetDay: number;
+  dmStem: string;
+  dmElement: WuXing;
+  baseOverall: number;
+}): HourlyFortune {
+  const hourEightChar = Solar.fromYmdHms(
+    params.targetYear,
+    params.targetMonth,
+    params.targetDay,
+    params.sampleHour,
+    0,
+    0
+  )
+    .getLunar()
+    .getEightChar();
+
+  const stemName = hourEightChar.getTimeGan();
+  const branchChar = hourEightChar.getTimeZhi();
+  const ganZhi = hourEightChar.getTime();
+  const stemInfo = STEMS_MAP[stemName] || STEMS_MAP["甲"];
+  const branchInfo = BRANCHES_MAP[branchChar] || BRANCHES_MAP["子"];
+
+  // Cross-checked Ten God relative to user's Day Master (matches LunarUtil.SHI_SHEN)
+  const tenGodZh = LunarUtil.SHI_SHEN[params.dmStem + stemName] || getTenGod(params.dmStem, stemName).zh;
+  const tenGodEn = TEN_GOD_EN_MAP[tenGodZh] || getTenGod(params.dmStem, stemName).en;
+
+  const stemRel = getElementRelation(params.dmElement, stemInfo.element);
+  const branchRel = getElementRelation(params.dmElement, branchInfo.element);
+  const hScore = Math.min(
+    95,
+    Math.max(
+      62,
+      params.baseOverall + STEM_RELATION_SCORE_DELTA[stemRel] + BRANCH_RELATION_SCORE_DELTA[branchRel]
+    )
+  );
+
+  return {
+    hourIndex: params.hourIndex,
+    sampleHour: params.sampleHour,
+    timeRange: params.timeRange,
+    branchName: params.branchNameZh,
+    branchNameEn: params.branchNameEn,
+    stemName,
+    ganZhi,
+    stemElement: stemInfo.element,
+    tenGodZh,
+    tenGodEn,
+    element: branchInfo.element,
+    score: hScore,
+    verdict:
+      hScore >= 82
+        ? "站内顺气时段 · 宜推进要事"
+        : hScore >= 74
+        ? "站内平稳时段 · 宜按部就班"
+        : "站内偏冲克时段 · 宜缓行沉淀",
+    verdictEn:
+      hScore >= 82
+        ? "Site Rule: Smooth Flow · Proactive"
+        : hScore >= 74
+        ? "Site Rule: Steady · Routine Pace"
+        : "Site Rule: Tension · Slow & Center",
+    isFavorable: hScore >= 78,
+  };
+}
+
 /**
- * 计算用户八字在今日的运势
+ * 计算用户八字在目标日期的运势
  */
 export function calculateDailyBaziFortune(
   birthYear: number,
@@ -183,7 +310,10 @@ export function calculateDailyBaziFortune(
   const dmStem = userBazi.dayMaster.stem;
   const dmElement = userBazi.dayMaster.element;
 
-  // 今日天象历法
+  // 目标日期天象历法（默认使用 sect=2：公历 00:00 换日柱，23:00 晚子时起次日时干）
+  const targetYear = targetDate.getFullYear();
+  const targetMonth = targetDate.getMonth() + 1;
+  const targetDay = targetDate.getDate();
   const targetSolar = Solar.fromDate(targetDate);
   const targetLunar = targetSolar.getLunar();
   const todayEightChar = targetLunar.getEightChar();
@@ -193,51 +323,51 @@ export function calculateDailyBaziFortune(
   const todayStemInfo = STEMS_MAP[todayDayStem] || STEMS_MAP["甲"];
   const todayElement = todayStemInfo.element;
 
-  // 十神推导
+  // 十神推导（基于出生者日主与目标日天干）
   const dailyTenGod = getTenGod(dmStem, todayDayStem);
 
   // 五行生克关系
-  let relationType: "generates" | "overcomes" | "same" | "generatedBy" | "overcomeBy" = "same";
+  const relationType = getElementRelation(dmElement, todayElement);
   let relationLabel = "同气相生";
   let relationDesc = "今日日主与流日五行气场同频，能量稳定。";
+  let relationDescEn = `Day Master (${dmElement}) matches the daily stem element (${todayElement}), forming peer resonance.`;
 
-  if (todayElement === dmElement) {
-    relationType = "same";
+  if (relationType === "same") {
     relationLabel = "五行比和";
-    relationDesc = `今日干支五行同为【${ELEMENT_ZH_MAP[dmElement]}】，自身能量充沛，做事底气充足。`;
-  } else if (ELEMENT_GENERATION[todayElement] === dmElement) {
-    relationType = "generatedBy";
-    relationLabel = "日来生我 (生身进气)";
-    relationDesc = `今日五行【${ELEMENT_ZH_MAP[todayElement]}】生助你的日主【${ELEMENT_ZH_MAP[dmElement]}】，外界多助力，易得灵感与长辈支持。`;
-  } else if (ELEMENT_GENERATION[dmElement] === todayElement) {
-    relationType = "generates";
-    relationLabel = "我生流日 (秀气流行)";
-    relationDesc = `你的日主五行【${ELEMENT_ZH_MAP[dmElement]}】生泄流日【${ELEMENT_ZH_MAP[todayElement]}】，适合对外展示创意、倾诉交流与执行落地。`;
-  } else if (ELEMENT_OVERCOMING[dmElement] === todayElement) {
-    relationType = "overcomes";
-    relationLabel = "我克流日 (求财进取)";
-    relationDesc = `你的日主克制流日五行【${ELEMENT_ZH_MAP[todayElement]}】，为财气涌动之象，适合把握商务机会与实干决断。`;
+    relationDesc = `今日天干五行为【${ELEMENT_ZH_MAP[dmElement]}】，与你的日主同属【${ELEMENT_ZH_MAP[dmElement]}】，呈现同气共振。`;
+    relationDescEn = `Daily stem (${todayElement}) shares the same element as your Day Master (${dmElement}), indicating peer resonance.`;
+  } else if (relationType === "generatedBy") {
+    relationLabel = "日来生我 (印绶生扶)";
+    relationDesc = `今日天干五行【${ELEMENT_ZH_MAP[todayElement]}】生助你的日主【${ELEMENT_ZH_MAP[dmElement]}】，在站内生克模型中偏向印星扶助之象。`;
+    relationDescEn = `Daily stem (${todayElement}) generates your Day Master (${dmElement}), corresponding to supportive resource energy.`;
+  } else if (relationType === "generates") {
+    relationLabel = "我生流日 (食伤吐秀)";
+    relationDesc = `你的日主五行【${ELEMENT_ZH_MAP[dmElement]}】生泄流日天干【${ELEMENT_ZH_MAP[todayElement]}】，适合输出表达与事务落地。`;
+    relationDescEn = `Your Day Master (${dmElement}) generates the daily stem (${todayElement}), favoring creative output and execution.`;
+  } else if (relationType === "overcomes") {
+    relationLabel = "我克流日 (财星之象)";
+    relationDesc = `你的日主【${ELEMENT_ZH_MAP[dmElement]}】克制流日天干【${ELEMENT_ZH_MAP[todayElement]}】，按十神映射属财星互动之日。`;
+    relationDescEn = `Your Day Master (${dmElement}) controls the daily stem (${todayElement}), mapping to Wealth-star interaction.`;
   } else {
-    relationType = "overcomeBy";
-    relationLabel = "流日制我 (立威自律)";
-    relationDesc = `流日五行【${ELEMENT_ZH_MAP[todayElement]}】克制你的日主，事情节奏偏紧凑，保持冷静专注，能将压力转化为威信。`;
+    relationLabel = "流日制我 (官杀磨砺)";
+    relationDesc = `流日天干【${ELEMENT_ZH_MAP[todayElement]}】克制你的日主【${ELEMENT_ZH_MAP[dmElement]}】，按十神映射属官杀约束之日，宜守规则与节奏。`;
+    relationDescEn = `Daily stem (${todayElement}) controls your Day Master (${dmElement}), mapping to Officer/Killings discipline.`;
   }
 
-  // 基础综合分算法（基于五行喜忌与十神特质平滑映射）
+  // 站内规则综合分映射（仅依据流日十神与日主五行生克，非命局喜用神精确判定）
   let baseOverall = 80;
   if (relationType === "generatedBy" || relationType === "same") baseOverall += 8;
   if (relationType === "overcomeBy") baseOverall -= 4;
   if (dailyTenGod.zh === "正官" || dailyTenGod.zh === "食神" || dailyTenGod.zh === "正印") baseOverall += 6;
   if (dailyTenGod.zh === "七杀" || dailyTenGod.zh === "伤官") baseOverall -= 2;
 
-  // 确保在 65-98 之间的合理区间
   const overall = Math.min(98, Math.max(68, baseOverall));
   const career = Math.min(99, Math.max(65, overall + (dailyTenGod.zh.includes("官") || dailyTenGod.zh.includes("杀") ? 6 : -2)));
   const wealth = Math.min(99, Math.max(65, overall + (dailyTenGod.zh.includes("财") ? 7 : -3)));
-  const romance = Math.min(99, Math.max(65, overall + (dailyTenGod.zh.includes("合") || dailyTenGod.zh === "正财" || dailyTenGod.zh === "正官" ? 6 : -1)));
+  const romance = Math.min(99, Math.max(65, overall + (dailyTenGod.zh === "正财" || dailyTenGod.zh === "正官" ? 6 : -1)));
   const wellness = Math.min(99, Math.max(65, overall + (relationType === "generatedBy" ? 6 : -4)));
 
-  // 宜忌清单
+  // 宜忌清单（站内十神映射参考）
   const dosPool: Record<string, string[]> = {
     比肩: ["团队会议复盘", "与好友小聚", "巩固既定方案", "自律健身"],
     劫财: ["稳妥储蓄理财", "向内沉淀专注", "清点日常开支", "签署清晰协议"],
@@ -267,7 +397,7 @@ export function calculateDailyBaziFortune(
   const dos = dosPool[dailyTenGod.zh] || ["保持平稳心境", "踏实推进当前任务", "多饮水补足体能"];
   const donts = dontsPool[dailyTenGod.zh] || ["急躁行事", "盲目冲动决断"];
 
-  // 幸运指南
+  // 幸运指南（站内流日天干五行映射）
   const luckyColors: Record<WuXing, { zh: string; en: string; hex: string }> = {
     Wood: { zh: "松柏绿 / 青玉色", en: "Pine Green / Jade", hex: "#10B981" },
     Fire: { zh: "朱砂赤 / 暖橙红", en: "Cinnabar Red / Amber", hex: "#B84034" },
@@ -284,37 +414,66 @@ export function calculateDailyBaziFortune(
     Water: { zh: "正北方", en: "North" }
   };
 
-  const BRANCH_EN_MAP: Record<string, string> = {
-    子: "Rat (Zi)", 丑: "Ox (Chou)", 寅: "Tiger (Yin)", 卯: "Rabbit (Mao)",
-    辰: "Dragon (Chen)", 巳: "Snake (Si)", 午: "Horse (Wu)", 未: "Goat (Wei)",
-    申: "Monkey (Shen)", 酉: "Rooster (You)", 戌: "Dog (Xu)", 亥: "Pig (Hai)"
-  };
-
-  // 十二时辰吉凶能量波形
-  const branchesList = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
-  const timeRanges = [
-    "23:00 - 01:00", "01:00 - 03:00", "03:00 - 05:00", "05:00 - 07:00",
-    "07:00 - 09:00", "09:00 - 11:00", "11:00 - 13:00", "13:00 - 15:00",
-    "15:00 - 17:00", "17:00 - 19:00", "19:00 - 21:00", "21:00 - 23:00"
+  // 十二时辰：按目标公历日真实时柱（00:00 早子时至 21:00-23:00 亥时）推算干支与相对出生者日主十神
+  const periodConfigs = [
+    { branch: "子", sampleHour: 0, timeRange: "00:00 - 01:00", branchZh: "子时（早子）", branchEn: "Rat · Early Zi (Zi)" },
+    { branch: "丑", sampleHour: 1, timeRange: "01:00 - 03:00", branchZh: "丑时", branchEn: BRANCH_EN_MAP["丑"] },
+    { branch: "寅", sampleHour: 3, timeRange: "03:00 - 05:00", branchZh: "寅时", branchEn: BRANCH_EN_MAP["寅"] },
+    { branch: "卯", sampleHour: 5, timeRange: "05:00 - 07:00", branchZh: "卯时", branchEn: BRANCH_EN_MAP["卯"] },
+    { branch: "辰", sampleHour: 7, timeRange: "07:00 - 09:00", branchZh: "辰时", branchEn: BRANCH_EN_MAP["辰"] },
+    { branch: "巳", sampleHour: 9, timeRange: "09:00 - 11:00", branchZh: "巳时", branchEn: BRANCH_EN_MAP["巳"] },
+    { branch: "午", sampleHour: 11, timeRange: "11:00 - 13:00", branchZh: "午时", branchEn: BRANCH_EN_MAP["午"] },
+    { branch: "未", sampleHour: 13, timeRange: "13:00 - 15:00", branchZh: "未时", branchEn: BRANCH_EN_MAP["未"] },
+    { branch: "申", sampleHour: 15, timeRange: "15:00 - 17:00", branchZh: "申时", branchEn: BRANCH_EN_MAP["申"] },
+    { branch: "酉", sampleHour: 17, timeRange: "17:00 - 19:00", branchZh: "酉时", branchEn: BRANCH_EN_MAP["酉"] },
+    { branch: "戌", sampleHour: 19, timeRange: "19:00 - 21:00", branchZh: "戌时", branchEn: BRANCH_EN_MAP["戌"] },
+    { branch: "亥", sampleHour: 21, timeRange: "21:00 - 23:00", branchZh: "亥时", branchEn: BRANCH_EN_MAP["亥"] },
   ];
 
-  const hourlyTimeline: HourlyFortune[] = branchesList.map((b, idx) => {
-    const bInfo = BRANCHES_MAP[b] || BRANCHES_MAP["子"];
-    const isHarmonious = bInfo.element === dmElement || ELEMENT_GENERATION[bInfo.element] === dmElement;
-    const hScore = Math.min(95, Math.max(62, overall + (isHarmonious ? 8 : -6) + (idx % 3 === 0 ? 3 : -2)));
-    return {
+  const hourlyTimeline: HourlyFortune[] = periodConfigs.map((cfg, idx) =>
+    buildHourlyPeriod({
       hourIndex: idx,
-      timeRange: timeRanges[idx],
-      branchName: b + "时",
-      branchNameEn: BRANCH_EN_MAP[b] || b,
-      stemName: "",
-      element: bInfo.element,
-      score: hScore,
-      verdict: hScore >= 82 ? "大吉 · 能量充沛" : hScore >= 74 ? "平顺 · 宜稳打稳扎" : "需谨慎 · 宜静不宜动",
-      verdictEn: hScore >= 82 ? "Auspicious · High Vitality" : hScore >= 74 ? "Smooth · Steady Progress" : "Prudent · Rest & Center",
-      isFavorable: hScore >= 78
-    };
+      sampleHour: cfg.sampleHour,
+      timeRange: cfg.timeRange,
+      branchNameZh: cfg.branchZh,
+      branchNameEn: cfg.branchEn,
+      targetYear,
+      targetMonth,
+      targetDay,
+      dmStem,
+      dmElement,
+      baseOverall: overall,
+    })
+  );
+
+  // 当日 23:00 - 23:59 晚子时边界（时干按次日日干五鼠遁起推）
+  const lateZiHour = buildHourlyPeriod({
+    hourIndex: 12,
+    sampleHour: 23,
+    timeRange: "23:00 - 23:59",
+    branchNameZh: "子时（晚子）",
+    branchNameEn: "Rat · Late Zi (Zi)",
+    targetYear,
+    targetMonth,
+    targetDay,
+    dmStem,
+    dmElement,
+    baseOverall: overall,
   });
+
+  const isLateZiHour = targetDate.getHours() >= 23;
+  const currentTimeGanZhi = todayEightChar.getTime();
+  const currentTimeStem = todayEightChar.getTimeGan();
+  const currentTimeTenGodZh =
+    LunarUtil.SHI_SHEN[dmStem + currentTimeStem] || getTenGod(dmStem, currentTimeStem).zh;
+  const currentTimeTenGodEn =
+    TEN_GOD_EN_MAP[currentTimeTenGodZh] || getTenGod(dmStem, currentTimeStem).en;
+  const nextDayGanZhi = targetSolar.nextDay(1).getLunar().getEightChar().getDay();
+
+  // 取站内时辰规则分最高的两个时段作为参考窗口（避免写死同一固定时段）
+  const topTwoPeriods = [...hourlyTimeline].sort((a, b) => b.score - a.score).slice(0, 2);
+  const timeWindowZh = `${topTwoPeriods[0].timeRange} (${topTwoPeriods[0].ganZhi}时) & ${topTwoPeriods[1].timeRange} (${topTwoPeriods[1].ganZhi}时)`;
+  const timeWindowEn = `${topTwoPeriods[0].timeRange} (${topTwoPeriods[0].ganZhi}) & ${topTwoPeriods[1].timeRange} (${topTwoPeriods[1].ganZhi})`;
 
   const dosEnPool: Record<string, string[]> = {
     比肩: ["Collaborate with trusted peers", "Execute independent goals", "Build disciplined routines"],
@@ -360,11 +519,19 @@ export function calculateDailyBaziFortune(
 
   const tgMeta = tenGodEnMap[dailyTenGod.zh] || { desc: "Balanced daily flow across five elements.", theme: "Natural Harmony" };
 
+  const ziHourRuleZh = `子时换日规则：采用 lunar-typescript sect=2 口径（公历 00:00 换日柱，23:00 起换时干）。本日 00:00–00:59 为早子时（${hourlyTimeline[0].ganZhi}时），随本日日柱【${todayEightChar.getDay()}】；23:00–23:59 为晚子时（${lateZiHour.ganZhi}时），日柱仍记本日，但时干已按次日【${nextDayGanZhi}】五鼠遁起推。`;
+  const ziHourRuleEn = `Zi-hour rule: Uses lunar-typescript sect=2 (daily pillar changes at 00:00; hour stem advances at 23:00). 00:00–00:59 is Early Zi (${hourlyTimeline[0].ganZhi}) under today's pillar (${todayEightChar.getDay()}); 23:00–23:59 is Late Zi (${lateZiHour.ganZhi}), which switches to tomorrow's (${nextDayGanZhi}) stem sequence.`;
+
+  const methodologyNoteZh =
+    "口径声明：流日干支、节气与各时辰干支十神由 lunar-typescript 按公历/节气历法推算；综合分、分项分、十二时辰评分、宜忌与颜色/方位/数字建议均为 YiTatro 站内规则（仅依据日主与流日/流时五行生克及十神映射），未结合原局月令旺衰与个人喜用神，不构成精确吉凶断语。";
+  const methodologyNoteEn =
+    "Rule notice: Daily/hourly GanZhi, solar terms, and Ten Gods are computed by lunar-typescript; all scores, period ratings, dos/don'ts, colors, directions, and numbers are YiTatro site heuristic rules based solely on Day Master vs. daily/hourly five-element and Ten-God mappings (excluding full-chart strength and YongShen).";
+
   return {
     queryDate: {
-      year: targetDate.getFullYear(),
-      month: targetDate.getMonth() + 1,
-      day: targetDate.getDate(),
+      year: targetYear,
+      month: targetMonth,
+      day: targetDay,
       dayOfWeekZh: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"][targetDate.getDay()],
       dayOfWeekEn: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][targetDate.getDay()],
       solarTerms: targetLunar.getJieQi() || "平运流转",
@@ -408,7 +575,7 @@ export function calculateDailyBaziFortune(
       labelZh: relationLabel,
       labelEn: relationType === 'generates' ? 'Flowing Support' : relationType === 'overcomes' ? 'Decisive Command' : relationType === 'same' ? 'Peer Resonance' : relationType === 'generatedBy' ? 'Nurturing Input' : 'Tension & Challenge',
       descZh: relationDesc,
-      descEn: `Interaction between Day Master (${dmElement}) and Daily Celestial Energy (${todayElement}).`
+      descEn: relationDescEn
     },
     dosAndDonts: {
       dos,
@@ -422,12 +589,22 @@ export function calculateDailyBaziFortune(
       colorHex: luckyColors[todayElement].hex,
       directionZh: luckyDirections[todayElement].zh,
       directionEn: luckyDirections[todayElement].en,
-      number: ((birthDay + targetDate.getDate()) % 9) + 1,
-      timeWindowZh: "09:00 - 11:00 (巳时) & 15:00 - 17:00 (申时)",
-      timeWindowEn: "09:00 - 11:00 (Si Hour) & 15:00 - 17:00 (Shen Hour)",
+      number: ((birthDay + targetDay) % 9) + 1,
+      timeWindowZh,
+      timeWindowEn,
       mindsetZh: "不以物喜，不以己悲。顺天应人，定静生慧。",
       mindsetEn: "Remain unswayed by external fluctuations. Act in accordance with natural timing; serenity generates wisdom."
     },
-    hourlyTimeline
+    hourlyTimeline,
+    lateZiHour,
+    nextDayGanZhi,
+    isLateZiHour,
+    currentTimeGanZhi,
+    currentTimeTenGodZh,
+    currentTimeTenGodEn,
+    ziHourRuleZh,
+    ziHourRuleEn,
+    methodologyNoteZh,
+    methodologyNoteEn,
   };
 }

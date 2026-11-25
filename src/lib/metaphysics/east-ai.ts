@@ -48,21 +48,28 @@ export interface LiuYaoAiRequest {
  * 构造八字深度推演的 System & User Prompt
  */
 export function buildBaziPrompt(data: BaZiCalculationResult, req: BaziAiRequest): string {
+  const minuteStr = String(data.birthSolar.minute).padStart(2, '0');
+  const formatPillarEn = (label: string, p: BaZiCalculationResult['pillars']['year']) =>
+    `- ${label}: ${p.gan}${p.zhi} (${p.naYin}) | Stem Ten God: ${p.ganShiShenEn} | Hidden Stems: ${p.hiddenStems.map(h => `${h.gan}(${h.shiShenEn})`).join(', ')}`;
+  const formatPillarZh = (label: string, p: BaZiCalculationResult['pillars']['year']) =>
+    `- ${label}：${p.gan}${p.zhi}（${p.naYin}）｜天干十神：${p.ganShiShenZh}｜藏干：${p.hiddenStems.map(h => `${h.gan}(${h.shiShenZh})`).join('、')}`;
+
   if (req.lang === 'en') {
     return `You are a master of classical Zi Ping BaZi metaphysics and modern Jungian archetypal psychology (YiTatro Architecture).
 Querent: ${req.name || 'Querent'}, Gender: ${req.gender}
-Solar Birth: ${data.birthSolar.year}-${data.birthSolar.month}-${data.birthSolar.day} ${data.birthSolar.hour}:00, Lunar: ${data.lunarString}
-【Four Pillars】:
-- Year Pillar: ${data.pillars.year.gan}${data.pillars.year.zhi} (${data.pillars.year.naYin})
-- Month Pillar: ${data.pillars.month.gan}${data.pillars.month.zhi} (${data.pillars.month.naYin})
-- Day Pillar: ${data.pillars.day.gan}${data.pillars.day.zhi} (${data.pillars.day.naYin})
-- Hour Pillar: ${data.pillars.hour.gan}${data.pillars.hour.zhi} (${data.pillars.hour.naYin})
+Solar Birth: ${data.birthSolar.year}-${data.birthSolar.month}-${data.birthSolar.day} ${data.birthSolar.hour}:${minuteStr}, Lunar: ${data.lunarString}
+【Four Pillars (with Ten Gods & Hidden Stems)】:
+${formatPillarEn('Year Pillar', data.pillars.year)}
+${formatPillarEn('Month Pillar', data.pillars.month)}
+${formatPillarEn('Day Pillar', data.pillars.day)}
+${formatPillarEn('Hour Pillar', data.pillars.hour)}
 
 【Day Master】: ${data.dayMaster.nameEn} (${data.dayMaster.archetypeEn})
-【Five Elements Distribution】:
-${data.fiveElements.map(e => `- ${e.element}: ${e.count} (${e.percentage}%) - ${e.status}`).join('\n')}
+【Surface Five Elements Count (8 natal characters)】:
+${data.fiveElements.map(e => `- ${e.element}: ${e.count} surface chars (${e.percentage}%)`).join('\n')}
+Note: ${data.surfaceElementsNoteEn}
 
-Please write an objective, profound, and modern 【AI BaZi Holographic Insight】 in English with markdown headings:
+Please write an objective, profound, and modern 【AI BaZi Holographic Insight】 in English with markdown headings (do not infer Day Master strength or YongShen solely from surface element counts):
 # 🌟 Day Master Essence & Archetype
 # ⚖️ Five Elements Synergy & Balance
 # 💼 Career Trajectory & Genius Zone
@@ -73,24 +80,25 @@ Please write an objective, profound, and modern 【AI BaZi Holographic Insight�
 
   return `你是一位兼具正统子平八字命理精髓与现代荣格心理学视角的资深命理宗师（YiTatro 全息推演架构）。
 求问者：${req.name || '求问者'}，性别：${req.gender === 'male' ? '男（乾造）' : '女（坤造）'}
-公历出生：${data.birthSolar.year}年${data.birthSolar.month}月${data.birthSolar.day}日${data.birthSolar.hour}时，农历：${data.lunarString}
-【四柱八字】：
-- 年柱：${data.pillars.year.gan}${data.pillars.year.zhi}（${data.pillars.year.naYin}）
-- 月柱：${data.pillars.month.gan}${data.pillars.month.zhi}（${data.pillars.month.naYin}）
-- 日柱：${data.pillars.day.gan}${data.pillars.day.zhi}（${data.pillars.day.naYin}）
-- 时柱：${data.pillars.hour.gan}${data.pillars.hour.zhi}（${data.pillars.hour.naYin}）
+公历出生：${data.birthSolar.year}年${data.birthSolar.month}月${data.birthSolar.day}日${data.birthSolar.hour}时${minuteStr}分，农历：${data.lunarString}
+【四柱八字（含十神与藏干）】：
+${formatPillarZh('年柱', data.pillars.year)}
+${formatPillarZh('月柱', data.pillars.month)}
+${formatPillarZh('日柱', data.pillars.day)}
+${formatPillarZh('时柱', data.pillars.hour)}
 
 【日主元神】：${data.dayMaster.nameZh}（${data.dayMaster.archetypeZh}）
-【五行分布】：
-${data.fiveElements.map(e => `- ${e.elementZh}：${e.count}个 (${e.percentage}%) - ${e.statusZh}`).join('\n')}
+【表层五行字数统计（共8字）】：
+${data.fiveElements.map(e => `- ${e.elementZh}：${e.count}个表层字 (${e.percentage}%)`).join('\n')}
+说明：${data.surfaceElementsNoteZh}
 
-请为求问者撰写一份客观、深刻、现代且极具指导意义的【AI 命理全息蓝图】：
+请为求问者撰写一份客观、深刻、现代且极具指导意义的【AI 命理全息蓝图】（严禁仅凭表层五行字数多寡直接推导日主旺衰或喜用神，请结合月令、四柱藏干与十神结构综合分析）：
 # 🌟 原局元神与性格底色
 # ⚖️ 五行生克与能量调候
 # 💼 事业发展与天赋赛道
 # 🪙 财富格局与进财指南
 # ❤️ 情感姻缘与相处之道
-# 🧭 后天补运与破局策略（包含颜色、方位、作息与心性修炼建议）`;
+# 🧭 趋势策略与心性调和（包含作息、环境与心性修炼建议）`;
 }
 
 /**
@@ -127,8 +135,20 @@ export function buildLiuYaoPrompt(req: LiuYaoAiRequest): string {
  */
 export function generateLocalBaziReport(data: BaZiCalculationResult, lang: string = 'zh'): string {
   const dm = data.dayMaster;
-  const dominantElement = data.fiveElements.reduce((prev, curr) => (curr.percentage > prev.percentage ? curr : prev));
-  const lackingElement = data.fiveElements.reduce((prev, curr) => (curr.percentage < prev.percentage ? curr : prev));
+  const surfaceSummaryEn = data.fiveElements.map(e => `${e.element}: ${e.count}`).join(', ');
+  const surfaceSummaryZh = data.fiveElements.map(e => `${e.elementZh}${e.count}字`).join('、');
+  const pillarsBasisEn = [
+    `Year ${data.pillars.year.gan}${data.pillars.year.zhi} (${data.pillars.year.ganShiShenEn}; Hidden: ${data.pillars.year.hiddenStems.map(h => `${h.gan}/${h.shiShenEn}`).join(', ')})`,
+    `Month ${data.pillars.month.gan}${data.pillars.month.zhi} (${data.pillars.month.ganShiShenEn}; Hidden: ${data.pillars.month.hiddenStems.map(h => `${h.gan}/${h.shiShenEn}`).join(', ')})`,
+    `Day ${data.pillars.day.gan}${data.pillars.day.zhi} (${data.pillars.day.ganShiShenEn}; Hidden: ${data.pillars.day.hiddenStems.map(h => `${h.gan}/${h.shiShenEn}`).join(', ')})`,
+    `Hour ${data.pillars.hour.gan}${data.pillars.hour.zhi} (${data.pillars.hour.ganShiShenEn}; Hidden: ${data.pillars.hour.hiddenStems.map(h => `${h.gan}/${h.shiShenEn}`).join(', ')})`,
+  ].join(' | ');
+  const pillarsBasisZh = [
+    `年柱${data.pillars.year.gan}${data.pillars.year.zhi}（${data.pillars.year.ganShiShenZh}，藏干${data.pillars.year.hiddenStems.map(h => `${h.gan}${h.shiShenZh}`).join('、')}）`,
+    `月柱${data.pillars.month.gan}${data.pillars.month.zhi}（${data.pillars.month.ganShiShenZh}，藏干${data.pillars.month.hiddenStems.map(h => `${h.gan}${h.shiShenZh}`).join('、')}）`,
+    `日柱${data.pillars.day.gan}${data.pillars.day.zhi}（${data.pillars.day.ganShiShenZh}，藏干${data.pillars.day.hiddenStems.map(h => `${h.gan}${h.shiShenZh}`).join('、')}）`,
+    `时柱${data.pillars.hour.gan}${data.pillars.hour.zhi}（${data.pillars.hour.ganShiShenZh}，藏干${data.pillars.hour.hiddenStems.map(h => `${h.gan}${h.shiShenZh}`).join('、')}）`,
+  ].join('；');
 
   if (lang === 'en') {
     return `### 🌟 Day Master Essence & Archetype
@@ -139,9 +159,9 @@ You possess innate insight, strategic vision, and methodical perseverance.
 ---
 
 ### ⚖️ Five Elements Synergy & Balance
-In your natal chart, **【${dominantElement.element}】** energy holds prime prominence (~${dominantElement.percentage}%), while **【${lackingElement.element}】** remains latent.
-- **Dynamic Balance**: When five elements circulate freely, decisions flow with composure. Dominant energies require constructive release; latent energies benefit from mindful cultivation.
-- **Harmony Recommendation**: Integrate habits, environments, and routines aligned with ${lackingElement.element}.
+- **Surface Five Elements Count**: ${surfaceSummaryEn}.
+- **Chart Structure Basis**: ${pillarsBasisEn}.
+- **Structural Note**: ${data.surfaceElementsNoteEn}
 
 ---
 
@@ -174,9 +194,9 @@ ${dm.essenceZh}
 ---
 
 ### ⚖️ 五行生克与能量调候
-原局中，你的五行以**【${dominantElement.elementZh}】**气场最为旺盛（占比约 ${dominantElement.percentage}%），而**【${lackingElement.elementZh}】**能量相对潜藏。
-- **生克动态**：五行流通顺畅则诸事从容，旺者宜泄宜化，弱者需培需扶。
-- **调候重点**：在日常生活与职业规划中，注重补充【${lackingElement.elementZh}】属性的思维方式与生活习惯。
+- **表层五行字数**：${surfaceSummaryZh}。
+- **四柱藏干与十神依据**：${pillarsBasisZh}。
+- **结构说明**：${data.surfaceElementsNoteZh}
 
 ---
 
@@ -196,7 +216,7 @@ ${dm.cosmicAdviceZh}
 
 ---
 
-### 🧭 后天补运与破局策略
+### 🧭 行动策略与心性调和
 - 💡 **调和建议**：${data.elementRecommendationsZh}
 - 🌿 **心性修炼**：顺应自然节律，知止而有定，定而后能安。`;
 }

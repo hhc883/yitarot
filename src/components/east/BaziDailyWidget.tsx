@@ -165,13 +165,25 @@ function BaziReading({ reading, isEn }: { reading: Reading; isEn: boolean }) {
         <p><time dateTime={day}>{day}</time> · {isEn ? queryDate.dayOfWeekEn : queryDate.dayOfWeekZh} · {isEn ? 'Local date' : '本地日期'}</p>
         <p>{isEn ? 'Birth details' : '出生信息'} · <time dateTime={`${birthDate}T${birthTime}`}>{birthDate} {birthTime}</time></p>
         <p>
-          {isEn ? 'Day Pillar' : '今日干支'} · <span lang={isEn ? 'zh' : undefined}>{todayGanZhi.day}</span>
+          {isEn ? 'Calendar Pillars' : '今日干支'} · <span lang={isEn ? 'zh' : undefined}>{todayGanZhi.year}年 {todayGanZhi.month}月 {todayGanZhi.day}日</span>
           {' · '}{isEn ? 'Solar term' : '节气'} · {
             isEn && queryDate.solarTermsEn === queryDate.solarTerms
               ? <span lang="zh">{queryDate.solarTerms}</span>
               : (isEn ? queryDate.solarTermsEn : queryDate.solarTerms)
           }
         </p>
+        {fortune.isLateZiHour && (
+          <p className="font-medium text-neutral-900">
+            {isEn
+              ? `Post-23:00 Late-Zi Hour: ${fortune.currentTimeGanZhi} (${fortune.currentTimeTenGodEn}) · Next day's stem sequence active`
+              : `当前处于 23:00 后晚子时：${fortune.currentTimeGanZhi}时（时干十神：${fortune.currentTimeTenGodZh}），时柱已按次日日干起推`}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-4 rounded-md border border-neutral-200 bg-neutral-50 p-3.5 text-xs leading-5 text-neutral-700 space-y-1.5">
+        <p>{isEn ? fortune.ziHourRuleEn : fortune.ziHourRuleZh}</p>
+        <p>{isEn ? fortune.methodologyNoteEn : fortune.methodologyNoteZh}</p>
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
@@ -183,7 +195,7 @@ function BaziReading({ reading, isEn }: { reading: Reading; isEn: boolean }) {
               <p className="mt-1 text-sm text-neutral-600">{isEn ? dailyTenGod.cosmicThemeEn : dailyTenGod.cosmicThemeZh}</p>
             </div>
             <div>
-              <p className="text-sm text-neutral-600">{isEn ? 'Overall score' : '综合评分'}</p>
+              <p className="text-sm text-neutral-600">{isEn ? 'Overall index (Site Rule)' : '综合参考分（站内规则）'}</p>
               <p className="mt-1 font-serif text-xl font-semibold tabular-nums">{scores.overall} <span className="text-sm text-neutral-600">/ 100</span></p>
             </div>
           </div>
@@ -204,7 +216,10 @@ function BaziReading({ reading, isEn }: { reading: Reading; isEn: boolean }) {
         </div>
 
         <div className="min-w-0 rounded-lg border border-neutral-200 p-4 sm:p-5">
-          <h3 className="font-serif text-xl font-semibold">{isEn ? 'Today’s pointers' : '今日参考'}</h3>
+          <div className="flex items-baseline justify-between gap-2">
+            <h3 className="font-serif text-xl font-semibold">{isEn ? 'Today’s pointers' : '今日参考'}</h3>
+            <span className="text-xs text-neutral-600">{isEn ? 'Site heuristic rule' : '站内规则映射'}</span>
+          </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {[
               [isEn ? 'Consider' : '宜', isEn ? dosAndDonts.dosEn : dosAndDonts.dos],
@@ -230,17 +245,42 @@ function BaziReading({ reading, isEn }: { reading: Reading; isEn: boolean }) {
       </div>
 
       <section className="mt-6" aria-labelledby="daily-bazi-periods">
-        <h3 id="daily-bazi-periods" className={headingClass}>{isEn ? 'Twelve time periods' : '十二时辰'}</h3>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 id="daily-bazi-periods" className={headingClass}>{isEn ? 'Twelve time periods' : '十二时辰'}</h3>
+          <span className="text-xs text-neutral-600">
+            {isEn
+              ? 'True solar-date hour pillars + Ten Gods vs. Day Master; ratings follow YiTatro site rules'
+              : '目标日真实时柱干支 + 相对日主十神；评分与时段标签为站内规则'}
+          </span>
+        </div>
         <ol id="daily-bazi-timeline" className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           {fortune.hourlyTimeline.map((period) => (
             <li key={period.hourIndex} className={`min-w-0 rounded-md border p-3 text-sm leading-5 ${period.isFavorable ? 'border-neutral-300 bg-neutral-50' : 'border-neutral-200'}`}>
-              <span className="block tabular-nums text-neutral-600">{period.timeRange}</span>
-              <span className="mt-1 block font-medium">{isEn ? period.branchNameEn : period.branchName}</span>
-              <span className="block tabular-nums">{period.score} / 100</span>
-              <span className="mt-1 block text-neutral-600">{isEn ? period.verdictEn : period.verdict}</span>
+              <span className="block tabular-nums text-xs text-neutral-600">{period.timeRange}</span>
+              <span className="mt-1 block font-medium text-neutral-900">
+                {isEn
+                  ? `${period.ganZhi} · ${period.branchNameEn}`
+                  : `${period.stemName}${period.branchName}`}
+              </span>
+              <span className="mt-0.5 block text-xs text-neutral-700">
+                {isEn ? `Ten God: ${period.tenGodEn}` : `十神：${period.tenGodZh}`}
+              </span>
+              <span className="mt-1 block text-xs font-medium tabular-nums">{period.score} / 100</span>
+              <span className="mt-0.5 block text-xs text-neutral-600">{isEn ? period.verdictEn : period.verdict}</span>
             </li>
           ))}
         </ol>
+
+        <div className="mt-3 rounded-md border border-neutral-200 bg-neutral-50 p-3 text-xs leading-5 text-neutral-700">
+          <span className="font-medium text-neutral-900">
+            {isEn ? '23:00–23:59 Late-Zi Boundary: ' : '23:00–23:59 晚子时跨日边界：'}
+          </span>
+          <span>
+            {isEn
+              ? `${fortune.lateZiHour.ganZhi} (${fortune.lateZiHour.branchNameEn}) · Ten God: ${fortune.lateZiHour.tenGodEn} · ${fortune.lateZiHour.score}/100 — uses next day's (${fortune.nextDayGanZhi}) stem sequence while the daily pillar remains ${todayGanZhi.day}.`
+              : `${fortune.lateZiHour.stemName}${fortune.lateZiHour.branchName}（十神：${fortune.lateZiHour.tenGodZh}，参考分 ${fortune.lateZiHour.score}/100）—— 过 23:00 时干切换为次日【${fortune.nextDayGanZhi}】五鼠遁序列，本日日柱仍按公历 00:00 计为【${todayGanZhi.day}】。`}
+          </span>
+        </div>
       </section>
     </>
   );
