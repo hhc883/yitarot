@@ -5,14 +5,7 @@ import { CONTAINER } from '@/components/site/constants';
 import { HexagramGraphic } from '@/components/site/HexagramGraphic';
 import { FeatureCard } from '@/components/site/FeatureCard';
 import { ToolCardGridMotion } from '@/components/site/ToolCardGridMotion';
-import {
-  IconCoinLiuYao,
-  IconLove,
-  IconScrollBaZi,
-  IconSparklesDraw,
-  IconZodiacDragon
-} from '@/components/icons/QiIcons';
-import { Calendar, CalendarDays, Compass, LayoutGrid } from 'lucide-react';
+import { ToolIcon } from '@/components/site/ToolIcon';
 import { JsonLd } from '@/components/seo/JsonLd';
 
 export const instant = false;
@@ -76,7 +69,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
   const tools = [
     {
       href: `/${lang}/east/liuyao`,
-      icon: <IconCoinLiuYao size={26} />,
+      icon: <ToolIcon name="east-liuyao" />,
       titleEn: 'Liu Yao Divination',
       titleZh: '周易六爻神谕',
       descEn: 'Classic 3D coin toss oracle, changing lines, and hexagram shifts for timely decisions.',
@@ -86,7 +79,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/bazi`,
-      icon: <IconScrollBaZi size={26} />,
+      icon: <ToolIcon name="east-bazi" />,
       titleEn: 'BaZi Birth Chart',
       titleZh: '四柱八字排盘',
       descEn: 'Four Pillars of Destiny calculated from your exact birth date and time, five elements & ten gods.',
@@ -96,7 +89,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/ziwei`,
-      icon: <Compass className="h-6 w-6" strokeWidth={1.6} />,
+      icon: <ToolIcon name="east-ziwei" />,
       titleEn: 'ZiWei Astrology',
       titleZh: '紫微斗数排盘',
       descEn: 'Traditional Eastern star chart mapping 12 life palaces and 14 major stars.',
@@ -106,7 +99,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/meihua`,
-      icon: <IconSparklesDraw size={26} />,
+      icon: <ToolIcon name="east-meihua" />,
       titleEn: 'Plum Blossom Divination',
       titleZh: '梅花易数决策',
       descEn: 'Time and number based spontaneous I Ching divination for clear daily decisions.',
@@ -116,7 +109,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/compatibility`,
-      icon: <IconZodiacDragon size={26} />,
+      icon: <ToolIcon name="east-compatibility" />,
       titleEn: 'Zodiac & Chart Compatibility',
       titleZh: '生肖干支合盘',
       descEn: '144 pairwise combinations, examining earthly branch harmonies and energetic friction.',
@@ -126,7 +119,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/bazi-daily`,
-      icon: <CalendarDays className="h-6 w-6" strokeWidth={1.6} />,
+      icon: <ToolIcon name="east-bazi-daily" />,
       titleEn: 'Daily BaZi',
       titleZh: '每日八字',
       descEn: 'Use your birth date and hour to explore a daily reading and its twelve time periods.',
@@ -136,7 +129,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/qimen`,
-      icon: <LayoutGrid className="h-6 w-6" strokeWidth={1.6} />,
+      icon: <ToolIcon name="east-qimen" />,
       titleEn: 'Qimen Dunjia',
       titleZh: '奇门遁甲',
       descEn: 'Cast a rotating nine-palace chart using Beijing time and explore its gates, stars, and directions.',
@@ -146,7 +139,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/almanac`,
-      icon: <Calendar className="h-6 w-6" strokeWidth={1.6} />,
+      icon: <ToolIcon name="east-almanac" />,
       titleEn: 'Chinese Almanac Date Finder',
       titleZh: '黄历择日',
       descEn: 'Compare traditional almanac entries for moving, opening a business, and signing a contract.',
@@ -156,7 +149,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/east/relationship`,
-      icon: <IconLove size={24} />,
+      icon: <ToolIcon name="east-relationship" />,
       titleEn: 'Relationship Synastry Hub',
       titleZh: '关系合盘中心',
       descEn: 'Nine distinct relationship synastry types including marriage, partnership, and family.',

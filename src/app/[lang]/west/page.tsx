@@ -5,14 +5,7 @@ import type { Metadata } from 'next';
 import { CONTAINER } from '@/components/site/constants';
 import { FeatureCard } from '@/components/site/FeatureCard';
 import { ToolCardGridMotion } from '@/components/site/ToolCardGridMotion';
-import {
-  IconBook78,
-  IconCrystalBall,
-  IconDecision,
-  IconLove,
-  IconTarotCards
-} from '@/components/icons/QiIcons';
-import { CalendarRange, Layers, Sun } from 'lucide-react';
+import { ToolIcon } from '@/components/site/ToolIcon';
 import { JsonLd } from '@/components/seo/JsonLd';
 
 export const instant = false;
@@ -76,7 +69,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
   const tools = [
     {
       href: `/${lang}/draw`,
-      icon: <IconTarotCards size={26} />,
+      icon: <ToolIcon name="west-draw" />,
       titleEn: 'Free Tarot Draw',
       titleZh: '自由抽牌',
       descEn: 'Draw 1 to 6 cards freely from the 78-card deck for immediate reflection and focus.',
@@ -86,7 +79,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/reading`,
-      icon: <IconCrystalBall size={26} />,
+      icon: <ToolIcon name="west-reading" />,
       titleEn: 'AI Tarot Reading',
       titleZh: 'AI 塔罗深度占卜',
       descEn: 'Personalized readings based on classic Rider-Waite symbolism and structured inquiries.',
@@ -96,7 +89,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/fortune/daily`,
-      icon: <Sun className="h-6 w-6" strokeWidth={1.6} />,
+      icon: <ToolIcon name="west-daily" />,
       titleEn: 'Daily Card',
       titleZh: '每日一牌 · 晨间神谕',
       descEn: 'Draw a single card each morning for guidance, clarity, and daily mindfulness.',
@@ -106,7 +99,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/spreads`,
-      icon: <Layers className="h-6 w-6" strokeWidth={1.6} />,
+      icon: <ToolIcon name="west-spreads" />,
       titleEn: 'Spread Library',
       titleZh: '经典牌阵专区',
       descEn: 'Three-Card Spread, Celtic Cross, Two-Choice, and specialized relationship layouts.',
@@ -116,7 +109,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/cards`,
-      icon: <IconBook78 size={26} />,
+      icon: <ToolIcon name="west-cards" />,
       titleEn: '78 Card Meanings',
       titleZh: '78 牌义大全',
       descEn: 'Comprehensive guide to 22 Major Arcana and 56 Minor Arcana in upright and reversed positions.',
@@ -126,7 +119,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/yes-no`,
-      icon: <IconDecision size={24} />,
+      icon: <ToolIcon name="west-yes-no" />,
       titleEn: 'Yes / No Tarot',
       titleZh: '是否塔罗 · 快速决断',
       descEn: 'Single-card oracle providing a clear directional tendency for pressing questions.',
@@ -136,7 +129,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/love`,
-      icon: <IconLove size={24} />,
+      icon: <ToolIcon name="west-love" />,
       titleEn: 'Love & Relationship Tarot',
       titleZh: '爱情与关系塔罗',
       descEn: 'Three-dimensional mirror of emotional ties, hidden friction, and mutual growth.',
@@ -146,7 +139,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     },
     {
       href: `/${lang}/fortune/weekly`,
-      icon: <CalendarRange className="h-6 w-6" strokeWidth={1.6} />,
+      icon: <ToolIcon name="west-weekly" />,
       titleEn: 'Weekly Tarot',
       titleZh: '每周塔罗',
       descEn: 'Draw five cards to reflect on the week ahead: its theme, work, relationships, finances, and your next step.',
