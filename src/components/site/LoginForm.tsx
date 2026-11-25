@@ -97,9 +97,10 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
     };
   }, []);
 
-  // 已登录用户直接进入账号页；展示回调失败标记
+  // 已登录用户回到发起登录的页面；展示回调失败标记
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const target = params.get('from') === 'pricing' ? `/${lang}/pricing` : `/${lang}/account`;
     if (params.get('error') === 'auth') {
       const timer = window.setTimeout(() => {
         setError(isEn ? 'Sign-in failed, please try again.' : '登录失败，请重试。');
@@ -108,7 +109,7 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
         if (user && !redirectingRef.current) {
           if (timer) window.clearTimeout(timer);
           redirectingRef.current = true;
-          router.replace(`/${lang}/account`);
+          router.replace(target);
         }
       });
       return () => window.clearTimeout(timer);
@@ -116,19 +117,21 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user && !redirectingRef.current) {
         redirectingRef.current = true;
-        router.replace(`/${lang}/account`);
+        router.replace(target);
       }
     });
   }, [supabase, router, lang, isEn]);
 
-  const accountPath = `/${lang}/account`;
-
+  function destinationAfterLogin() {
+    return new URLSearchParams(window.location.search).get('from') === 'pricing'
+      ? `/${lang}/pricing` : `/${lang}/account`;
+  }
   const handleGoogle = async () => {
     setError('');
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(accountPath)}`
+        redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(destinationAfterLogin())}`
       }
     });
     if (oauthError) {
@@ -148,7 +151,7 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(accountPath)}`
+        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(destinationAfterLogin())}`
       }
     });
     setSending(false);
@@ -194,7 +197,7 @@ export function LoginForm({ lang = 'zh' }: { lang?: string }) {
       return;
     }
     router.refresh();
-    router.push(accountPath);
+    router.push(destinationAfterLogin());
   };
 
   const inputClass =

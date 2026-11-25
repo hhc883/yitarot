@@ -1,73 +1,40 @@
-import { NextRequest } from 'next/server';
-import { verifyDomesticCallbackSignature } from '@/lib/payments/domestic';
-import { getSupabaseAdminClient } from '@/lib/supabase/admin';
-import { creditUserPoints } from '@/lib/points/fulfill';
+import { getDomesticGateway, verifyDomesticCallbackSignature } from '@/lib/payments/domestic';
+import { objectRecord, parseAmountInMinorUnits, UUID } from '@/lib/payments/shared';
+import { settleCheckoutOrder } from '@/lib/points/fulfill';
 
-/**
- * POST /api/webhooks/domestic
- * 接收国内支付网关异步回调
- */
-export async function POST(req: NextRequest) {
-  const params: Record<string, string> = {};
+export async function POST(req: Request) {
+  const fail = (status: number) => new Response('fail', { status });
+  const gateway = getDomesticGateway();
+  if (!gateway) return fail(503);
 
-  const contentType = req.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) {
-    try {
-      const json = await req.json();
-      for (const [k, v] of Object.entries(json)) {
-        params[k] = String(v);
-      }
-    } catch {
-      return new Response('fail', { status: 400 });
-    }
-  } else {
-    try {
-      const formData = await req.formData();
-      formData.forEach((value, key) => {
+  const params = Object.create(null) as Record<string, string>;
+  try {
+    if (req.headers.get('content-type')?.includes('application/json')) {
+      const values = objectRecord(await req.json());
+      if (!values) return fail(400);
+      for (const [key, value] of Object.entries(values)) {
+        if (typeof value !== 'string' && typeof value !== 'number') return fail(400);
         params[key] = String(value);
-      });
-    } catch {
-      const text = await req.text();
-      const search = new URLSearchParams(text);
-      search.forEach((value, key) => {
+      }
+    } else {
+      for (const [key, value] of new URLSearchParams(await req.text())) {
+        if (key in params) return fail(400);
         params[key] = value;
-      });
-    }
-  }
-
-  const appSecret = process.env.DOMESTIC_PAY_APP_SECRET;
-  if (appSecret) {
-    const valid = verifyDomesticCallbackSignature(params, appSecret);
-    if (!valid) {
-      console.warn('[Domestic Webhook] Invalid signature from domestic gateway');
-      return new Response('fail', { status: 400 });
-    }
-  }
-
-  const status = params.status;
-  const tradeOrderId = params.trade_order_id;
-
-  // 状态 'OD' 表示支付成功（标准协议规范）
-  if (status === 'OD' && tradeOrderId) {
-    const admin = getSupabaseAdminClient();
-    if (admin) {
-      const { data: order } = await admin
-        .from('orders')
-        .select('id, user_id, points, status')
-        .eq('id', tradeOrderId)
-        .maybeSingle();
-
-      if (order && order.points > 0) {
-        console.log(`[Domestic Webhook] Crediting ${order.points} points for order ${order.id}`);
-        await creditUserPoints({
-          userId: order.user_id,
-          points: order.points,
-          refId: `domestic:${order.id}`,
-          orderId: order.id
-        });
       }
     }
+  } catch {
+    return fail(400);
   }
 
-  return new Response('success', { status: 200 });
+  if (!verifyDomesticCallbackSignature(params, gateway.secret) || params.appid !== gateway.appId) return fail(400);
+  if (params.status !== 'OD') return new Response('success');
+  const id = params.trade_order_id?.replace(/^([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})$/i, '$1-$2-$3-$4-$5');
+  const amount = parseAmountInMinorUnits(params.total_fee);
+  const transaction = params.transaction_id || params.open_order_id;
+  if (!id || !UUID.test(id) || !amount || !/^[A-Za-z0-9_-]{1,120}$/.test(transaction || '')) return fail(400);
+
+  const settled = await settleCheckoutOrder({ orderId: id, provider: 'domestic', currency: 'CNY', amount, transaction });
+  if (!settled || settled.status === 'profile_missing') return fail(503);
+  if (settled.status !== 'ok' && settled.status !== 'already_credited') return fail(400);
+  return new Response('success');
 }

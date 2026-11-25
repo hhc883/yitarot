@@ -1,192 +1,216 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import type { FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, CreditCard, QrCode, Gift, Sparkles, Loader2, X, ShieldCheck } from 'lucide-react';
+import { CreditCard, Gift, Loader2, QrCode } from 'lucide-react';
 import { useUser } from '@/lib/auth/use-user';
+import { PAYMENT_TIERS } from '@/lib/payments/catalog';
 
-interface Plan {
-  points: number;
-  usdPrice: string;
-  cnyPrice: string;
-  payhipUrl: string;
-  popular?: boolean;
-  bestValue?: boolean;
-  descZh: string;
-  descEn: string;
-  perReadingZh: string;
-  perReadingEn: string;
+type Region = 'domestic' | 'overseas';
+type DomesticChannel = 'wechat' | 'alipay';
+type CheckoutOptions = {
+  region: Region | null;
+  domesticAvailable: boolean;
+  domesticChannel: DomesticChannel | null;
+  overseasAvailable: boolean;
+};
+
+const PLANS = ([100, 500, 2000] as const).map((points) => {
+  const tier = PAYMENT_TIERS[points];
+  return {
+    points,
+    usd: `$${(tier.usd / 100).toFixed(2)}`,
+    cny: `¥${(tier.cny / 100).toFixed(2)}`,
+    payhipUrl: `https://payhip.com/b/${tier.payhip}`,
+    popular: points === 500,
+  };
+});
+type Plan = typeof PLANS[number];
+type PaymentReturn = 'pending' | 'cancelled' | 'checking' | 'retry' | 'paid';
+
+const focus = 'focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink';
+const action = `inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-center text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 ${focus}`;
+const textAction = `mt-2 inline-flex min-h-11 items-center text-sm underline underline-offset-4 ${focus}`;
+
+function normalizeOptions(data: Partial<CheckoutOptions>): CheckoutOptions {
+  const channel = data.domesticChannel === 'wechat' || data.domesticChannel === 'alipay' ? data.domesticChannel : null;
+  return {
+    region: data.region === 'domestic' || data.region === 'overseas' ? data.region : null,
+    domesticAvailable: data.domesticAvailable === true && channel !== null,
+    domesticChannel: channel,
+    overseasAvailable: data.overseasAvailable === true,
+  };
 }
 
-const PLANS: Plan[] = [
-  {
-    points: 100,
-    usdPrice: '$4.99',
-    cnyPrice: '¥29.9',
-    payhipUrl: 'https://payhip.com/b/6gkYN',
-    descZh: '约 10 次 AI 深度卦象推演或塔罗全解析',
-    descEn: '≈ 10 deep AI hexagram or tarot interpretations',
-    perReadingZh: '单次约 ¥2.99',
-    perReadingEn: '$0.50 / reading'
-  },
-  {
-    points: 500,
-    usdPrice: '$19.99',
-    cnyPrice: '¥99.0',
-    payhipUrl: 'https://payhip.com/b/6wc09',
-    popular: true,
-    descZh: '约 50 次深度推演与连贯追问，最受欢迎',
-    descEn: '≈ 50 readings & continuous follow-ups (Most popular)',
-    perReadingZh: '单次低至 ¥1.98（立省 35%）',
-    perReadingEn: '$0.40 / reading (Save 20%)'
-  },
-  {
-    points: 2000,
-    usdPrice: '$59.99',
-    cnyPrice: '¥299.0',
-    payhipUrl: 'https://payhip.com/b/cKoqG',
-    bestValue: true,
-    descZh: '约 200 次专业级全息推演，永久有效',
-    descEn: '≈ 200 readings, maximum value & never expire',
-    perReadingZh: '单次低至 ¥1.49（最高性价比）',
-    perReadingEn: '$0.30 / reading (Best value)'
+function httpsUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password ? url.href : null;
+  } catch {
+    return null;
   }
-];
+}
 
-export function PricingCards({ lang = 'zh' }: { lang?: string }) {
+function clearVerifiedReturn(sessionId: string) {
+  const url = new URL(window.location.href);
+  if (url.searchParams.get('payment_status') !== 'success' || url.searchParams.get('session_id') !== sessionId) return;
+  url.searchParams.delete('payment_status');
+  url.searchParams.delete('session_id');
+  window.history.replaceState(window.history.state, '', url);
+}
+
+export function PricingCards({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
   const isEn = lang === 'en';
   const router = useRouter();
-  const { user, refresh } = useUser();
+  const { user, refresh, loading: authLoading } = useUser();
+  const login = () => router.push(`/${lang}/login?from=pricing`);
 
-  // 默认根据语言选择支付区域：zh -> domestic (国内), en -> overseas (海外)
-  const [region, setRegion] = useState<'domestic' | 'overseas'>(isEn ? 'overseas' : 'domestic');
+  const [checkout, setCheckout] = useState<CheckoutOptions | null>(null);
+  const [lookupFailed, setLookupFailed] = useState(false);
+  const [lookupAttempt, setLookupAttempt] = useState(0);
+  const [manualRegion, setManualRegion] = useState<Region | null>(null);
+  const region = manualRegion ?? checkout?.region ?? null;
+  const domesticChannel = checkout?.domesticAvailable ? checkout.domesticChannel : null;
+  const channelName = domesticChannel === 'alipay' ? (isEn ? 'Alipay' : '支付宝') : (isEn ? 'WeChat Pay' : '微信支付');
+
   const [loadingPoints, setLoadingPoints] = useState<number | null>(null);
-  const [actionError, setActionError] = useState<string>(() => {
-    if (typeof window === 'undefined') return '';
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('payment_status') === 'cancelled') {
-      return isEn ? 'Payment was cancelled.' : '已取消支付。';
-    }
-    return '';
-  });
+  const purchaseInProgress = useRef(false);
+  const [actionError, setActionError] = useState('');
+  const [qr, setQr] = useState<{ plan: Plan; url: string } | null>(null);
+  const [qrFailed, setQrFailed] = useState(false);
+  const [paymentReturn, setPaymentReturn] = useState<PaymentReturn | null>(null);
+  const [verifyAttempt, setVerifyAttempt] = useState(0);
 
-  // 卡密兑换状态
   const [redeemCode, setRedeemCode] = useState('');
   const [redeeming, setRedeeming] = useState(false);
-  const [redeemSuccess, setRedeemSuccess] = useState<string>('');
-  const [redeemError, setRedeemError] = useState<string>('');
+  const redemptionInProgress = useRef(false);
+  const [redeemSuccess, setRedeemSuccess] = useState('');
+  const [redeemError, setRedeemError] = useState('');
 
-  // 国内支付弹窗 (当网关返回二维码或人工转账)
-  const [domesticModalOpen, setDomesticModalOpen] = useState(false);
-  const [domesticModalData, setDomesticModalData] = useState<{
-    points: number;
-    amount: string;
-    qrUrl?: string;
-    payUrl?: string;
-  } | null>(null);
-
-  // 支付成功横幅/通知
-  const [successNotice, setSuccessNotice] = useState<string>('');
-
-  // 检查 URL 是否带支付返回参数
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentStatus = urlParams.get('payment_status');
-    const sessionId = urlParams.get('session_id');
+    const controller = new AbortController();
+    void fetch('/api/checkout/region', { cache: 'no-store', signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Checkout options unavailable');
+        const data = await res.json();
+        if (!data || typeof data !== 'object') throw new Error('Invalid checkout options');
+        if (!controller.signal.aborted) setCheckout(normalizeOptions(data));
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setLookupFailed(true);
+      });
+    return () => controller.abort();
+  }, [lookupAttempt]);
 
-    if (paymentStatus === 'success' && sessionId) {
-      // 向后端验证核销
-      fetch(`/api/checkout/verify?session_id=${encodeURIComponent(sessionId)}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.ok) {
-            setSuccessNotice(
-              isEn
-                ? `Payment successful! Added +${data.points} points. New balance: ◆ ${data.newBalance ?? ''}`
-                : `支付成功！已为您充值 +${data.points} 积分，当前账户余额：◆ ${data.newBalance ?? ''}`
-            );
-            refresh();
-          }
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('payment_status');
+    const sessionId = params.get('session_id');
+    const controller = new AbortController();
+    const frame = window.requestAnimationFrame(() => {
+      if (status === 'pending') {
+        setPaymentReturn('pending');
+        void refresh();
+      } else if (status === 'cancelled') {
+        setPaymentReturn('cancelled');
+      } else if (status === 'success' && sessionId) {
+        setPaymentReturn('checking');
+        void fetch(`/api/checkout/verify?session_id=${encodeURIComponent(sessionId)}`, {
+          cache: 'no-store',
+          signal: controller.signal,
         })
-        .catch(() => {});
+          .then(async (response) => {
+            if (!response.ok) throw new Error('Unable to check payment');
+            const data = await response.json();
+            if (data?.ok !== true || data.status !== 'paid') throw new Error('Payment unconfirmed');
+            if (!controller.signal.aborted) {
+              setPaymentReturn('paid');
+              clearVerifiedReturn(sessionId);
+              void refresh();
+            }
+          })
+          .catch(() => {
+            if (!controller.signal.aborted) setPaymentReturn('retry');
+          });
+      }
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      controller.abort();
+    };
+  }, [refresh, verifyAttempt]);
 
-      // 清除 URL 参数防重刷
-      window.history.replaceState({}, '', `/${lang}/pricing`);
-    } else if (paymentStatus === 'cancelled') {
-      window.history.replaceState({}, '', `/${lang}/pricing`);
-    }
-  }, [isEn, lang, refresh]);
+  const chooseRegion = (value: Region) => {
+    setManualRegion(value);
+    setActionError('');
+    setQr(null);
+  };
 
-  // 处理海外 Payhip / PayPal 结账
   const handleOverseasCheckout = (plan: Plan) => {
+    if (!checkout?.overseasAvailable || authLoading) return;
     if (!user) {
-      router.push(`/${lang}/login?from=pricing`);
+      login();
       return;
     }
-
     window.open(plan.payhipUrl, '_blank', 'noopener,noreferrer');
   };
 
-  // 处理国内微信/支付宝支付
-  const handleDomesticCheckout = async (points: number, channel: 'wechat' | 'alipay') => {
+  const handleDomesticCheckout = async (plan: Plan) => {
+    if (!domesticChannel || purchaseInProgress.current || authLoading) return;
     if (!user) {
-      router.push(`/${lang}/login?from=pricing`);
+      login();
       return;
     }
 
-    setLoadingPoints(points);
+    purchaseInProgress.current = true;
+    setLoadingPoints(plan.points);
     setActionError('');
-
-    const targetPlan = PLANS.find((p) => p.points === points);
+    setQr(null);
+    setQrFailed(false);
 
     try {
       const res = await fetch('/api/checkout/domestic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ points, channel })
+        body: JSON.stringify({ points: plan.points, channel: domesticChannel, lang }),
       });
-
-      const data = await res.json();
       if (res.status === 401) {
-        router.push(`/${lang}/login?from=pricing`);
+        login();
         return;
       }
+      const data = await res.json();
+      if (!res.ok || data?.ok !== true) throw new Error('Checkout could not start');
 
-      if (data.ok) {
-        if (data.payUrl && !data.manualFallback) {
-          // 直接跳转聚合收银台或唤起收银
-          window.location.assign(data.payUrl);
-        } else {
-          // 打开扫码/卡密弹窗
-          setDomesticModalData({
-            points,
-            amount: targetPlan?.cnyPrice || '¥29.9',
-            qrUrl: data.qrUrl
-          });
-          setDomesticModalOpen(true);
-        }
+      const payUrl = httpsUrl(data.payUrl);
+      const qrUrl = httpsUrl(data.qrUrl);
+      if (payUrl && (!qrUrl || window.matchMedia('(pointer: coarse)').matches)) {
+        window.location.assign(payUrl);
+      } else if (qrUrl) {
+        setQr({ plan, url: qrUrl });
       } else {
-        setActionError(data.message || (isEn ? 'Domestic payment failed.' : '发起国内支付失败，请稍后重试。'));
+        throw new Error('No checkout address returned');
       }
     } catch {
-      setActionError(isEn ? 'Network error, please retry.' : '网络异常，请重试。');
+      setActionError(isEn ? 'Could not start checkout. Please try again.' : '暂时无法发起支付，请重试。');
     } finally {
+      purchaseInProgress.current = false;
       setLoadingPoints(null);
     }
   };
 
-  // 处理卡密兑换
-  const handleRedeem = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleRedeem = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (redemptionInProgress.current || authLoading) return;
     if (!user) {
-      router.push(`/${lang}/login?from=pricing`);
+      login();
       return;
     }
+    const code = redeemCode.trim().toUpperCase();
+    if (!code) return;
 
-    const clean = redeemCode.trim().toUpperCase();
-    if (!clean) return;
-
+    redemptionInProgress.current = true;
     setRedeeming(true);
     setRedeemError('');
     setRedeemSuccess('');
@@ -195,365 +219,182 @@ export function PricingCards({ lang = 'zh' }: { lang?: string }) {
       const res = await fetch('/api/points/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: clean })
+        body: JSON.stringify({ code }),
       });
-
-      const data = await res.json();
       if (res.status === 401) {
-        router.push(`/${lang}/login?from=pricing`);
+        login();
         return;
       }
-
-      if (data.ok) {
-        setRedeemSuccess(
-          isEn
-            ? `Redeemed successfully! Added +${data.pointsAdded} points. Balance: ◆ ${data.newBalance}`
-            : `✓ 兑换成功！已成功增加 +${data.pointsAdded} 积分，当前账户余额：◆ ${data.newBalance}`
-        );
+      const data = await res.json();
+      if (res.ok && data?.ok === true) {
+        setRedeemSuccess(isEn ? 'Code redeemed. Your balance is being updated.' : '兑换成功，正在更新积分余额。');
         setRedeemCode('');
         await refresh();
       } else {
-        setRedeemError(data.message || (isEn ? 'Redemption failed.' : '兑换失败，请检查卡密输入。'));
+        setRedeemError(res.status >= 500
+          ? isEn ? 'Redemption is temporarily unavailable. Please try again.' : '暂时无法兑换，请稍后重试。'
+          : isEn ? 'Could not redeem this code. Check it and try again.' : '无法兑换此卡密，请核对后重试。');
       }
     } catch {
-      setRedeemError(isEn ? 'Network error.' : '网络异常，请重试。');
+      setRedeemError(isEn ? 'Redemption is temporarily unavailable. Please try again.' : '暂时无法兑换，请稍后重试。');
     } finally {
+      redemptionInProgress.current = false;
       setRedeeming(false);
     }
   };
 
+  const available = region === 'domestic' ? domesticChannel !== null : checkout?.overseasAvailable === true;
+
   return (
     <div className="w-full">
-      {/* 支付成功公告 */}
-      {successNotice ? (
-        <div className="mb-8 flex items-center justify-between rounded-[12px] border border-emerald-500/30 bg-emerald-50 px-5 py-4 text-[14px] text-emerald-900">
-          <div className="flex items-center gap-2.5">
-            <Sparkles className="h-4 w-4 text-emerald-600" />
-            <span>{successNotice}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSuccessNotice('')}
-            className="text-emerald-700 hover:text-emerald-900"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      ) : null}
+      {paymentReturn && (
+        <aside role="status" className="mb-7 rounded-xl border border-line bg-white px-5 py-4 text-sm leading-relaxed text-ink">
+          {paymentReturn === 'pending' && (
+            <>
+              <p>{isEn ? 'Payment has not been confirmed yet. Points are added after the payment provider confirms it.' : '支付尚未确认。支付平台确认后，积分会自动入账。'}</p>
+              <button type="button" onClick={() => void refresh()} className={textAction}>
+                {isEn ? 'Refresh balance' : '刷新余额'}
+              </button>
+            </>
+          )}
+          {paymentReturn === 'cancelled' && <p>{isEn ? 'Payment was cancelled.' : '已取消支付。'}</p>}
+          {paymentReturn === 'checking' && <p>{isEn ? 'Checking payment status…' : '正在核验支付状态…'}</p>}
+          {paymentReturn === 'paid' && <p>{isEn ? 'Payment confirmed. Your points balance has been updated.' : '已确认支付，积分余额已更新。'}</p>}
+          {paymentReturn === 'retry' && (
+            <>
+              <p>{isEn ? 'Payment could not be confirmed yet. You can try checking again.' : '暂未确认支付结果，可重新核验。'}</p>
+              <button type="button" onClick={() => setVerifyAttempt((n) => n + 1)} className={textAction}>
+                {isEn ? 'Check payment again' : '重新核验支付'}
+              </button>
+            </>
+          )}
+        </aside>
+      )}
 
-      {/* 错误提示公告 */}
-      {actionError ? (
-        <div className="mb-8 flex items-center justify-between rounded-[12px] border border-red-500/30 bg-red-50 px-5 py-4 text-[13.5px] text-red-900">
-          <span>{actionError}</span>
-          <button
-            type="button"
-            onClick={() => setActionError('')}
-            className="text-red-700 hover:text-red-900"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      ) : null}
+      {actionError && <p role="alert" className="mb-7 rounded-xl border border-line px-5 py-4 text-sm text-ink">{actionError}</p>}
 
-      {/* 支付通道切换开关 */}
-      <div className="mb-10 flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <div className="inline-flex rounded-full border border-line bg-mist/60 p-1">
-          <button
-            type="button"
-            onClick={() => setRegion('domestic')}
-            className={`flex items-center gap-2 rounded-full px-5 py-2 text-[13px] font-medium transition-all ${
-              region === 'domestic'
-                ? 'bg-ink text-white shadow-sm'
-                : 'text-whisper hover:text-ink'
-            }`}
-          >
-            <span>🇨🇳</span>
-            <span>{isEn ? 'China (CNY ¥)' : '国内支付 (微信 / 支付宝)'}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setRegion('overseas')}
-            className={`flex items-center gap-2 rounded-full px-5 py-2 text-[13px] font-medium transition-all ${
-              region === 'overseas'
-                ? 'bg-ink text-white shadow-sm'
-                : 'text-whisper hover:text-ink'
-            }`}
-          >
-            <span>🌏</span>
-            <span>{isEn ? 'Global (USD $)' : '海外支付 (PayPal / 信用卡)'}</span>
-          </button>
-        </div>
-
-        {/* 支付保障标语 */}
-        <div className="flex items-center gap-2 text-[12px] text-whisper">
-          <ShieldCheck className="h-3.5 w-3.5 text-soft" />
-          <span>
-            {region === 'domestic'
-              ? isEn
-                ? 'Instant credit · Secure checkout · 24/7 Support'
-                : '微信/支付宝安全结算 · 充值即时到账 · 积分永久有效'
-              : isEn
-                ? 'Secure checkout by Payhip · PayPal & cards'
-                : 'Payhip 安全结算 · 支持 PayPal 与国际信用卡'}
-          </span>
-        </div>
-      </div>
-
-      {/* 价格档位卡片矩阵 */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        {PLANS.map((plan) => {
-          const isLoading = loadingPoints === plan.points;
-          const displayPrice = region === 'domestic' ? plan.cnyPrice : plan.usdPrice;
-
-          return (
-            <div
-              key={plan.points}
-              className={`relative flex h-full flex-col rounded-[16px] border bg-white p-7 transition-all duration-300 ${
-                plan.popular
-                  ? 'border-ink shadow-[0_20px_45px_-30px_rgba(23,23,23,0.35)] ring-1 ring-ink'
-                  : 'border-line hover:border-ink/30 hover:shadow-[0_16px_40px_-32px_rgba(10,10,10,0.3)]'
-              }`}
-            >
-              {/* 角标 */}
-              {plan.popular ? (
-                <div className="absolute -top-3 left-6 inline-flex items-center gap-1 rounded-full bg-ink px-3 py-0.5 text-[10.5px] font-medium tracking-wide text-white">
-                  <Sparkles className="h-2.5 w-2.5" />
-                  <span>{isEn ? 'RECOMMENDED' : '推荐首选'}</span>
-                </div>
-              ) : null}
-
-              {plan.bestValue ? (
-                <div className="absolute -top-3 left-6 inline-flex items-center gap-1 rounded-full border border-line bg-mist px-3 py-0.5 text-[10.5px] font-medium tracking-wide text-ink">
-                  <span>{isEn ? 'BEST VALUE' : '最高性价比'}</span>
-                </div>
-              ) : null}
-
-              {/* 头部积分 */}
-              <div className="flex items-baseline justify-between">
-                <span className="font-display text-[12px] font-semibold tracking-[0.2em] text-whisper">
-                  {plan.points} {isEn ? 'POINTS' : '积分'}
-                </span>
-                <span className="text-[11.5px] text-soft">
-                  {region === 'domestic' ? plan.perReadingZh : plan.perReadingEn}
-                </span>
-              </div>
-
-              {/* 价格大字 */}
-              <div className="mt-5 flex items-baseline gap-1">
-                <span className="font-serif text-[42px] font-normal leading-none text-ink">
-                  {displayPrice}
-                </span>
-                <span className="text-[13px] text-whisper">
-                  {region === 'domestic' ? '元' : 'USD'}
-                </span>
-              </div>
-
-              {/* 说明 */}
-              <p className="mt-3 text-[13px] leading-[1.6] text-soft">
-                {isEn ? plan.descEn : plan.descZh}
-              </p>
-
-              {/* 专属权益列表 */}
-              <div className="my-6 space-y-2 border-t border-line/70 pt-5 text-[12.5px] text-ink">
-                <div className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-soft" />
-                  <span>{isEn ? 'All divination models included' : '六爻、塔罗、八字全模块通用'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-soft" />
-                  <span>{isEn ? 'Infinite context follow-ups' : '支持多轮深度无限追问'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="h-3.5 w-3.5 text-soft" />
-                  <span>{isEn ? 'Never expire' : '积分永久有效，无时间限制'}</span>
-                </div>
-              </div>
-
-              {/* 底部购买按钮 */}
-              <div className="mt-auto pt-2">
-                {region === 'overseas' ? (
-                  <div>
-                    <button
-                      type="button"
-                      onClick={() => handleOverseasCheckout(plan)}
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink text-[13px] font-medium text-white transition-all hover:bg-neutral-800"
-                    >
-                      <CreditCard className="h-3.5 w-3.5" />
-                      <span>
-                        {isEn
-                          ? `Pay ${plan.usdPrice} with PayPal / Card`
-                          : `使用 PayPal / 信用卡支付 ${plan.usdPrice}`}
-                      </span>
-                    </button>
-                    <p className="mt-2 text-center text-[11px] leading-[1.4] text-whisper">
-                      {isEn
-                        ? 'Use the same email as your yitarot.net account — points are credited automatically.'
-                        : '请使用与本站账号相同的邮箱购买，积分将自动到账'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleDomesticCheckout(plan.points, 'wechat')}
-                      disabled={isLoading}
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink text-[13px] font-medium text-white transition-all hover:bg-neutral-800 disabled:opacity-50"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-white" />
-                      ) : (
-                        <>
-                          <QrCode className="h-3.5 w-3.5" />
-                          <span>{isEn ? `Pay ${plan.cnyPrice}` : `微信 / 支付宝支付 ${plan.cnyPrice}`}</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </div>
+      <div className="mb-8 min-h-28" aria-busy={!checkout && !lookupFailed}>
+        {!checkout ? (
+          lookupFailed ? (
+            <div className="rounded-xl border border-line px-5 py-4">
+              <p role="alert" className="text-sm leading-relaxed text-ink">{isEn ? 'Payment options could not load. You can still redeem a code below.' : '暂时无法加载支付选项。你仍可在下方兑换卡密。'}</p>
+              <button type="button" onClick={() => { setLookupFailed(false); setLookupAttempt((n) => n + 1); }} className={textAction}>
+                {isEn ? 'Retry payment options' : '重新加载支付选项'}
+              </button>
             </div>
-          );
-        })}
-      </div>
-
-      {/* 支持渠道图标标牌 */}
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-[12px] text-whisper">
-        <span>{isEn ? 'Supported payment methods:' : '支持支付方式：'}</span>
-        {region === 'domestic' ? (
-          <div className="flex flex-wrap items-center gap-2 font-mono">
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">微信支付</span>
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">支付宝</span>
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">招商银行 / 国内银联卡</span>
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">卡密直充</span>
-          </div>
+          ) : <p role="status" className="rounded-xl border border-line px-5 py-4 text-sm text-soft">{isEn ? 'Loading payment options…' : '正在加载支付选项…'}</p>
         ) : (
-          <div className="flex flex-wrap items-center gap-2 font-mono">
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">PayPal</span>
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">Visa</span>
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">Mastercard</span>
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">American Express</span>
-            <span className="rounded-md border border-line bg-white px-2.5 py-1 text-ink">Apple Pay</span>
-          </div>
+          <>
+            <fieldset disabled={loadingPoints !== null} className="min-w-0">
+              <legend className="text-sm font-semibold text-ink">{isEn ? 'Payment region' : '支付地区'}</legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {([
+                  ['domestic', isEn ? 'Mainland China · CNY' : '中国大陆 · CNY'],
+                  ['overseas', isEn ? 'International · USD' : '国际 · USD'],
+                ] as const).map(([value, label]) => (
+                  <label key={value} className="relative inline-flex">
+                    <input type="radio" name="pricing-region" className="peer sr-only" value={value} checked={region === value} onChange={() => chooseRegion(value)} />
+                    <span className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-line px-4 py-2 text-sm text-ink hover:border-ink peer-checked:border-ink peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-ink peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
+                      {label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <p className="mt-3 text-sm leading-relaxed text-soft" role="status">
+              {!region
+                ? isEn ? 'Choose the region that matches how you want to pay.' : '请选择与你的付款方式匹配的地区。'
+                : isEn ? 'You can switch payment regions at any time.' : '你可以随时切换支付地区。'}
+            </p>
+          </>
         )}
       </div>
 
-      {/* 官方卡密 / 兑换码直接充值区域 */}
-      <div className="mt-14 rounded-[16px] border border-line bg-white p-7 sm:p-9 shadow-sm">
-        <div className="max-w-[700px]">
-          <div className="inline-flex items-center gap-2 text-whisper">
-            <Gift className="h-4 w-4 text-ink" />
-            <h3 className="font-display text-[12px] font-semibold tracking-[0.2em] text-ink uppercase">
-              {isEn ? 'Redeem Points Code' : '卡密 / 礼品兑换码即时充值'}
-            </h3>
-          </div>
-
-          <p className="mt-2 text-[13.5px] leading-[1.6] text-soft">
-            {isEn
-              ? 'Enter your 16-character official redemption code (e.g. YITA100-XXXXXX-XXXXXX) to credit points to your account instantly.'
-              : '支持在小红书、微信、发卡网或客服处获取的 16 位官方卡密（格式如 YITA100-XXXXXX-XXXXXX），输入即时到账。'}
+      {checkout && region && (
+        available ? (
+          <>
+            <p className="mb-5 text-sm leading-relaxed text-soft">
+              {region === 'domestic'
+                ? isEn ? `CNY checkout uses ${channelName}.` : `人民币结算使用${channelName}。`
+                : isEn ? 'Payhip handles USD checkout. Use the same email address as your YiTatro account to receive your points.' : '美元由 Payhip 结算。购买时请使用与 YiTatro 账号相同的邮箱，以便积分入账。'}
+            </p>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+              {PLANS.map((plan) => {
+                const price = region === 'domestic' ? plan.cny : plan.usd;
+                return (
+                  <article key={plan.points} className={`flex min-w-0 flex-col rounded-2xl border bg-white p-5 sm:p-6 ${plan.popular ? 'border-ink' : 'border-line'}`}>
+                    <h2 className="break-words text-sm font-semibold text-ink">{plan.points} {isEn ? 'points' : '积分'}</h2>
+                    <p className="mt-3 flex flex-wrap items-baseline gap-x-2">
+                      <span className="font-serif text-4xl leading-none text-ink">{price}</span>
+                      <span className="text-xs text-soft">{region === 'domestic' ? 'CNY' : 'USD'}</span>
+                    </p>
+                    <p className="my-4 grow border-t border-line pt-4 text-sm text-soft">{isEn ? 'Use points for supported AI readings.' : '可用于支持积分的 AI 解读。'}</p>
+                    <button type="button" className={action} disabled={authLoading || loadingPoints !== null} onClick={() => region === 'domestic' ? void handleDomesticCheckout(plan) : handleOverseasCheckout(plan)}>
+                      {loadingPoints === plan.points ? (
+                        <><Loader2 aria-hidden="true" className="h-4 w-4 shrink-0 motion-safe:animate-spin" />{isEn ? 'Opening checkout…' : '正在打开收银台…'}</>
+                      ) : region === 'domestic' ? (
+                        <><QrCode aria-hidden="true" className="h-4 w-4 shrink-0" />{isEn ? `Pay with ${channelName}` : `使用${channelName}付款`}</>
+                      ) : (
+                        <><CreditCard aria-hidden="true" className="h-4 w-4 shrink-0" />{isEn ? 'Continue to Payhip' : '前往 Payhip 付款'}</>
+                      )}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <p role="status" className="rounded-xl border border-line bg-white px-5 py-4 text-sm leading-relaxed text-ink">
+            {isEn ? 'Checkout is currently unavailable for this region. Try another payment region or redeem a code below.' : '该地区的在线支付暂不可用。你可以切换支付地区，或在下方兑换卡密。'}
           </p>
+        )
+      )}
 
-          <form onSubmit={handleRedeem} className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <input
-              type="text"
-              value={redeemCode}
-              onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
-              placeholder={isEn ? 'Enter redemption code (YITA...)' : '请输入 16 位卡密兑换码 (如 YITA...)'}
-              className="h-11 flex-1 rounded-full border border-line bg-mist/30 px-5 font-mono text-[13.5px] text-ink placeholder:text-whisper focus:border-ink focus:bg-white focus:outline-none"
-            />
-            <button
-              type="submit"
-              disabled={redeeming || !redeemCode.trim()}
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-ink px-7 text-[13px] font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-40"
-            >
-              {redeeming ? (
-                <Loader2 className="h-4 w-4 animate-spin text-white" />
-              ) : (
-                <span>{isEn ? 'Redeem Now' : '立即兑换'}</span>
-              )}
-            </button>
-          </form>
+      {qr && (
+        <section aria-labelledby="pricing-qr-title" className="mt-8 rounded-2xl border border-line p-6">
+          <h2 id="pricing-qr-title" className="font-serif text-xl text-ink">{isEn ? `Scan with ${channelName}` : `使用${channelName}扫码`}</h2>
+          <p className="mt-2 text-sm text-soft">{qr.plan.points} {isEn ? 'points' : '积分'} · {qr.plan.cny} CNY</p>
+          {qrFailed ? (
+            <p role="alert" className="mt-4 text-sm text-ink">{isEn ? 'The payment QR code could not load. Close it and try again.' : '支付二维码加载失败，请关闭后重试。'}</p>
+          ) : (
+            // The gateway supplies the HTTPS image; it is not fetched via the Next.js optimizer.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={qr.url} alt={isEn ? `${channelName} checkout QR code` : `${channelName}收银台二维码`} className="mt-4 h-48 w-48 max-w-full rounded-lg border border-line object-contain" referrerPolicy="no-referrer" onError={() => setQrFailed(true)} />
+          )}
+          <p className="mt-4 text-sm leading-relaxed text-soft">{isEn ? 'Points are added when the payment provider confirms your payment.' : '支付平台确认后，积分会自动入账。'}</p>
+          <button type="button" onClick={() => setQr(null)} className={textAction}>{isEn ? 'Close QR code' : '关闭二维码'}</button>
+        </section>
+      )}
 
-          {redeemSuccess ? (
-            <p className="mt-3 text-[13px] font-medium text-emerald-700">{redeemSuccess}</p>
-          ) : null}
-          {redeemError ? (
-            <p className="mt-3 text-[13px] font-medium text-red-600">{redeemError}</p>
-          ) : null}
-        </div>
-      </div>
-
-      {/* 国内扫码支付/人工卡密弹窗 */}
-      {domesticModalOpen && domesticModalData ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="relative w-full max-w-[460px] rounded-[18px] border border-line bg-white p-7 shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setDomesticModalOpen(false)}
-              className="absolute right-5 top-5 text-whisper hover:text-ink"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            <div className="text-center">
-              <span className="inline-flex items-center gap-1 rounded-full bg-mist px-3 py-1 text-[11px] font-medium text-ink">
-                <span>🇨🇳 国内支付</span>
-              </span>
-              <h3 className="mt-3 font-serif text-[22px] font-normal text-ink">
-                充值 {domesticModalData.points} 积分
-              </h3>
-              <p className="mt-1 text-[28px] font-semibold text-ink">
-                {domesticModalData.amount}
-              </p>
-            </div>
-
-            <div className="mt-6 rounded-[14px] border border-line bg-mist/30 p-5 text-center">
-              {domesticModalData.qrUrl ? (
-                <div>
-                  <p className="text-[12.5px] text-whisper">请使用微信或支付宝扫描下方二维码：</p>
-                  <div className="my-3 flex justify-center">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={domesticModalData.qrUrl}
-                      alt="Payment QR"
-                      className="h-48 w-48 rounded-lg border border-line bg-white p-2"
-                    />
-                  </div>
-                  <p className="text-[12px] text-soft">支付成功后系统将自动到账</p>
-                </div>
-              ) : (
-                <div className="space-y-3 text-left text-[13px] text-soft">
-                  <div className="rounded-lg bg-white p-4 border border-line">
-                    <p className="font-medium text-ink">方式一：卡密极速到账（推荐）</p>
-                    <p className="mt-1 text-[12.5px] text-whisper">
-                      可在淘宝/闲鱼/发卡网购买官方直充卡密，在页面下方直接输入兑换，秒级到账。
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-white p-4 border border-line">
-                    <p className="font-medium text-ink">方式二：人工微信扫码转账</p>
-                    <p className="mt-1 text-[12.5px] text-whisper">
-                      转账并备注注册邮箱，客服核对后将在 5 分钟内为您手工加分。
-                    </p>
-                    <p className="mt-2 text-[12px] font-mono text-ink">
-                      官方客服微信：<span className="font-semibold select-all">yitarot_service</span>
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-6">
-              <button
-                type="button"
-                onClick={() => setDomesticModalOpen(false)}
-                className="w-full rounded-full border border-line py-2.5 text-[13px] text-ink transition-colors hover:bg-mist"
-              >
-                关闭
+      <section aria-labelledby="pricing-redeem-title" className="mt-12 rounded-2xl border border-line bg-white p-5 sm:p-8">
+        <div className="max-w-[700px]">
+          <h2 id="pricing-redeem-title" className="inline-flex items-center gap-2 font-serif text-xl text-ink">
+            <Gift aria-hidden="true" className="h-4 w-4" />{isEn ? 'Redeem a code' : '兑换积分'}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-soft">{isEn ? 'Already have an official redemption code? Add its points to your account here.' : '已有官方兑换码？在这里将积分加入你的账户。'}</p>
+          <form onSubmit={handleRedeem} className="mt-5">
+            <label htmlFor="pricing-redeem-code" className="block text-sm font-medium text-ink">{isEn ? 'Redemption code' : '卡密兑换码'}</label>
+            <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+              <input
+                id="pricing-redeem-code"
+                type="text"
+                autoCapitalize="characters"
+                autoComplete="off"
+                spellCheck={false}
+                value={redeemCode}
+                onChange={(e) => setRedeemCode(e.target.value.toUpperCase())}
+                placeholder="YITA100-XXXXXX-XXXXXX"
+                className={`min-h-11 w-full min-w-0 flex-1 rounded-full border border-line px-4 py-2 font-mono text-sm text-ink placeholder:text-whisper ${focus}`}
+              />
+              <button type="submit" disabled={authLoading || redeeming || !redeemCode.trim()} className={`${action} sm:w-auto sm:shrink-0`}>
+                {redeeming ? <><Loader2 aria-hidden="true" className="h-4 w-4 motion-safe:animate-spin" />{isEn ? 'Redeeming…' : '兑换中…'}</> : isEn ? 'Redeem code' : '立即兑换'}
               </button>
             </div>
-          </div>
+          </form>
+          {redeemSuccess && <p role="status" className="mt-3 text-sm text-ink">{redeemSuccess}</p>}
+          {redeemError && <p role="alert" className="mt-3 text-sm text-ink">{redeemError}</p>}
         </div>
-      ) : null}
+      </section>
     </div>
   );
 }

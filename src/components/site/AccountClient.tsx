@@ -324,7 +324,7 @@ export function AccountClient({ lang = 'zh' }: { lang?: string }) {
         <p className="mt-1.5 text-[13px] text-soft">
           {isEn
             ? 'Enter your 16-character code to add points to your account instantly.'
-            : '输入在客服、小红书或发卡平台获得的 16 位卡密兑换码，即时增加积分。'}
+            : '输入已获得的官方兑换码，为当前账户增加积分。'}
         </p>
 
         <form onSubmit={handleRedeem} className="mt-4 flex flex-col gap-3 sm:flex-row max-w-[600px]">

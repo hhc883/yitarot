@@ -1,91 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseUser } from '@/lib/supabase/server';
 import { verifyRedemptionCodeFormat } from '@/lib/payments/domestic';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
-import { creditUserPoints } from '@/lib/points/fulfill';
+import { objectRecord } from '@/lib/payments/shared';
 
-/**
- * POST /api/points/redeem
- * 使用防伪卡密/兑换码直接充值积分（即时生效）
- */
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   const user = await getSupabaseUser();
-  if (!user) {
-    return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
-  }
+  if (!user) return Response.json({ error: 'unauthenticated' }, { status: 401 });
 
-  let body: { code?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
-  }
+  const body = objectRecord(await req.json().catch(() => null));
+  const code = typeof body?.code === 'string' ? body.code.trim().toUpperCase() : '';
+  if (!code || code.length > 96) return Response.json({ error: 'invalid_code' }, { status: 400 });
 
-  const rawCode = (body.code || '').trim().toUpperCase();
-  if (!rawCode) {
-    return NextResponse.json(
-      { error: 'empty_code', message: '请输入兑换码/卡密。' },
-      { status: 400 }
-    );
-  }
-
-  // 1. 密码学签名核验（校验格式、面额、防篡改签名）
-  const verifyResult = verifyRedemptionCodeFormat(rawCode);
-  if (!verifyResult.valid || !verifyResult.points) {
-    return NextResponse.json(
-      {
-        error: 'invalid_code',
-        message: verifyResult.error || '兑换码无效或已过期，请核对后重新输入。'
-      },
-      { status: 400 }
-    );
-  }
-
-  const points = verifyResult.points;
-  const refId = `redeem:${rawCode}`;
-
-  // 2. 检查全库是否已被任意用户兑换过（卡密全局一次性有效）
+  const checked = verifyRedemptionCodeFormat(code);
   const admin = getSupabaseAdminClient();
-  if (admin) {
-    const { data: alreadyUsed } = await admin
-      .from('point_ledger')
-      .select('id, user_id, created_at')
-      .eq('kind', 'purchase')
-      .eq('ref_id', refId)
-      .maybeSingle();
+  if (checked.unavailable || !admin) return Response.json({ error: 'redeem_unavailable' }, { status: 503 });
+  if (!checked.valid || !checked.points) return Response.json({ error: 'invalid_code' }, { status: 400 });
 
-    if (alreadyUsed) {
-      return NextResponse.json(
-        {
-          error: 'code_already_used',
-          message: '该兑换码已被使用过，每张卡密仅可兑换一次。'
-        },
-        { status: 400 }
-      );
-    }
-  }
-
-  // 3. 履约发放积分到当前用户
-  const fulfillResult = await creditUserPoints({
-    userId: user.id,
-    points,
-    refId
+  const { data, error } = await admin.rpc('redeem_payment_code', {
+    p_user_id: user.id, p_points: checked.points, p_ref: 'redeem:' + code
   });
-
-  if (!fulfillResult.ok) {
-    return NextResponse.json(
-      {
-        error: 'fulfill_failed',
-        message: fulfillResult.error || '积分入账失败，请稍后重试。'
-      },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json({
-    ok: true,
-    pointsAdded: points,
-    newBalance: fulfillResult.newBalance,
-    code: rawCode
-  });
+  if (error) console.error('[Redeem] Settlement unavailable', error.code);
+  if (data?.status === 'used') return Response.json({ error: 'code_already_used' }, { status: 409 });
+  if (error || data?.status !== 'ok') return Response.json({ error: 'fulfill_failed' }, { status: 503 });
+  return Response.json({ ok: true, pointsAdded: checked.points, newBalance: data.balance });
 }

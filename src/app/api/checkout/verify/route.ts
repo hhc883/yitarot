@@ -1,57 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseUser } from '@/lib/supabase/server';
-import { retrieveStripeCheckoutSession } from '@/lib/payments/stripe';
-import { creditUserPoints } from '@/lib/points/fulfill';
+import { retrieveStripeCheckoutSession, stripeSessionOwner, validateStripeSettlement } from '@/lib/payments/stripe';
+import { settleCheckoutOrder } from '@/lib/points/fulfill';
+import { noStore, STRIPE_SESSION_ID } from '@/lib/payments/shared';
 
-/**
- * GET /api/checkout/verify?session_id=...
- * 客户端结账返回后即时核验并到账
- */
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
+  const send = (body: Record<string, unknown>, status = 200) =>
+    Response.json(body, { status, headers: noStore });
   const user = await getSupabaseUser();
-  if (!user) {
-    return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
-  }
-
-  const sessionId = req.nextUrl.searchParams.get('session_id');
-  if (!sessionId) {
-    return NextResponse.json({ error: 'missing_session_id' }, { status: 400 });
-  }
-
-  const session = await retrieveStripeCheckoutSession(sessionId);
-  if (!session) {
-    return NextResponse.json({ error: 'session_not_found' }, { status: 404 });
-  }
-
-  const sessionUserId = session.metadata?.user_id || session.client_reference_id;
-  if (sessionUserId && sessionUserId !== user.id) {
-    return NextResponse.json({ error: 'unauthorized_session' }, { status: 403 });
-  }
-
-  const isPaid = session.payment_status === 'paid';
-  if (!isPaid) {
-    return NextResponse.json({
-      ok: false,
-      status: session.payment_status,
-      message: 'Payment not completed yet.'
-    });
-  }
-
-  const points = parseInt(session.metadata?.points || '0', 10);
-  const orderId = session.metadata?.order_id;
-
-  const result = await creditUserPoints({
-    userId: user.id,
-    points,
-    refId: `stripe:${sessionId}`,
-    orderId
+  if (!user) return send({ error: 'unauthenticated' }, 401);
+  const sessionId = new URL(req.url).searchParams.get('session_id');
+  if (!sessionId || !STRIPE_SESSION_ID.test(sessionId)) return send({ error: 'invalid_session_id' }, 400);
+  const found = await retrieveStripeCheckoutSession(sessionId);
+  if (found.status === 'not_found') return send({ error: 'session_not_found' }, 404);
+  if (found.status !== 'ok') return send({ error: 'verification_unavailable' }, 503);
+  const { session } = found;
+  if (stripeSessionOwner(session) !== user.id) return send({ error: 'unauthorized_session' }, 403);
+  if (session.payment_status !== 'paid') return send({ ok: false, status: 'pending' });
+  const payment = await validateStripeSettlement(session);
+  if (payment.status === 'invalid') return send({ error: 'invalid_order' }, 400);
+  if (payment.status === 'unavailable') return send({ error: 'settlement_unavailable' }, 503);
+  const result = await settleCheckoutOrder({
+    orderId: payment.orderId, amount: payment.amount, transaction: payment.sessionId,
+    provider: 'stripe', currency: 'USD'
   });
-
-  return NextResponse.json({
-    ok: true,
-    status: 'paid',
-    points,
-    newBalance: result.newBalance,
-    alreadyCredited: result.alreadyCredited
-  });
+  if (!result || (result.status !== 'ok' && result.status !== 'already_credited')) {
+    return send({ error: 'settlement_failed' }, result?.status === 'invalid_payment' ? 400 : 503);
+  }
+  return send({ ok: true, status: 'paid', points: result.points, newBalance: result.balance,
+    alreadyCredited: result.status === 'already_credited' });
 }

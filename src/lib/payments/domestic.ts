@@ -1,231 +1,107 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
+import { PAYMENT_TIERS, type PaymentTier } from '@/lib/payments/catalog';
+import { objectRecord, paymentSiteOrigin, secureHttpsUrl } from '@/lib/payments/shared';
 
-export interface DomesticTier {
-  points: number;
-  priceCny: number;
-  name: string;
+export function getDomesticGateway() {
+  const appId = process.env.DOMESTIC_PAY_APP_ID?.trim();
+  const secret = process.env.DOMESTIC_PAY_APP_SECRET?.trim();
+  const url = secureHttpsUrl(process.env.DOMESTIC_PAY_API_URL || 'https://api.xunhupay.com/payment/do.html');
+  const channel = process.env.DOMESTIC_PAY_CHANNEL || 'wechat';
+  const origin = paymentSiteOrigin();
+  if (!appId || !secret || !url || !origin ||
+      !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      (channel !== 'wechat' && channel !== 'alipay')) return null;
+  return { appId, secret, url, channel, origin };
 }
 
-export const DOMESTIC_TIERS: Record<number, DomesticTier> = {
-  100: {
-    points: 100,
-    priceCny: 29.9,
-    name: 'YiTarot 100 积分体验包'
-  },
-  500: {
-    points: 500,
-    priceCny: 99.0,
-    name: 'YiTarot 500 积分畅享包 (最受欢迎)'
-  },
-  2000: {
-    points: 2000,
-    priceCny: 299.0,
-    name: 'YiTarot 2000 积分尊享包 (最高性价比)'
-  }
-};
-
-/**
- * 校验卡密安全密钥（服务端专用）
- */
-function getRedeemSecret(): string {
-  return (
-    process.env.REDEEM_SECRET_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 32) ||
-    'yitarot-domestic-redeem-secret-key-2026'
-  );
+function getRedeemSecret(): string | null {
+  const secret = process.env.REDEEM_SECRET_KEY?.trim();
+  return secret && secret.length >= 32 && secret !== 'yitarot-domestic-redeem-secret-key-2026'
+    ? secret : null;
 }
 
-/**
- * 生成防伪抗篡改的卡密/礼品兑换码
- * 格式示例：YITA100-7A9B2C-3E8F1D
- */
-export function generateRedemptionCode(points: number, count: number = 1): string[] {
-  if (![100, 500, 2000].includes(points)) {
-    throw new Error(`不支持的积分档位: ${points}`);
-  }
-
+export function verifyRedemptionCodeFormat(rawCode: string) {
   const secret = getRedeemSecret();
-  const codes: string[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const salt = crypto.randomBytes(3).toString('hex').toUpperCase(); // 6 位随机字符
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(`${points}:${salt}`);
-    const hash = hmac.digest('hex').slice(0, 6).toUpperCase(); // 6 位签名
-    codes.push(`YITA${points}-${salt}-${hash}`);
-  }
-
-  return codes;
+  if (!secret) return { valid: false, unavailable: true };
+  const clean = rawCode.trim().toUpperCase();
+  const v2 = /^YITA2-(100|500|2000)-([A-F0-9]{32})-([A-F0-9]{32})$/.exec(clean);
+  // Old codes are accepted only when an operator opts in after checking their issuance key.
+  const legacy = !v2 && process.env.REDEEM_ALLOW_LEGACY === '1'
+    ? /^YITA(100|500|2000)-([A-F0-9]{6})-([A-F0-9]{6})$/.exec(clean)
+    : null;
+  const match = v2 || legacy;
+  if (!match) return { valid: false };
+  const expected = crypto.createHmac('sha256', secret).update((v2 ? 'v2:' : '') + match[1] + ':' + match[2])
+    .digest().subarray(0, v2 ? 16 : 3);
+  return crypto.timingSafeEqual(Buffer.from(match[3], 'hex'), expected)
+    ? { valid: true, points: Number(match[1]) } : { valid: false };
 }
 
-/**
- * 校验卡密真实性与提取积分面额
- */
-export function verifyRedemptionCodeFormat(rawCode: string): {
-  valid: boolean;
-  points?: number;
-  error?: string;
-} {
-  const code = (rawCode || '').trim().toUpperCase();
-  const match = code.match(/^YITA(100|500|2000)-([A-F0-9]{6})-([A-F0-9]{6})$/);
-
-  if (!match) {
-    return { valid: false, error: '卡密格式无效（标准格式如：YITA100-XXXXXX-XXXXXX）' };
-  }
-
-  const points = parseInt(match[1], 10);
-  const salt = match[2];
-  const providedHash = match[3];
-
-  const secret = getRedeemSecret();
-  const hmac = crypto.createHmac('sha256', secret);
-  hmac.update(`${points}:${salt}`);
-  const expectedHash = hmac.digest('hex').slice(0, 6).toUpperCase();
-
-  const bufExpected = Buffer.from(expectedHash, 'utf8');
-  const bufProvided = Buffer.from(providedHash, 'utf8');
-
-  if (bufExpected.length !== bufProvided.length || !crypto.timingSafeEqual(bufExpected, bufProvided)) {
-    return { valid: false, error: '卡密签名校验失败，无效或伪造的卡密' };
-  }
-
-  return { valid: true, points };
+function sign(params: Record<string, string>, secret: string): string {
+  const message = Object.keys(params).sort()
+    .filter(key => key !== 'hash' && params[key] !== '')
+    .map(key => key + '=' + params[key]).join('&');
+  return crypto.createHash('md5').update(message + secret, 'utf8').digest('hex');
 }
 
-/**
- * 检查国内个人/聚合支付网关是否已配置环境变量
- */
-export function isDomesticGatewayConfigured(): boolean {
-  return Boolean(process.env.DOMESTIC_PAY_APP_ID && process.env.DOMESTIC_PAY_APP_SECRET);
+export function verifyDomesticCallbackSignature(params: Record<string, string>, appSecret: string): boolean {
+  return Boolean(appSecret && /^[a-f0-9]{32}$/i.test(params.hash || '') &&
+    crypto.timingSafeEqual(Buffer.from(sign(params, appSecret), 'hex'), Buffer.from(params.hash, 'hex')));
 }
 
-/**
- * 创建国内支付请求（支持微信/支付宝）
- */
 export async function createDomesticPaymentOrder(params: {
   userId: string;
-  points: number;
-  channel: 'wechat' | 'alipay';
-  origin: string;
-}): Promise<{
-  ok: boolean;
-  payUrl?: string;
-  qrUrl?: string;
-  orderId?: string;
-  error?: string;
-  manualFallback?: boolean;
-}> {
-  const tier = DOMESTIC_TIERS[params.points];
-  if (!tier) {
-    return { ok: false, error: `不支持的积分规格: ${params.points}` };
-  }
-
+  points: PaymentTier;
+  lang: 'zh' | 'en';
+  gateway: NonNullable<ReturnType<typeof getDomesticGateway>>;
+}) {
+  const { gateway, points, lang } = params;
   const admin = getSupabaseAdminClient();
-  let orderId: string | undefined;
-
-  if (admin) {
-    try {
-      const { data: newOrder } = await admin
-        .from('orders')
-        .insert({
-          user_id: params.userId,
-          amount: tier.priceCny,
-          points: tier.points,
-          status: 'pending'
-        })
-        .select('id')
-        .single();
-
-      if (newOrder) orderId = newOrder.id;
-    } catch (e) {
-      console.warn('[Domestic Pay] Failed to insert pending order:', e);
-    }
+  if (!admin) return null;
+  const amount = PAYMENT_TIERS[points].cny;
+  // The gateway accepts up to 32 characters; the database still stores the UUID.
+  const id = crypto.randomUUID();
+  const { error } = await admin.from('orders').insert({
+    id, user_id: params.userId, amount: amount / 100, points, status: 'pending',
+    payment_provider: 'domestic', currency: 'CNY'
+  });
+  if (error) {
+    console.error('[Domestic checkout] order insert failed', error.code);
+    return null;
   }
 
-  const appId = process.env.DOMESTIC_PAY_APP_ID;
-  const appSecret = process.env.DOMESTIC_PAY_APP_SECRET;
-  const apiUrl = process.env.DOMESTIC_PAY_API_URL || 'https://api.xunhupay.com/payment/do.html';
-
-  if (!appId || !appSecret) {
-    // 环境变量未配置聚合网关时，优雅返回人工扫码/卡密指引
-    return {
-      ok: true,
-      manualFallback: true,
-      orderId,
-      error: 'DOMESTIC_PAY_GATEWAY_NOT_CONFIGURED'
-    };
-  }
+  const requestData: Record<string, string> = {
+    version: '1.1',
+    appid: gateway.appId,
+    trade_order_id: id.replaceAll('-', ''),
+    total_fee: (amount / 100).toFixed(2),
+    title: 'YiTatro ' + points + ' 积分',
+    time: String(Math.floor(Date.now() / 1000)),
+    nonce_str: crypto.randomBytes(16).toString('hex'),
+    notify_url: gateway.origin + '/api/webhooks/domestic',
+    return_url: gateway.origin + '/' + lang + '/pricing?payment_status=pending',
+    callback_url: gateway.origin + '/' + lang + '/pricing?payment_status=cancelled'
+  };
+  requestData.hash = sign(requestData, gateway.secret);
 
   try {
-    const notifyUrl = `${params.origin.replace(/\/$/, '')}/api/webhooks/domestic`;
-    const returnUrl = `${params.origin.replace(/\/$/, '')}/pricing?payment_status=success`;
-    const tradeOrderId = orderId || `D${Date.now()}`;
-
-    // 标准 MD5 签名聚合网关协议（虎皮椒/通用易支付标准）
-    const requestData: Record<string, string> = {
-      version: '1.1',
-      appid: appId,
-      trade_order_id: tradeOrderId,
-      total_fee: String(tier.priceCny),
-      title: tier.name,
-      time: String(Math.floor(Date.now() / 1000)),
-      notify_url: notifyUrl,
-      return_url: returnUrl,
-      type: params.channel === 'alipay' ? 'alipay' : 'wechat',
-      wap_url: params.origin,
-      wap_name: 'YiTarot'
-    };
-
-    // 字典升序拼接
-    const sortedKeys = Object.keys(requestData).sort();
-    const signString = sortedKeys.map((k) => `${k}=${requestData[k]}`).join('&') + appSecret;
-    requestData.hash = crypto.createHash('md5').update(signString, 'utf8').digest('hex');
-
-    const form = new URLSearchParams();
-    for (const [k, v] of Object.entries(requestData)) {
-      form.append(k, v);
-    }
-
-    const res = await fetch(apiUrl, {
+    const response = await fetch(gateway.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: form.toString()
+      body: new URLSearchParams(requestData),
+      signal: AbortSignal.timeout(10000),
+      redirect: 'error'
     });
-
-    const result = await res.json();
-    if (result.errcode === 0 || result.url || result.code_url) {
-      return {
-        ok: true,
-        payUrl: result.url || result.url_qrcode,
-        qrUrl: result.code_url || result.url_qrcode || result.url,
-        orderId: tradeOrderId
-      };
-    }
-
-    return {
-      ok: false,
-      error: result.errmsg || 'Domestic payment gateway error'
-    };
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Network error';
-    return { ok: false, error: msg };
+    const raw = objectRecord(await response.json());
+    if (!response.ok || !raw || (raw.errcode !== 0 && raw.errcode !== '0') ||
+        Object.values(raw).some(value => value !== null && !['string', 'number', 'boolean'].includes(typeof value))) return null;
+    const signed = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== null).map(([k, v]) => [k, String(v)]));
+    if (!verifyDomesticCallbackSignature(signed, gateway.secret)) return null;
+    const payUrl = secureHttpsUrl(raw.url);
+    const qrUrl = secureHttpsUrl(raw.url_qrcode);
+    return payUrl || qrUrl ? { ok: true, payUrl, qrUrl, orderId: id } : null;
+  } catch {
+    return null;
   }
-}
-
-/**
- * 校验国内网关回调签名
- */
-export function verifyDomesticCallbackSignature(
-  params: Record<string, string>,
-  appSecret: string
-): boolean {
-  if (!params.hash) return false;
-
-  const { hash, ...rest } = params;
-  const sortedKeys = Object.keys(rest).sort();
-  const signString = sortedKeys.map((k) => `${k}=${rest[k]}`).join('&') + appSecret;
-  const expectedHash = crypto.createHash('md5').update(signString, 'utf8').digest('hex');
-
-  return expectedHash.toLowerCase() === hash.toLowerCase();
 }

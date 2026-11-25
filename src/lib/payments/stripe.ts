@@ -1,223 +1,123 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { getSupabaseAdminClient } from '@/lib/supabase/admin';
+import { PAYMENT_TIERS, type PaymentTier } from '@/lib/payments/catalog';
+import { objectRecord, paymentSiteOrigin, secureHttpsUrl, STRIPE_SESSION_ID, UUID } from '@/lib/payments/shared';
 
-export interface StripeTier {
-  points: number;
-  priceUsd: number;
-  cents: number;
-  name: string;
-}
-
-export const STRIPE_TIERS: Record<number, StripeTier> = {
-  100: {
-    points: 100,
-    priceUsd: 4.99,
-    cents: 499,
-    name: 'YiTarot 100 Points'
-  },
-  500: {
-    points: 500,
-    priceUsd: 19.99,
-    cents: 1999,
-    name: 'YiTarot 500 Points (Popular)'
-  },
-  2000: {
-    points: 2000,
-    priceUsd: 59.99,
-    cents: 5999,
-    name: 'YiTarot 2000 Points (Best Value)'
-  }
-};
-
-/**
- * 检查 Stripe 环境变量是否就绪
- */
 export function isStripeConfigured(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
+  return Boolean(paymentSiteOrigin() && process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET &&
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
-/**
- * 创建 Stripe 结账会话
- */
 export async function createStripeCheckoutSession(params: {
   userId: string;
   email?: string;
-  points: number;
-  origin: string;
-}): Promise<{ ok: boolean; sessionUrl?: string; sessionId?: string; error?: string }> {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) {
-    return {
-      ok: false,
-      error: 'STRIPE_SECRET_KEY is not configured in server environment variables.'
-    };
-  }
-
-  const tier = STRIPE_TIERS[params.points];
-  if (!tier) {
-    return { ok: false, error: `Invalid points tier: ${params.points}` };
-  }
-
+  points: PaymentTier;
+  lang: 'zh' | 'en';
+}) {
+  const origin = paymentSiteOrigin();
   const admin = getSupabaseAdminClient();
-  let orderId: string | undefined;
+  if (!isStripeConfigured() || !origin || !admin) return null;
+  const amount = PAYMENT_TIERS[params.points].usd;
+  const id = crypto.randomUUID();
+  const { error } = await admin.from('orders').insert({
+    id, user_id: params.userId, amount: amount / 100, points: params.points,
+    payment_provider: 'stripe', currency: 'USD', status: 'pending'
+  });
+  if (error) return null;
 
-  // 1. 若 Admin Client 存在，记录待支付订单
-  if (admin) {
-    try {
-      const { data: newOrder, error: orderError } = await admin
-        .from('orders')
-        .insert({
-          user_id: params.userId,
-          amount: tier.priceUsd,
-          points: tier.points,
-          status: 'pending'
-        })
-        .select('id')
-        .single();
+  const pathname = origin + '/' + params.lang + '/pricing';
+  const body = new URLSearchParams({
+    mode: 'payment',
+    success_url: pathname + '?payment_status=success&session_id={CHECKOUT_SESSION_ID}',
+    cancel_url: pathname + '?payment_status=cancelled',
+    client_reference_id: params.userId,
+    'line_items[0][price_data][currency]': 'usd',
+    'line_items[0][price_data][unit_amount]': String(amount),
+    'line_items[0][price_data][product_data][name]': 'YiTatro ' + params.points + ' Points',
+    'line_items[0][quantity]': '1',
+    'metadata[user_id]': params.userId,
+    'metadata[order_id]': id,
+    'metadata[points]': String(params.points)
+  });
+  if (params.email) body.set('customer_email', params.email);
 
-      if (!orderError && newOrder) {
-        orderId = newOrder.id;
-      }
-    } catch (e) {
-      console.warn('[Stripe] Could not create pending orders record:', e);
-    }
-  }
-
-  // 2. 调用 Stripe Checkout Sessions REST API
   try {
-    const origin = params.origin.replace(/\/$/, '');
-    const successUrl = `${origin}/pricing?payment_status=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${origin}/pricing?payment_status=cancelled`;
-
-    const bodyParams = new URLSearchParams();
-    bodyParams.append('mode', 'payment');
-    bodyParams.append('success_url', successUrl);
-    bodyParams.append('cancel_url', cancelUrl);
-    bodyParams.append('client_reference_id', params.userId);
-
-    if (params.email) {
-      bodyParams.append('customer_email', params.email);
-    }
-
-    bodyParams.append('line_items[0][price_data][currency]', 'usd');
-    bodyParams.append('line_items[0][price_data][unit_amount]', String(tier.cents));
-    bodyParams.append('line_items[0][price_data][product_data][name]', tier.name);
-    bodyParams.append(
-      'line_items[0][price_data][product_data][description]',
-      `YiTarot AI Divination Credits (${tier.points} Points)`
-    );
-    bodyParams.append('line_items[0][quantity]', '1');
-
-    bodyParams.append('metadata[user_id]', params.userId);
-    bodyParams.append('metadata[points]', String(tier.points));
-    if (orderId) {
-      bodyParams.append('metadata[order_id]', orderId);
-    }
-
-    const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+    const response = await stripeRequest('', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${secretKey}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: bodyParams.toString()
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Idempotency-Key': id },
+      body
     });
-
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('[Stripe] Create session failed:', data);
-      return { ok: false, error: data?.error?.message || 'Stripe API error' };
-    }
-
-    // 3. 关联 stripe_session_id
-    if (admin && orderId && data.id) {
-      await admin.from('orders').update({ stripe_session_id: data.id }).eq('id', orderId);
-    }
-
-    return {
-      ok: true,
-      sessionId: data.id,
-      sessionUrl: data.url
-    };
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Network error';
-    console.error('[Stripe] Exception creating session:', err);
-    return { ok: false, error: msg };
-  }
-}
-
-/**
- * 查询指定 Stripe Checkout 会话详情
- */
-export async function retrieveStripeCheckoutSession(sessionId: string) {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) return null;
-
-  try {
-    const res = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sessionId}`, {
-      headers: {
-        Authorization: `Bearer ${secretKey}`
-      }
-    });
-
-    if (!res.ok) return null;
-    return await res.json();
+    const session = objectRecord(await response.json());
+    if (!response.ok || !session || typeof session.id !== 'string' || !STRIPE_SESSION_ID.test(session.id)) return null;
+    const url = secureHttpsUrl(session.url);
+    if (!url || new URL(url).hostname !== 'checkout.stripe.com') return null;
+    const { error: linkError } = await admin.from('orders').update({ stripe_session_id: session.id }).eq('id', id);
+    return linkError ? null : { sessionUrl: url, sessionId: session.id };
   } catch {
     return null;
   }
 }
 
-/**
- * 校验 Stripe Webhook 签名（防伪造与重放攻击）
- */
+function stripeRequest(path: string, init?: RequestInit) {
+  const headers = new Headers(init?.headers);
+  headers.set('Authorization', 'Bearer ' + process.env.STRIPE_SECRET_KEY);
+  return fetch('https://api.stripe.com/v1/checkout/sessions' + path, {
+    ...init, headers, cache: 'no-store', signal: AbortSignal.timeout(10000), redirect: 'error'
+  });
+}
+
+export async function retrieveStripeCheckoutSession(sessionId: string) {
+  if (!STRIPE_SESSION_ID.test(sessionId)) return { status: 'not_found' } as const;
+  if (!process.env.STRIPE_SECRET_KEY) return { status: 'unavailable' } as const;
+  try {
+    const res = await stripeRequest('/' + sessionId);
+    if (res.status === 404) return { status: 'not_found' } as const;
+    if (!res.ok) return { status: 'unavailable' } as const;
+    const session = objectRecord(await res.json());
+    return session?.id === sessionId ? { status: 'ok', session } as const : { status: 'unavailable' } as const;
+  } catch {
+    return { status: 'unavailable' } as const;
+  }
+}
+
+export function stripeSessionOwner(session: Record<string, unknown>): string | null {
+  const metadata = objectRecord(session.metadata);
+  const reference = session.client_reference_id;
+  const owner = metadata?.user_id ?? reference;
+  return typeof owner === 'string' && UUID.test(owner) && (reference == null || reference === owner) ? owner : null;
+}
+
+export async function validateStripeSettlement(session: Record<string, unknown>) {
+  const metadata = objectRecord(session.metadata);
+  const orderId = metadata?.order_id;
+  const sessionId = session.id;
+  const userId = stripeSessionOwner(session);
+  const amount = session.amount_total;
+  if (!userId || session.mode !== 'payment' || session.currency !== 'usd' ||
+      typeof orderId !== 'string' || !UUID.test(orderId) ||
+      typeof sessionId !== 'string' || !STRIPE_SESSION_ID.test(sessionId) ||
+      typeof amount !== 'number' || !Number.isSafeInteger(amount) || amount <= 0) {
+    return { status: 'invalid' } as const;
+  }
+  const admin = getSupabaseAdminClient();
+  if (!admin) return { status: 'unavailable' } as const;
+  const { data: order, error } = await admin.from('orders').select('user_id, stripe_session_id')
+    .eq('id', orderId).maybeSingle();
+  if (error) return { status: 'unavailable' } as const;
+  if (!order || order.user_id !== userId || order.stripe_session_id !== sessionId) return { status: 'invalid' } as const;
+  return { status: 'ok', orderId, amount, sessionId } as const;
+}
+
 export function verifyStripeWebhookSignature(
-  rawBody: string,
-  signatureHeader: string | null,
-  webhookSecret: string
+  rawBody: string, signatureHeader: string | null, webhookSecret: string, now = Math.floor(Date.now() / 1000)
 ): boolean {
   if (!signatureHeader || !webhookSecret) return false;
-
-  try {
-    const items = signatureHeader.split(',');
-    let timestamp = '';
-    const signatures: string[] = [];
-
-    for (const item of items) {
-      const [key, val] = item.trim().split('=');
-      if (key === 't') timestamp = val;
-      if (key === 'v1') signatures.push(val);
-    }
-
-    if (!timestamp || signatures.length === 0) return false;
-
-    // 允许 300 秒时间漂移
-    const eventTime = parseInt(timestamp, 10);
-    const now = Math.floor(Date.now() / 1000);
-    if (Math.abs(now - eventTime) > 300) {
-      console.warn('[Stripe Webhook] Timestamp drift > 300s');
-      return false;
-    }
-
-    const signedPayload = `${timestamp}.${rawBody}`;
-    const hmac = crypto.createHmac('sha256', webhookSecret);
-    hmac.update(signedPayload);
-    const expectedSignature = hmac.digest('hex');
-
-    const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
-
-    for (const sig of signatures) {
-      const sigBuffer = Buffer.from(sig, 'utf8');
-      if (
-        expectedBuffer.length === sigBuffer.length &&
-        crypto.timingSafeEqual(expectedBuffer, sigBuffer)
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  } catch (e) {
-    console.error('[Stripe Webhook] Signature verification error:', e);
-    return false;
-  }
+  const fields = signatureHeader.split(',').map(item => item.trim());
+  const timestamps = fields.filter(item => item.startsWith('t='));
+  if (timestamps.length !== 1 || !/^t=\d{1,12}$/.test(timestamps[0])) return false;
+  const timestamp = timestamps[0].slice(2);
+  if (Math.abs(now - Number(timestamp)) > 300) return false;
+  const expected = crypto.createHmac('sha256', webhookSecret).update(timestamp + '.' + rawBody).digest();
+  return fields.some(item => /^v1=[a-f0-9]{64}$/i.test(item) &&
+    crypto.timingSafeEqual(expected, Buffer.from(item.slice(3), 'hex')));
 }

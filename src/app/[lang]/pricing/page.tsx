@@ -24,8 +24,8 @@ export default async function PricingPage({ params }: { params: Promise<{ lang: 
           </h1>
           <p className="mt-6 max-w-[56ch] text-[15px] leading-[1.7] text-soft">
             {lang === 'en'
-              ? 'Secure checkout via Payhip — PayPal and major credit/debit cards.'
-              : '通过 Payhip 安全结算，支持 PayPal 与国际信用卡，积分长期有效。'}
+              ? 'Choose a payment region to see its currency and checkout options. You can also redeem an official code.'
+              : '选择支付地区，查看对应币种与结算方式。已有官方兑换码也可直接兑换。'}
           </p>
         </div>
       </section>

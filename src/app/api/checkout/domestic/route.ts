@@ -1,41 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseUser } from '@/lib/supabase/server';
-import { createDomesticPaymentOrder, DOMESTIC_TIERS } from '@/lib/payments/domestic';
+import { createDomesticPaymentOrder, getDomesticGateway } from '@/lib/payments/domestic';
+import { isPaymentTier } from '@/lib/payments/catalog';
+import { noStore, objectRecord } from '@/lib/payments/shared';
 
-/**
- * POST /api/checkout/domestic
- * 发起国内微信/支付宝支付
- */
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
+  const send = (body: Record<string, unknown>, status = 200) =>
+    Response.json(body, { status, headers: noStore });
   const user = await getSupabaseUser();
-  if (!user) {
-    return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
-  }
+  if (!user) return send({ error: 'unauthenticated' }, 401);
 
-  let body: { points?: number; channel?: 'wechat' | 'alipay' };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
-  }
+  const body = objectRecord(await req.json().catch(() => null));
+  if (!body) return send({ error: 'invalid_json' }, 400);
+  if (!isPaymentTier(body.points)) return send({ error: 'invalid_tier' }, 400);
 
-  const points = Number(body.points);
-  if (!DOMESTIC_TIERS[points]) {
-    return NextResponse.json(
-      { error: 'invalid_tier', message: '支持的国内充值面额为 100, 500, 2000 积分。' },
-      { status: 400 }
-    );
-  }
-
-  const channel = body.channel === 'alipay' ? 'alipay' : 'wechat';
-  const origin = req.nextUrl.origin || 'https://www.yitarot.net';
+  const gateway = getDomesticGateway();
+  if (!gateway) return send({ error: 'domestic_unavailable' }, 503);
+  if (body.channel !== gateway.channel) return send({ error: 'invalid_channel' }, 400);
 
   const result = await createDomesticPaymentOrder({
-    userId: user.id,
-    points,
-    channel,
-    origin
+    userId: user.id, points: body.points, lang: body.lang === 'en' ? 'en' : 'zh', gateway
   });
-
-  return NextResponse.json(result);
+  return result ? send(result) : send({ error: 'checkout_failed' }, 502);
 }

@@ -1,62 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseUser } from '@/lib/supabase/server';
 import { createStripeCheckoutSession, isStripeConfigured } from '@/lib/payments/stripe';
+import { isPaymentTier } from '@/lib/payments/catalog';
+import { noStore, objectRecord } from '@/lib/payments/shared';
 
-/**
- * POST /api/checkout/stripe
- * 创建 Stripe 国际支付结账会话
- */
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
+  const send = (body: Record<string, unknown>, status = 200) =>
+    Response.json(body, { status, headers: noStore });
   const user = await getSupabaseUser();
-  if (!user) {
-    return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
-  }
-
-  let body: { points?: number };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
-  }
-
-  const points = Number(body.points);
-  if (![100, 500, 2000].includes(points)) {
-    return NextResponse.json(
-      { error: 'invalid_tier', message: 'Supported tiers are 100, 500, 2000 points.' },
-      { status: 400 }
-    );
-  }
-
-  if (!isStripeConfigured()) {
-    return NextResponse.json(
-      {
-        error: 'stripe_not_configured',
-        message:
-          'Stripe 密钥暂未配置。请在 Vercel 环境变量中添加 STRIPE_SECRET_KEY 与 STRIPE_WEBHOOK_SECRET。'
-      },
-      { status: 503 }
-    );
-  }
-
-  const origin = req.nextUrl.origin || 'https://www.yitarot.net';
-
+  if (!user) return send({ error: 'unauthenticated' }, 401);
+  const body = objectRecord(await req.json().catch(() => null));
+  if (!body) return send({ error: 'invalid_json' }, 400);
+  if (!isPaymentTier(body.points)) return send({ error: 'invalid_tier' }, 400);
+  if (!isStripeConfigured()) return send({ error: 'stripe_unavailable' }, 503);
   const result = await createStripeCheckoutSession({
-    userId: user.id,
-    email: user.email,
-    points,
-    origin
+    userId: user.id, email: user.email, points: body.points, lang: body.lang === 'en' ? 'en' : 'zh'
   });
-
-  if (!result.ok || !result.sessionUrl) {
-    return NextResponse.json(
-      { error: 'stripe_session_failed', message: result.error || 'Failed to create checkout session' },
-      { status: 500 }
-    );
-  }
-
-  return NextResponse.json({
-    ok: true,
-    checkout_url: result.sessionUrl,
-    session_id: result.sessionId
-  });
+  if (!result) return send({ error: 'checkout_failed' }, 502);
+  return send({ ok: true, checkout_url: result.sessionUrl, session_id: result.sessionId });
 }

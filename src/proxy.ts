@@ -6,6 +6,11 @@ import { createServerClient } from '@supabase/ssr';
  * 只做会话续期，不做路由拦截；登录态校验由各页面 / API 自行完成。
  */
 export async function proxy(request: NextRequest) {
+  // Public region discovery and provider callbacks do not need browser sessions.
+  if (['/api/checkout/region', '/api/webhooks/domestic', '/api/webhooks/stripe', '/api/payhip-webhook'].includes(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
