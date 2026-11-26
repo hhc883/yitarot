@@ -14,6 +14,7 @@ import { Sparkles, Compass, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
 import { MarkdownView } from '@/components/common/MarkdownView';
 import { saveReading, getSavedReadings } from '@/lib/storage/reading-history';
+import { renderLocalBaziFallback } from '@/lib/metaphysics/bazi-evidence';
 
 gsap.registerPlugin(useGSAP);
 
@@ -127,6 +128,15 @@ function validateBirthForm(
   };
 }
 
+function getInitialSavedBaziReport(): string {
+  if (typeof window === 'undefined') return '';
+  const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
+  if (!rawSessionId) return '';
+  const list = getSavedReadings();
+  const found = list.find((r) => r.id === rawSessionId && r.type === 'bazi');
+  return found?.fullContent || '';
+}
+
 export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
   const isEn = lang === 'en';
   const containerRef = useRef<HTMLDivElement>(null);
@@ -144,16 +154,38 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
     calculateBaZi(1996, 8, 18, 12, 0, { gender: 'male', yunSect: 1 })
   );
 
-  const [aiReport, setAiReport] = useState<string>(() => {
-    if (typeof window === 'undefined') return '';
-    const rawSessionId = new URLSearchParams(window.location.search).get('session_id');
-    if (!rawSessionId) return '';
-    const list = getSavedReadings();
-    const found = list.find((r) => r.id === rawSessionId);
-    return found?.fullContent || '';
-  });
+  const [aiReport, setAiReport] = useState('');
+  const [isHistoricalReport, setIsHistoricalReport] = useState(false);
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
   const pointsGate = usePointsGate();
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const requestSeqRef = useRef<number>(0);
+  const shouldSaveReportRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    const initialSequence = requestSeqRef.current;
+    const frame = requestAnimationFrame(() => {
+      if (requestSeqRef.current !== initialSequence) return;
+      const savedReport = getInitialSavedBaziReport();
+      if (savedReport) {
+        setAiReport(savedReport);
+        setIsHistoricalReport(true);
+      }
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      requestSeqRef.current += 1;
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  const cancelPendingAiRequest = () => {
+    requestSeqRef.current += 1;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    shouldSaveReportRef.current = false;
+    setIsGeneratingAi(false);
+  };
 
   const handleFieldChange = (field: keyof BirthFormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -163,12 +195,14 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
   // 当输入变化时重新推演八字与大运
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
+    if (abortControllerRef.current) return;
     const checked = validateBirthForm(form, gender, isEn);
     if (checked.error || !checked.values) {
       setFormError(checked.error);
       return;
     }
     setFormError(null);
+    cancelPendingAiRequest();
     const { year, month, day, hour, minute, gender: validGender } = checked.values;
     const res = calculateBaZi(year, month, day, hour, minute, {
       gender: validGender,
@@ -176,12 +210,15 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
     });
     setBaziResult(res);
     setAiReport('');
+    setIsHistoricalReport(false);
   };
 
   const handleSectChange = (nextSect: BaZiYunSect) => {
+    if (abortControllerRef.current) return;
     setYunSect(nextSect);
     const checked = validateBirthForm(form, gender, isEn);
     if (!checked.error && checked.values) {
+      cancelPendingAiRequest();
       const { year, month, day, hour, minute, gender: validGender } = checked.values;
       setBaziResult(
         calculateBaZi(year, month, day, hour, minute, {
@@ -189,6 +226,8 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
           yunSect: nextSect
         })
       );
+      setAiReport('');
+      setIsHistoricalReport(false);
     }
   };
 
@@ -213,14 +252,16 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
     }
   }, { dependencies: [baziResult], scope: containerRef });
 
-  // 八字 AI 报告生成完成自动存入用户档案
+  // 八字 AI 报告生成完成自动存入用户档案（仅保存完整新生成的报告，避免重复与残缺存档）
   useEffect(() => {
-    if (aiReport && !isGeneratingAi && baziResult) {
+    if (shouldSaveReportRef.current && aiReport && !isGeneratingAi && baziResult) {
+      shouldSaveReportRef.current = false;
       const yearGz = `${baziResult.pillars.year.gan}${baziResult.pillars.year.zhi}`;
       const monthGz = `${baziResult.pillars.month.gan}${baziResult.pillars.month.zhi}`;
       const dayGz = `${baziResult.pillars.day.gan}${baziResult.pillars.day.zhi}`;
       const { year, month, day, hour, minute } = baziResult.birthSolar;
       const hm = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      const chartGender = baziResult.yun?.gender ?? gender;
 
       saveReading({
         type: 'bazi',
@@ -228,44 +269,68 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
           ? `BaZi Natal Chart (${yearGz} ${monthGz} ${dayGz})`
           : `八字命理全息洞察（${yearGz}年 ${monthGz}月 ${dayGz}日）`,
         question: isEn
-          ? `Birth: ${year}-${month}-${day} ${hm} (${gender})`
-          : `出生公历：${year}年${month}月${day}日 ${hm}（${gender === 'male' ? '乾造' : '坤造'}）`,
+          ? `Birth: ${year}-${month}-${day} ${hm} (${chartGender})`
+          : `出生公历：${year}年${month}月${day}日 ${hm}（${chartGender === 'male' ? '乾造' : '坤造'}）`,
         summary: aiReport.slice(0, 140) + '...',
         fullContent: aiReport
       });
     }
   }, [aiReport, isGeneratingAi, baziResult, gender, isEn]);
 
-  // 生成 AI 命理全息报告：先扣 10 积分（失败弹「积分不足」），再流式推演
+  // 生成 AI 命理全息报告：先扣 10 积分（失败弹「积分不足」），再等待服务端循证校验完成
   const handleGenerateAiReport = async () => {
-    const consumed = await pointsGate.consume('bazi');
-    if (!consumed.ok) return;
+    if (abortControllerRef.current) return;
 
+    const seq = ++requestSeqRef.current;
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    shouldSaveReportRef.current = false;
     setIsGeneratingAi(true);
     setAiReport('');
+    setIsHistoricalReport(false);
 
-    const { year, month, day, hour, minute } = baziResult.birthSolar;
+    const chartSnapshot = baziResult;
+    const { year, month, day, hour, minute } = chartSnapshot.birthSolar;
+    const chartGender = chartSnapshot.yun?.gender ?? gender;
+    const chartYunSect = chartSnapshot.yun?.sect ?? yunSect;
+    let paid = false;
 
     try {
+      const consumed = await pointsGate.consume('bazi');
+      if (requestSeqRef.current !== seq || controller.signal.aborted) return;
+      if (!consumed.ok) return;
+      paid = true;
+
       const response = await fetch('/api/east/bazi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           year,
           month,
           day,
           hour,
           minute,
-          gender,
+          gender: chartGender,
+          yunSect: chartYunSect,
           lang,
           points_ref: consumed.ref_id
         })
       });
 
+      if (response.status === 401 || response.status === 402 || response.status === 403 || response.status === 400) {
+        // 未登录 / 积分不足 / 权限受限 / 参数错误：不降级本地引擎，避免绕过鉴权与计费
+        return;
+      }
+
       if (response.ok && response.body) {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
+        let streamedText = '';
+        let receivedDone = false;
+        let streamError: string | null = null;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -275,89 +340,61 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
           buffer = lines.pop() || '';
 
           for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const jsonStr = line.slice(6).trim();
-              if (jsonStr === '[DONE]') break;
-              try {
-                const data = JSON.parse(jsonStr);
-                if (data.text) {
-                  setAiReport(prev => prev + data.text);
-                }
-              } catch {
-                // ignore
+            const trimmedLine = line.trim();
+            if (!trimmedLine.startsWith('data: ')) continue;
+            const jsonStr = trimmedLine.slice(6).trim();
+            if (jsonStr === '[DONE]') {
+              receivedDone = true;
+              break;
+            }
+            try {
+              const data = JSON.parse(jsonStr) as { text?: string; error?: string };
+              if (typeof data.error === 'string' && data.error.length > 0) {
+                streamError = data.error;
+                break;
               }
+              if (typeof data.text === 'string' && data.text.length > 0) {
+                streamedText += data.text;
+              }
+            } catch {
+              streamError = 'Malformed SSE chunk';
+              break;
             }
           }
+
+          if (receivedDone || streamError) break;
         }
-      } else if (response.status === 401 || response.status === 402) {
-        // 未登录 / 积分不足：不降级本地引擎，避免绕过积分
-        setIsGeneratingAi(false);
-        return;
-      } else {
-        throw new Error('API unavailable');
+
+        if (requestSeqRef.current !== seq) return;
+
+        if (receivedDone && !streamError && streamedText.trim().length > 0) {
+          shouldSaveReportRef.current = true;
+          setAiReport(streamedText);
+          return;
+        }
+
+        throw new Error(streamError || 'Incomplete SSE stream');
       }
-    } catch {
-      // 降级使用本地专家推演（严禁以表层 8 字数量断定旺衰或喜用神）
-      const dm = baziResult.dayMaster;
-      const mostFrequent = baziResult.fiveElements.reduce((prev, curr) =>
-        curr.count > prev.count ? curr : prev
-      );
-      const leastFrequent = baziResult.fiveElements.reduce((prev, curr) =>
-        curr.count < prev.count ? curr : prev
-      );
 
-      const report = isEn
-        ? `### 🌟 Day Master Essence & Archetype
-Your Day Pillar Heavenly Stem (Day Master) is **【${dm.nameEn}】**, classically described as “${dm.archetypeEn}”.
-${dm.essenceEn}
+      throw new Error(`API unavailable (${response.status})`);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      if (requestSeqRef.current !== seq) return;
+      if (!paid) return;
 
----
-
-### ✦ Surface Five Elements Count (8 Chart Characters)
-Across the 8 surface stems and branches, **${mostFrequent.element}** appears most often (${mostFrequent.count}/8, ~${mostFrequent.percentage}%), while **${leastFrequent.element}** appears least (${leastFrequent.count}/8).
-- **Important Note**: ${baziResult.surfaceElementsNoteEn}
-
----
-
-### ✦ Career Trajectory & Natural Style
-${dm.cosmicAdviceEn}
-Favor roles requiring durable craftsmanship, long-horizon judgment, and steady domain mastery.
-
----
-
-### 🧭 Reflection & Grounded Guidance
-> *“Know the timing of your chart and act with composed clarity.”*`
-        : `### 🌟 原局日主与性格底色
-你的日柱天干（日主）为**【${dm.nameZh}】**，传统意象喻为“${dm.archetypeZh}”。
-${dm.essenceZh}
-
----
-
-### ✦ 八个表层字五行统计（非旺衰与喜用结论）
-在四柱天干与地支共 8 个表层字中，**【${mostFrequent.elementZh}】**出现次数最多（${mostFrequent.count}/8，约 ${mostFrequent.percentage}%），而**【${leastFrequent.elementZh}】**出现次数最少（${leastFrequent.count}/8）。
-- **口径说明**：${baziResult.surfaceElementsNoteZh}
-
----
-
-### ✦ 事业倾向与行事节奏
-${dm.cosmicAdviceZh}
-适合在需要长期规划、文化积累或专业壁垒的领域深耕，保持稳健节奏。
-
----
-
-### 🧭 知命参考与自我调适
-> *“君子知命而不惑，居易以俟命。结合月令与大运流年审时度势，方能从容应对变化。”*`;
-
-      let index = 0;
-      const interval = setInterval(() => {
-        index += 8;
-        setAiReport(report.slice(0, index));
-        if (index >= report.length) {
-          clearInterval(interval);
-        }
-      }, 20);
+      // 已授权但传输失败时，使用共享确定性循证降级报告（无定时器、无固定套话）
+      const fallbackReport = renderLocalBaziFallback(chartSnapshot, {
+        lang: isEn ? 'en' : 'zh'
+      });
+      shouldSaveReportRef.current = true;
+      setAiReport(fallbackReport);
     } finally {
-      setIsGeneratingAi(false);
+      if (requestSeqRef.current === seq) {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
+        setIsGeneratingAi(false);
+      }
     }
   };
 
@@ -498,7 +535,8 @@ ${dm.cosmicAdviceZh}
           <div className="col-span-2 sm:col-span-6 pt-2">
             <button
               type="submit"
-              className="w-full min-h-[44px] rounded-sm bg-[#171717] hover:bg-[#333333] text-white text-[14px] font-medium tracking-wide transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+              disabled={isGeneratingAi}
+              className="w-full min-h-[44px] rounded-sm bg-[#171717] hover:bg-[#333333] text-white text-[14px] font-medium tracking-wide transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             >
               <span>{isEn ? 'Calculate BaZi Chart' : '开始排盘'}</span>
             </button>
@@ -660,8 +698,9 @@ ${dm.cosmicAdviceZh}
               <button
                 key={s}
                 type="button"
+                disabled={isGeneratingAi}
                 onClick={() => handleSectChange(s)}
-                className={`px-2.5 py-1 rounded-sm border transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                className={`px-2.5 py-1 rounded-sm border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
                   yunSect === s
                     ? 'bg-[#171717] text-white border-[#171717]'
                     : 'bg-[#F5F5F6] text-[#52525B] border-[#E4E4E7] hover:text-[#171717]'
@@ -810,7 +849,7 @@ ${dm.cosmicAdviceZh}
         </p>
       </div>
 
-      {/* AI 命理全息蓝图报告 */}
+      {/* 八字命盘依据报告 */}
       <div className="w-full rounded-sm bg-white border border-[#E4E4E7] p-5 sm:p-6 text-left">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
@@ -818,7 +857,7 @@ ${dm.cosmicAdviceZh}
               AI Analysis
             </span>
             <h3 className="font-serif text-[18px] sm:text-[20px] font-normal text-[#171717] mt-1.5">
-              {isEn ? 'AI BaZi Holographic Insight' : 'AI 命理全息洞察报告'}
+              {isEn ? 'BaZi Chart Evidence Report' : '八字命盘依据报告'}
             </h3>
           </div>
 
@@ -830,14 +869,26 @@ ${dm.cosmicAdviceZh}
             <Sparkles className="w-3.5 h-3.5 text-white" />
             <span>
               {isEn
-                ? (isGeneratingAi ? 'Analyzing BaZi Stems & Branches...' : 'Generate Full AI Reading')
-                : (isGeneratingAi ? 'AI 正在推演干支生克...' : '生成专属 AI 全息解读')}
+                ? (isGeneratingAi ? 'Generating Chart Report...' : 'Generate AI Chart Report')
+                : (isGeneratingAi ? '正在生成命盘报告...' : '生成 AI 命盘报告')}
             </span>
           </button>
         </div>
 
         {aiReport ? (
           <div className="border-t border-[#E4E4E7] pt-6 animate-in fade-in">
+            {isHistoricalReport && (
+              <div className="mb-4 px-3 py-2.5 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[12px] leading-relaxed text-[#52525B]">
+                <span className="font-medium text-[#171717] mr-1.5">
+                  {isEn ? 'Saved report' : '历史报告'}
+                </span>
+                <span>
+                  {isEn
+                    ? 'Original saved BaZi report text. The chart above is the current separate chart and was not reconstructed because older saved data lacks chart and sect parameters.'
+                    : '此为历史保存的原始八字报告正文；上方盘面为当前独立排盘结果，因旧存档缺少出生盘面与起运口径参数，不作反推还原。'}
+                </span>
+              </div>
+            )}
             <MarkdownView
               content={aiReport}
               className="text-[13px] sm:text-[14px] leading-relaxed text-[#171717]"
@@ -846,8 +897,8 @@ ${dm.cosmicAdviceZh}
         ) : (
           <div className="py-8 text-center text-[13px] text-[#52525B] border-t border-[#E4E4E7]">
             {isEn
-              ? 'Click the button above to generate AI insights covering your Day Master, chart interactions, and life themes.'
-              : '点击上方按钮，让 AI 依据你的八字四柱、十神与藏干结构生成参考解读。'}
+              ? 'Click the button above to generate an AI report grounded in your verified Four Pillars, Day Master, Ten Gods, Hidden Stems, and DaYun cycles for structural reference only, with no guarantee or inference of life outcomes.'
+              : '点击上方按钮，依据已核验的四柱、日主、十神、藏干与大运盘面信息生成 AI 参考报告；仅作命理结构参考，不作人生结果推断或保证。'}
           </div>
         )}
       </div>
