@@ -1,5 +1,5 @@
 import { Solar } from 'lunar-typescript';
-import { findMatchingMeihuaCase, getTrigramImagery, type MeihuaCaseEntry, type TrigramWanwuDetail } from '@/lib/kb/meihua';
+import { LINE_TEXTS } from '@/lib/kb/canon';
 import { hexagramSymbol, lookupEntryByBinary } from './hexagrams64';
 
 export const MEIHUA_TIME_MIN = '1900-01-01T00:00:00';
@@ -66,6 +66,131 @@ export interface MeihuaCalculationBasis {
   conventionNoteEn: string;
 }
 
+export interface MeihuaSourceRef {
+  id: 'meihua.v1.time' | 'meihua.v1.mutual' | 'meihua.v2.tiyong' | 'meihua.v2.guaduan' | 'meihua.v2.zhanbu';
+  bookZh: string;
+  bookEn: string;
+  chapterZh: string;
+  chapterEn: string;
+  url: string;
+}
+
+export const MEIHUA_SOURCES: Record<MeihuaSourceRef['id'], MeihuaSourceRef> = {
+  'meihua.v1.time': {
+    id: 'meihua.v1.time',
+    bookZh: '《梅花易数》卷一',
+    bookEn: 'Meihua Yishu, Vol. 1',
+    chapterZh: '年月日时起例',
+    chapterEn: 'Year-Month-Day-Hour Casting',
+    url: 'https://zh.wikisource.org/zh-hant/梅花易數/卷一#年月日時起例'
+  },
+  'meihua.v1.mutual': {
+    id: 'meihua.v1.mutual',
+    bookZh: '《梅花易数》卷一',
+    bookEn: 'Meihua Yishu, Vol. 1',
+    chapterZh: '互卦起例',
+    chapterEn: 'Constructing the Nuclear Trigrams',
+    url: 'https://zh.wikisource.org/zh-hant/梅花易數/卷一#互卦起例'
+  },
+  'meihua.v2.tiyong': {
+    id: 'meihua.v2.tiyong',
+    bookZh: '《梅花易数》卷二',
+    bookEn: 'Meihua Yishu, Vol. 2',
+    chapterZh: '体用总诀',
+    chapterEn: 'General Principles of Ti & Yong (体用总诀)',
+    url: 'https://zh.wikisource.org/zh-hant/梅花易數/卷二#體用總訣'
+  },
+  'meihua.v2.guaduan': {
+    id: 'meihua.v2.guaduan',
+    bookZh: '《梅花易数》卷二',
+    bookEn: 'Meihua Yishu, Vol. 2',
+    chapterZh: '卦断遗论',
+    chapterEn: 'Supplementary Discourse on Hexagram Judgment (卦断遗论)',
+    url: 'https://zh.wikisource.org/zh-hant/梅花易數/卷二#卦斷遺論'
+  },
+  'meihua.v2.zhanbu': {
+    id: 'meihua.v2.zhanbu',
+    bookZh: '《梅花易数》卷二',
+    bookEn: 'Meihua Yishu, Vol. 2',
+    chapterZh: '占卜总决',
+    chapterEn: 'General Summary of Divination (占卜总决)',
+    url: 'https://zh.wikisource.org/zh-hant/梅花易數/卷二#占卜總決'
+  }
+};
+
+export type ComparisonStage = 'primary_use' | 'mutual_upper' | 'mutual_lower' | 'transformed_use';
+
+export type RelationDirection =
+  | 'target_generates_body'
+  | 'body_overcomes_target'
+  | 'same'
+  | 'body_generates_target'
+  | 'target_overcomes_body';
+
+export interface StageComparison {
+  stage: ComparisonStage;
+  stageLabelZh: string;
+  stageLabelEn: string;
+  stageRoleZh: string;
+  stageRoleEn: string;
+  body: TrigramInfo;
+  target: TrigramInfo;
+  direction: RelationDirection;
+  directionLabelZh: string;
+  directionLabelEn: string;
+  polarity: 'supportive' | 'draining_or_pressured';
+  ruleTextZh: string;
+  ruleTextEn: string;
+  source: MeihuaSourceRef;
+}
+
+export interface MeihuaSynthesis {
+  comparisons: StageComparison[];
+  hasMixedSignals: boolean;
+  headlineZh: string;
+  headlineEn: string;
+  summaryZh: string;
+  summaryEn: string;
+  sources: MeihuaSourceRef[];
+}
+
+export interface MeihuaAssessments {
+  seasonal: {
+    status: 'not_assessed';
+    hasDateContext: boolean;
+    labelZh: string;
+    labelEn: string;
+    reasonZh: string;
+    reasonEn: string;
+  };
+  externalOmens: {
+    status: 'not_assessed';
+    labelZh: string;
+    labelEn: string;
+    reasonZh: string;
+    reasonEn: string;
+  };
+}
+
+export interface MeihuaIChingCanon {
+  primary: {
+    number: number;
+    nameZh: string;
+    nameEn: string;
+    judgmentZh: string;
+    imageZh: string;
+  };
+  transformed: {
+    number: number;
+    nameZh: string;
+    nameEn: string;
+    judgmentZh: string;
+    imageZh: string;
+  };
+  movingLineNumber: number;
+  movingLineText: string | null;
+}
+
 export interface MeihuaDivinationResult {
   question: string;
   castMode: "time" | "numbers";
@@ -93,6 +218,7 @@ export interface MeihuaDivinationResult {
     roleEn?: string;
   };
   mutualHexagram: {
+    basis: 'primary' | 'transformed';
     upper: TrigramInfo;
     lower: TrigramInfo;
     fullNameZh: string;
@@ -111,34 +237,9 @@ export interface MeihuaDivinationResult {
     summaryZh: string;
     summaryEn?: string;
   };
-  wuxingRelation: {
-    type: "use_generates_body" | "body_overcomes_use" | "same" | "body_generates_use" | "use_overcomes_body";
-    levelZh: "大吉" | "中吉" | "平顺" | "耗神" | "遇阻";
-    levelEn?: string;
-    headlineZh: string;
-    headlineEn?: string;
-    analysisZh: string;
-    analysisEn?: string;
-  };
-  decisionActionZh: {
-    verdict: string; // 直决断语
-    suitable: string[]; // 宜
-    unsuitable: string[]; // 忌
-    tacticalAdvice: string; // 战术策略
-  };
-  decisionActionEn?: {
-    verdict: string;
-    suitable: string[];
-    unsuitable: string[];
-    tacticalAdvice: string;
-  };
-  /** 邵康节《梅花易数》经典实战卦例（若命中） */
-  classicCase?: MeihuaCaseEntry;
-  /** 体用八卦万物类象（《梅花易数》伏羲先天类象） */
-  trigramImagery?: {
-    body?: TrigramWanwuDetail;
-    application?: TrigramWanwuDetail;
-  };
+  synthesis: MeihuaSynthesis;
+  assessments: MeihuaAssessments;
+  ichingCanon: MeihuaIChingCanon;
 }
 
 const HEXAGRAM_NAMES: Record<string, string> = {
@@ -188,6 +289,160 @@ export function parseMeihuaBeijingTime(input: string): Date | null {
 export function formatMeihuaBeijingTime(date: Date = new Date()): string {
   const beijing = new Date(date.getTime() + BEIJING_OFFSET_MS);
   return beijing.toISOString().slice(0, 19);
+}
+
+const STAGE_META: Record<
+  ComparisonStage,
+  {
+    labelZh: string;
+    labelEn: string;
+    roleZh: string;
+    roleEn: string;
+    targetNounZh: string;
+    targetNounEn: string;
+    source: MeihuaSourceRef;
+  }
+> = {
+  primary_use: {
+    labelZh: '体 vs 本卦用',
+    labelEn: 'Body vs. Primary Application',
+    roleZh: '体为己方主体，本卦用为当前所占之事与外部境遇。',
+    roleEn: 'Body represents the subject; Primary Application represents the matter at hand.',
+    targetNounZh: '用',
+    targetNounEn: 'Application',
+    source: MEIHUA_SOURCES['meihua.v2.tiyong']
+  },
+  mutual_upper: {
+    labelZh: '体 vs 互之上',
+    labelEn: 'Body vs. Upper Nuclear',
+    roleZh: '上互为互卦上部，按传统体用法与体卦比较。',
+    roleEn: 'The upper nuclear trigram is compared with Body in the traditional method.',
+    targetNounZh: '互',
+    targetNounEn: 'Upper Nuclear',
+    source: MEIHUA_SOURCES['meihua.v2.guaduan']
+  },
+  mutual_lower: {
+    labelZh: '体 vs 互之下',
+    labelEn: 'Body vs. Lower Nuclear',
+    roleZh: '下互为互卦下部，按传统体用法与体卦比较。',
+    roleEn: 'The lower nuclear trigram is compared with Body in the traditional method.',
+    targetNounZh: '互',
+    targetNounEn: 'Lower Nuclear',
+    source: MEIHUA_SOURCES['meihua.v2.guaduan']
+  },
+  transformed_use: {
+    labelZh: '体 vs 变之新用',
+    labelEn: 'Body vs. Transformed Application',
+    roleZh: '变卦为动爻之后的事态转归与后续回应。',
+    roleEn: 'Transformed Application represents the later response after the moving line shifts.',
+    targetNounZh: '变',
+    targetNounEn: 'Transformed Application',
+    source: MEIHUA_SOURCES['meihua.v2.guaduan']
+  }
+};
+
+function compareBodyToTarget(
+  body: TrigramInfo,
+  target: TrigramInfo,
+  stage: ComparisonStage
+): StageComparison {
+  const meta = STAGE_META[stage];
+  const bEl = body.element;
+  const tEl = target.element;
+  const bNameZh = `${body.nameZh}（${body.elementZh}）`;
+  const tNameZh = `${target.nameZh}（${target.elementZh}）`;
+  const bNameEn = `${body.nameEn || body.nameZh} [${body.element}]`;
+  const tNameEn = `${target.nameEn || target.nameZh} [${target.element}]`;
+
+  let direction: RelationDirection = 'same';
+  let directionLabelZh = stage === 'primary_use' ? '体用比和' : `体${meta.targetNounZh}比和`;
+  let directionLabelEn = `Body & ${meta.targetNounEn} in Concord (比和)`;
+  let polarity: 'supportive' | 'draining_or_pressured' = 'supportive';
+  let ruleTextZh = `体${bNameZh}与${meta.targetNounZh}${tNameZh}五行同属${body.elementZh}。《体用总诀》将同类称为比和。`;
+  let ruleTextEn = `Body ${bNameEn} and ${meta.targetNounEn} ${tNameEn} share element ${body.element}. Per Ti-Yong General Principles, concord (比和) indicates mutual alignment without element clash at this stage.`;
+
+  if (ELEMENT_GENERATION[tEl] === bEl) {
+    direction = 'target_generates_body';
+    directionLabelZh = `${meta.targetNounZh}生体`;
+    directionLabelEn = `${meta.targetNounEn} Generates Body (${meta.targetNounZh}生体)`;
+    polarity = 'supportive';
+    ruleTextZh = `${meta.targetNounZh}${tNameZh}生体${bNameZh}。按《体用总诀》，这是体卦受生。`;
+    ruleTextEn = `${meta.targetNounEn} ${tNameEn} generates Body ${bNameEn}. Per Ti-Yong General Principles & Supplementary Discourse, generation toward Body indicates supportive inflow at this stage.`;
+  } else if (ELEMENT_OVERCOMING[bEl] === tEl) {
+    direction = 'body_overcomes_target';
+    directionLabelZh = `体克${meta.targetNounZh}`;
+    directionLabelEn = `Body Overcomes ${meta.targetNounEn} (体克${meta.targetNounZh})`;
+    polarity = 'supportive';
+    ruleTextZh = `体${bNameZh}克${meta.targetNounZh}${tNameZh}。按《体用总诀》，这是体克对照卦。`;
+    ruleTextEn = `Body ${bNameEn} overcomes ${meta.targetNounEn} ${tNameEn}. Per Ti-Yong General Principles, this marks the direction of restraint from Body to the other trigram.`;
+  } else if (ELEMENT_GENERATION[bEl] === tEl) {
+    direction = 'body_generates_target';
+    directionLabelZh = `体生${meta.targetNounZh}`;
+    directionLabelEn = `Body Generates ${meta.targetNounEn} (体生${meta.targetNounZh})`;
+    polarity = 'draining_or_pressured';
+    ruleTextZh = `体${bNameZh}生${meta.targetNounZh}${tNameZh}。《体用总诀》将体卦生出称为泄气。`;
+    ruleTextEn = `Body ${bNameEn} generates ${meta.targetNounEn} ${tNameEn}. Per Ti-Yong General Principles, Body generating target indicates the traditional notion of Qi draining from Body at this stage.`;
+  } else if (ELEMENT_OVERCOMING[tEl] === bEl) {
+    direction = 'target_overcomes_body';
+    directionLabelZh = `${meta.targetNounZh}克体`;
+    directionLabelEn = `${meta.targetNounEn} Overcomes Body (${meta.targetNounZh}克体)`;
+    polarity = 'draining_or_pressured';
+    ruleTextZh = `${meta.targetNounZh}${tNameZh}克体${bNameZh}。据《体用总诀》及《卦断遗论》，此段见克制压迫；若互变再重见克体党类，压力更甚，若互变见生扶则可减缓。`;
+    ruleTextEn = `${meta.targetNounEn} ${tNameEn} overcomes Body ${bNameEn}. Per Ti-Yong General Principles & Supplementary Discourse, overcoming toward Body indicates resistance/pressure at this stage, which may be compounded or relieved by other stages.`;
+  }
+
+  return {
+    stage,
+    stageLabelZh: meta.labelZh,
+    stageLabelEn: meta.labelEn,
+    stageRoleZh: meta.roleZh,
+    stageRoleEn: meta.roleEn,
+    body,
+    target,
+    direction,
+    directionLabelZh,
+    directionLabelEn,
+    polarity,
+    ruleTextZh,
+    ruleTextEn,
+    source: meta.source
+  };
+}
+
+function buildSynthesis(comparisons: StageComparison[]): MeihuaSynthesis {
+  const [primaryUse, mutualUpper, mutualLower, transformedUse] = comparisons;
+  const hasMixedSignals = comparisons.some(comp => comp.polarity !== primaryUse.polarity);
+
+  const laterStagesZh = `互之上（${mutualUpper.directionLabelZh}）、互之下（${mutualLower.directionLabelZh}）、变之新用（${transformedUse.directionLabelZh}）`;
+  const laterStagesEn = `Upper Nuclear (${mutualUpper.directionLabelEn}), Lower Nuclear (${mutualLower.directionLabelEn}), and Transformed Application (${transformedUse.directionLabelEn})`;
+
+  const headlineZh = hasMixedSignals ? '本卦与互变需合看' : '本卦与互变的生克倾向一致';
+  const headlineEn = hasMixedSignals
+    ? 'Read the Primary, Nuclear and Transformed Relations Together'
+    : 'The Primary, Nuclear and Transformed Relations Align';
+  const summaryZh = `本卦用（${primaryUse.directionLabelZh}），${laterStagesZh}。${
+    hasMixedSignals ? '《卦断遗论》以互、变参与判断，表示初见的生克仍需互相参照。' : '按《体用总诀》，这些关系可合看，完整推断还须参照时令与其他条件。'
+  }`;
+  const summaryEn = `Primary Application (${primaryUse.directionLabelEn}), ${laterStagesEn}. ${
+    hasMixedSignals
+      ? 'Supplementary Discourse considers nuclear and transformed relations alongside the primary relation.'
+      : 'General Principles reads these relations together and also considers seasonal strength and other circumstances.'
+  }`;
+
+  return {
+    comparisons,
+    hasMixedSignals,
+    headlineZh,
+    headlineEn,
+    summaryZh,
+    summaryEn,
+    sources: [
+      MEIHUA_SOURCES['meihua.v1.mutual'],
+      MEIHUA_SOURCES['meihua.v2.tiyong'],
+      MEIHUA_SOURCES['meihua.v2.guaduan'],
+      MEIHUA_SOURCES['meihua.v2.zhanbu']
+    ]
+  };
 }
 
 /**
@@ -332,11 +587,6 @@ export function divineMeihua(
   const bodyTri = isMovingInLower ? upperTri : lowerTri;
   const useTri = isMovingInLower ? lowerTri : upperTri;
 
-  // 互卦：二三四爻为下互，三四五爻为上互
-  const mutualLower = trigramFromLines([allLines[1], allLines[2], allLines[3]]);
-  const mutualUpper = trigramFromLines([allLines[2], allLines[3], allLines[4]]);
-  const mutualName = HEXAGRAM_NAMES[`${mutualUpper.number}_${mutualLower.number}`] || "互卦成形";
-
   // 变卦：动爻阴阳翻转
   const changedLines = [...allLines];
   changedLines[movingLine - 1] = !changedLines[movingLine - 1];
@@ -346,93 +596,46 @@ export function divineMeihua(
   const changedName = HEXAGRAM_NAMES[`${changedUpper.number}_${changedLower.number}`] || "变卦显化";
   const changedUseTri = isMovingInLower ? changedLower : changedUpper;
 
-  // 五行体用生克分析
-  const bEl = bodyTri.element;
-  const uEl = useTri.element;
+  // 《梅花易数》卷一〈互卦起例〉：乾坤取变卦之互，其余取本卦之互。
+  const mutualUsesTransformed = upperIndex === lowerIndex && (upperIndex === 1 || upperIndex === 8);
+  const mutualLines = mutualUsesTransformed ? changedLines : allLines;
+  const mutualLower = trigramFromLines([mutualLines[1], mutualLines[2], mutualLines[3]]);
+  const mutualUpper = trigramFromLines([mutualLines[2], mutualLines[3], mutualLines[4]]);
+  const mutualName = HEXAGRAM_NAMES[`${mutualUpper.number}_${mutualLower.number}`];
 
-  let relationType: "use_generates_body" | "body_overcomes_use" | "same" | "body_generates_use" | "use_overcomes_body" = "same";
-  let levelZh: "大吉" | "中吉" | "平顺" | "耗神" | "遇阻" = "平顺";
-  let levelEn = "Peaceful & Harmonious";
-  let headlineZh = "体用比和 · 和合共赢";
-  let headlineEn = "Body & Application in Concord · Mutual Harmony";
-  let analysisZh = `体卦【${bodyTri.nameZh}】与用卦【${useTri.nameZh}】同属【${bodyTri.elementZh}】，双方气场同频，利于合作商议，无外界克制。`;
-  let analysisEn = `Body [${bodyTri.nameEn || bodyTri.nameZh}] and Application [${useTri.nameEn || useTri.nameZh}] share element ${bodyTri.element}. Energetic frequency aligns with zero external clash.`;
-  let verdict = "事态平稳顺畅，顺理成章推进即可。";
-  let verdictEn = "Conditions are smooth and balanced. Proceed steadily according to original plans.";
-  let suitable = ["商议协作", "按部就班推进既定方案", "稳健决策"];
-  let suitableEn = ["Consultative collaboration", "Step-by-step rollout", "Prudent agreements"];
-  let unsuitable = ["盲目激进拓展", "与合伙人内耗互疑"];
-  let unsuitableEn = ["Aggressive over-expansion", "Unnecessary internal friction"];
-  let tacticalAdvice = "保持沉着公允，尊重共识原则。此卦利于合作共赢，切莫贪功冒进。";
-  let tacticalAdviceEn = "Remain composed and fair, adhering to consensus. This reading favors partnership harmony; avoid rash haste.";
+  const comparisons: StageComparison[] = [
+    compareBodyToTarget(bodyTri, useTri, 'primary_use'),
+    compareBodyToTarget(bodyTri, mutualUpper, 'mutual_upper'),
+    compareBodyToTarget(bodyTri, mutualLower, 'mutual_lower'),
+    compareBodyToTarget(bodyTri, changedUseTri, 'transformed_use')
+  ];
+  const synthesis = buildSynthesis(comparisons);
 
-  if (ELEMENT_GENERATION[uEl] === bEl) {
-    relationType = "use_generates_body";
-    levelZh = "大吉";
-    levelEn = "Great Auspiciousness";
-    headlineZh = "用生体卦 · 顺水推舟";
-    headlineEn = "Application Generates Body · Natural Flow";
-    analysisZh = `用卦【${useTri.nameZh}（${useTri.elementZh}）】生助体卦【${bodyTri.nameZh}（${bodyTri.elementZh}）】。外部环境与合作方主动助力，水到渠成！`;
-    analysisEn = `Application [${useTri.nameEn || useTri.nameZh}] actively generates Body [${bodyTri.nameEn || bodyTri.nameZh}]. External environment and allies lend powerful tailwinds.`;
-    verdict = "大吉大利！所问之事逢外界贵人或时势生助，宜大胆决断。";
-    verdictEn = "Exceptional fortune! Your undertaking enjoys natural sponsor support; execute boldly.";
-    suitable = ["主动出击", "提交重要申请/签约", "推动核心谈判", "开启新项目"];
-    suitableEn = ["Take initiative", "Submit key contracts & filings", "Lead core negotiations", "Launch strategic initiatives"];
-    unsuitable = ["优柔寡断错失窗口期", "过分谦退推卸责任"];
-    unsuitableEn = ["Hesitating and missing the window", "Excessive modesty that delays action"];
-    tacticalAdvice = "乘势而上，迅速敲定关键条款，借外力成就自身目标。";
-    tacticalAdviceEn = "Ride the momentum; finalize critical terms promptly and leverage external support.";
-  } else if (ELEMENT_OVERCOMING[bEl] === uEl) {
-    relationType = "body_overcomes_use";
-    levelZh = "中吉";
-    levelEn = "Favorable Progress";
-    headlineZh = "体克用卦 · 劳而有成";
-    headlineEn = "Body Overcomes Application · Disciplined Mastery";
-    analysisZh = `体卦【${bodyTri.nameZh}（${bodyTri.elementZh}）】克制用卦【${useTri.nameZh}（${useTri.elementZh}）】。主导权在我方手中，需付出一份努力方克全功。`;
-    analysisEn = `Body [${bodyTri.nameEn || bodyTri.nameZh}] overcomes Application [${useTri.nameEn || useTri.nameZh}]. Initiative rests firmly in your hands; diligent effort ensures achievement.`;
-    verdict = "中吉。事情掌握在你手中，虽然前期需多费心血调和，终能得偿所愿。";
-    verdictEn = "Favorable. You hold the steering wheel; though initial coordination requires work, target will be met.";
-    suitable = ["攻坚克难", "主动确立规矩", "严格把控验收标准", "强化执行落地"];
-    suitableEn = ["Overcome technical bottlenecks", "Set firm protocols", "Enforce strict quality criteria", "Drive execution"];
-    unsuitable = ["躺平被动等待", "轻易向不合理要求妥协"];
-    unsuitableEn = ["Passive procrastination", "Compromising on vital standards"];
-    tacticalAdvice = "保持清晰底线，事必躬亲抓牢关键环节。";
-    tacticalAdviceEn = "Hold clear boundaries; personally safeguard mission-critical milestones.";
-  } else if (ELEMENT_GENERATION[bEl] === uEl) {
-    relationType = "body_generates_use";
-    levelZh = "耗神";
-    levelEn = "Resource Drainage";
-    headlineZh = "体生用卦 · 泄气多耗";
-    headlineEn = "Body Generates Application · Energy Drainage";
-    analysisZh = `体卦【${bodyTri.nameZh}（${bodyTri.elementZh}）】生泄用卦【${useTri.nameZh}（${useTri.elementZh}）】。付出远大于回馈，需谨防精力或资金被动消耗。`;
-    analysisEn = `Body [${bodyTri.nameEn || bodyTri.nameZh}] pours energy into Application [${useTri.nameEn || useTri.nameZh}]. Output outpaces yield; conserve reserves carefully.`;
-    verdict = "耗神劳心。当下推进此事成本偏高、周期较长，不宜孤注一掷。";
-    verdictEn = "Energy-draining. Advancing now involves high overhead and extended duration; avoid speculative all-in moves.";
-    suitable = ["设好止损线", "复盘精简流程", "休养生息蓄力"];
-    suitableEn = ["Establish strict stop-loss caps", "Streamline overhead", "Rest and consolidate strength"];
-    unsuitable = ["无底线追加投入", "大包大揽替人兜底"];
-    unsuitableEn = ["Unbounded capital injections", "Over-promising and underwriting external debts"];
-    tacticalAdvice = "适当收缩防线，只做核心最小可行性尝试，避免战线拉得太长。";
-    tacticalAdviceEn = "Consolidate defensive lines; limit testing to lightweight MVPs and avoid overextending.";
-  } else if (ELEMENT_OVERCOMING[uEl] === bEl) {
-    relationType = "use_overcomes_body";
-    levelZh = "遇阻";
-    levelEn = "Obstacle & Prudence";
-    headlineZh = "用克体卦 · 逆风需守";
-    headlineEn = "Application Overcomes Body · Strategic Defense";
-    analysisZh = `用卦【${useTri.nameZh}（${useTri.elementZh}）】克制体卦【${bodyTri.nameZh}（${bodyTri.elementZh}）】。外部环境或对方带来较强压制阻力，不宜硬碰。`;
-    analysisEn = `Application [${useTri.nameEn || useTri.nameZh}] clashes with Body [${bodyTri.nameEn || bodyTri.nameZh}]. External headwinds are pronounced; direct confrontation is inadvisable.`;
-    verdict = "需谨慎避险。当下阻力较强，宜避其锋芒、以守为攻。";
-    verdictEn = "Exercise prudent caution. Friction is notable; sidestep direct conflict and defend core foundations.";
-    suitable = ["静观其变", "补全漏洞资质", "咨询资深智囊", "推迟重大拍板"];
-    suitableEn = ["Observe developments quietly", "Audit structural vulnerabilities", "Seek expert advisors", "Defer major signatures"];
-    unsuitable = ["情绪化正面交锋", "仓促签订重大法律/金钱协议"];
-    unsuitableEn = ["Emotional confrontations", "Rushing irreversible legal or financial covenants"];
-    tacticalAdvice = "遇克当求通关，暂勿急于求成。静待时移世易，修整内在实力。";
-    tacticalAdviceEn = "Find mediation rather than force. Cultivate internal fortitude until cosmic timing realigns.";
-  }
+  const assessments: MeihuaAssessments = {
+    seasonal: {
+      status: 'not_assessed',
+      hasDateContext: mode === 'time',
+      labelZh: '时令旺衰：未评估',
+      labelEn: 'Seasonal Qi Strength: Not Assessed',
+      reasonZh:
+        mode === 'numbers'
+          ? '数字起卦未提供日期与节气时令，无法判定体用八卦之四时旺衰，已按未评估标明。'
+          : '已记录起卦时间（北京时间 / 农历月日），但本工具尚未内置经核验的节气四时旺衰映射，请另行核对春木、夏火、秋金、冬水及四季土旺衰。',
+      reasonEn:
+        mode === 'numbers'
+          ? 'Numerical entry has no date or seasonal context; seasonal Qi strength is explicitly not assessed.'
+          : 'Cast time is recorded, but a verified solar-term seasonal Qi mapping is not yet implemented here; seasonal strength is not assessed.'
+    },
+    externalOmens: {
+      status: 'not_assessed',
+      labelZh: '外应（三要十应）：未评估',
+      labelEn: 'External Omens (Three Essentials & Ten Responses): Not Assessed',
+      reasonZh: '未采集占时现场声色物象与具体人事背景，三要十应未纳入本推演。',
+      reasonEn: 'On-site sensory omens and situational context are not captured in this tool and are not assessed.'
+    }
+  };
 
-  // 查文王 64 卦序号与匹配梅花历史经典卦案
+  // 按自下而上的二进制爻线查文王六十四卦。
   const primaryBinary = allLines.map(b => (b ? '1' : '0')).join('');
   const primaryEntry = lookupEntryByBinary(primaryBinary);
   const mutualBinary = [...mutualLower.lines, ...mutualUpper.lines].map(b => (b ? '1' : '0')).join('');
@@ -440,10 +643,23 @@ export function divineMeihua(
   const changedBinary = changedLines.map(b => (b ? '1' : '0')).join('');
   const changedEntry = lookupEntryByBinary(changedBinary);
 
-  const classicCase = findMatchingMeihuaCase(primaryEntry.number, changedEntry.number);
-  const trigramImagery = {
-    body: getTrigramImagery(bodyTri.nameZh),
-    application: getTrigramImagery(useTri.nameZh)
+  const ichingCanon: MeihuaIChingCanon = {
+    primary: {
+      number: primaryEntry.number,
+      nameZh: primaryEntry.nameZh,
+      nameEn: primaryEntry.nameEn,
+      judgmentZh: primaryEntry.judgmentZh,
+      imageZh: primaryEntry.imageZh
+    },
+    transformed: {
+      number: changedEntry.number,
+      nameZh: changedEntry.nameZh,
+      nameEn: changedEntry.nameEn,
+      judgmentZh: changedEntry.judgmentZh,
+      imageZh: changedEntry.imageZh
+    },
+    movingLineNumber: movingLine,
+    movingLineText: LINE_TEXTS[primaryEntry.number]?.[movingLine] ?? null
   };
 
   return {
@@ -473,13 +689,18 @@ export function divineMeihua(
       roleEn: "Application (Situation / Object)"
     },
     mutualHexagram: {
+      basis: mutualUsesTransformed ? 'transformed' : 'primary',
       upper: mutualUpper,
       lower: mutualLower,
       fullNameZh: mutualName,
       fullNameEn: `${mutualEntry.nameEn} (${mutualUpper.natureEn || mutualUpper.nameEn} over ${mutualLower.natureEn || mutualLower.nameEn})`,
       symbol: hexagramSymbol(mutualEntry.number),
-      summaryZh: `互卦见【${mutualName}】，反映事态中间阶段的暗流隐动与转折关口。`,
-      summaryEn: `Nuclear hexagram reveals underlying dynamics and transitional nuances of the development stage.`
+      summaryZh: mutualUsesTransformed
+        ? '乾、坤按卷一〈互卦起例〉从变卦取互。下互取二至四爻，上互取三至五爻。'
+        : '下互取本卦二至四爻，上互取本卦三至五爻。传统体用法以互卦对照中段。',
+      summaryEn: mutualUsesTransformed
+        ? 'For Qian and Kun, Vol. 1 takes the nuclear trigrams from the transformed hexagram: lines 2–4 below and 3–5 above.'
+        : 'The lower nuclear trigram uses original lines 2–4 and the upper uses lines 3–5. The traditional method compares them with Body for the intermediate stage.'
     },
     transformedHexagram: {
       upper: changedUpper,
@@ -488,31 +709,11 @@ export function divineMeihua(
       fullNameEn: `${changedEntry.nameEn} (${changedUpper.natureEn || changedUpper.nameEn} over ${changedLower.natureEn || changedLower.nameEn})`,
       symbol: hexagramSymbol(changedEntry.number),
       changedApplication: changedUseTri,
-      summaryZh: `动爻引动显化为变卦【${changedName}】，预示后续最终归宿与定局气象。`,
-      summaryEn: `The moving line triggers evolution into the transformed hexagram, indicating the final resolution.`
+      summaryZh: `动爻引动显化为变卦【${changedName}】，反映动后新用与后续回应。`,
+      summaryEn: `The moving line shifts the application trigram into the transformed hexagram, representing the later response.`
     },
-    wuxingRelation: {
-      type: relationType,
-      levelZh,
-      levelEn,
-      headlineZh,
-      headlineEn,
-      analysisZh,
-      analysisEn
-    },
-    decisionActionZh: {
-      verdict,
-      suitable,
-      unsuitable,
-      tacticalAdvice
-    },
-    decisionActionEn: {
-      verdict: verdictEn,
-      suitable: suitableEn,
-      unsuitable: unsuitableEn,
-      tacticalAdvice: tacticalAdviceEn
-    },
-    classicCase,
-    trigramImagery
+    synthesis,
+    assessments,
+    ichingCanon
   };
 }
