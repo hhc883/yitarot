@@ -59,6 +59,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   }
 
+  // English-only tarot spread & draw guides (no /zh counterparts)
+  const englishOnlyRoutes = [
+    '/en/one-card-tarot',
+    '/en/spreads/three-card',
+    '/en/spreads/celtic-cross'
+  ];
+  for (const route of englishOnlyRoutes) {
+    sitemapEntries.push({
+      url: `${baseUrl}${route}`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8
+    });
+  }
+
   // 78 张牌单独详情页（高权重 SEO）
   const cards = getAllCards();
   for (const card of cards) {

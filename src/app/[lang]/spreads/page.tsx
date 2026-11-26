@@ -1,6 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { TAROT_SPREADS } from '@/lib/tarot/spreads';
+import { buildBilingualMetadata } from '@/lib/seo/metadata';
 
 interface SpreadEnglishContent {
   summary: string;
@@ -150,13 +153,61 @@ const CATEGORY_LABELS: Record<string, { en: string; zh: string }> = {
   advanced: { en: 'Advanced', zh: '全景进阶' }
 };
 
+const EN_SPREAD_GUIDE_LINKS: Record<string, { href: string; label: string }> = {
+  single: {
+    href: '/en/one-card-tarot',
+    label: 'Free One Card Tarot Reflection'
+  },
+  three_cards: {
+    href: '/en/spreads/three-card',
+    label: 'Free 3 Card Reading & Guide'
+  },
+  celtic_cross: {
+    href: '/en/spreads/celtic-cross',
+    label: 'Interactive 10-Position Guide'
+  }
+};
+
+export async function generateStaticParams() {
+  return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  if (rawLang !== 'zh' && rawLang !== 'en') {
+    notFound();
+  }
+
+  return buildBilingualMetadata({
+    lang: rawLang,
+    path: '/spreads',
+    zh: {
+      title: '经典塔罗牌阵目录',
+      description:
+        '浏览经典塔罗牌阵结构：从单张神谕、时间流圣三角、二选一到十张凯尔特十字全景牌阵，了解每个牌位含义并开启解读。'
+    },
+    en: {
+      title: 'Tarot Spreads Library',
+      description:
+        'Browse classic tarot spreads from focused one-card pulls and Past-Present-Future three-card readings to the 10-position Celtic Cross layout.'
+    }
+  });
+}
+
 export default async function SpreadsPage({
   params
 }: {
   params: Promise<{ lang: string }>;
 }) {
   const { lang: rawLang } = await params;
-  const lang = rawLang === 'en' ? 'en' : 'zh';
+  if (rawLang !== 'zh' && rawLang !== 'en') {
+    notFound();
+  }
+  const lang = rawLang;
   const isEn = lang === 'en';
 
   return (
@@ -267,13 +318,21 @@ export default async function SpreadsPage({
               </div>
 
               {/* 底部按钮 */}
-              <div className="mt-6 pt-4 border-t border-neutral-100">
+              <div className="mt-6 pt-4 border-t border-neutral-100 flex flex-col gap-2">
                 <Link
                   href={`/${lang}/reading?spread=${spread.id}`}
                   className="inline-flex min-h-[44px] w-full items-center justify-center py-2.5 px-4 rounded text-xs font-medium bg-[#171717] text-white hover:bg-[#333333] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 transition-colors"
                 >
                   {isEn ? 'Select Spread' : '以此牌阵开启解读'}
                 </Link>
+                {isEn && EN_SPREAD_GUIDE_LINKS[spread.id] && (
+                  <Link
+                    href={EN_SPREAD_GUIDE_LINKS[spread.id].href}
+                    className="inline-flex min-h-[44px] w-full items-center justify-center py-2 px-4 rounded text-xs font-medium border border-[#E4E4E7] bg-white text-[#171717] hover:border-[#171717] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 transition-colors"
+                  >
+                    {EN_SPREAD_GUIDE_LINKS[spread.id].label}
+                  </Link>
+                )}
               </div>
             </section>
           );

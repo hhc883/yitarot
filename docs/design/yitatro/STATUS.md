@@ -9,6 +9,15 @@
 - 设计稿与实施方案提交：`0dab1dd`
 - 当前阶段：A1–D 全阶段已完成，全仓构建（325 条静态与动态路由）与 ESLint 0 警告通过，生产预览服务已在 `http://localhost:3000` 稳定运行
 
+## 英文塔罗搜索落地页（2026-11-26）
+
+本批在 `fix/divination-audit` 分支实施。关键词来自 2026-11-26 的 Tarotap 英文页面导出，流量为竞品估算值。
+
+- `e4dbfaa` 优化了 `/en/reading`、`/en/draw`、`/en/yes-no`、`/en/love`、`/en/fortune/daily` 和塔罗专厅入口。AI 解读页面标明登录和积分费用。
+- 新增 `/en/one-card-tarot`、`/en/spreads/three-card`、`/en/spreads/celtic-cross`。从英文牌阵库进入。单牌与三牌在浏览器抽取，三牌和凯尔特十字分别提供对应的积分解读入口。这三页收录于英文 sitemap，中文版导航落到已有的中文工具。
+- 本地生产构建、TypeScript 和定向 ESLint 通过。核对了 17 个中英文页面的 canonical、hreflang、Open Graph URL 和单 H1；Ego Lite 验证了 320–390px 布局、抽牌、键盘焦点、重置、十牌位切换和已选牌阵。构建仍会输出项目现有 Next.js 版本的安全提示。
+- 后续可单独评估 Arcana Calculator 和 Tarot Birth Card Calculator。
+
 ## 换电脑接手
 
 1. 克隆 GitHub 交接分支：`git clone --branch codex/yitatro-design-handoff https://github.com/hhc883/yitarot.git`。不要从 `main` 接着改。

@@ -122,7 +122,7 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
       return normalizedPath === eastPrefix || normalizedPath.startsWith(`${eastPrefix}/`);
     }
     if (key === 'west') {
-      const westRoutes = ['draw', 'reading', 'cards', 'spreads', 'fortune', 'yes-no', 'love'];
+      const westRoutes = ['draw', 'reading', 'cards', 'spreads', 'fortune', 'yes-no', 'love', 'one-card-tarot'];
       return westRoutes.some((route) => {
         const prefix = `/${lang}/${route}`;
         return normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`);
@@ -325,7 +325,20 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
 }
 
 function buildTargetHref(pathname: string, targetLang: 'zh' | 'en', search: string): string {
-  const segments = (pathname || '').split('/').filter(Boolean);
+  const normalized = (pathname || '').replace(/\/+$/, '') || '/';
+
+  if (targetLang === 'zh') {
+    if (normalized === '/en/one-card-tarot') {
+      const params = new URLSearchParams(search);
+      params.set('count', '1');
+      return `/zh/draw?${params.toString()}`;
+    }
+    if (normalized === '/en/spreads/three-card' || normalized === '/en/spreads/celtic-cross') {
+      return search ? `/zh/spreads?${search}` : '/zh/spreads';
+    }
+  }
+
+  const segments = normalized.split('/').filter(Boolean);
   if (segments.length === 0) {
     const base = `/${targetLang}`;
     return search ? `${base}?${search}` : base;
