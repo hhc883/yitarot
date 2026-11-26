@@ -1,13 +1,26 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { RELATIONSHIP_CONFIGS, RelationshipType } from '@/lib/metaphysics/relationship';
 import { ArrowRight } from 'lucide-react';
 import { RelationshipSynastryWidget } from '@/components/east/RelationshipSynastryWidget';
+import { buildPageAlternates } from '@/lib/seo/metadata';
 
 export const instant = false;
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  return {
+    alternates: buildPageAlternates(lang, '/east/relationship'),
+  };
 }
 
 export default async function RelationshipHubPage({

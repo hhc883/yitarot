@@ -1,10 +1,23 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { QimenBoardWidget } from '@/components/east/QimenBoardWidget';
+import { buildPageAlternates } from '@/lib/seo/metadata';
 
 export const instant = false;
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  return {
+    alternates: buildPageAlternates(lang, '/east/qimen'),
+  };
 }
 
 export default async function QimenPage({ params }: { params: Promise<{ lang: string }> }) {

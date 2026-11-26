@@ -1,11 +1,24 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { WeeklyTarotWidget } from '@/components/tarot/WeeklyTarotWidget';
+import { buildPageAlternates } from '@/lib/seo/metadata';
 
 export const instant = false;
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+  return {
+    alternates: buildPageAlternates(lang, '/fortune/weekly'),
+  };
 }
 
 export default async function WeeklyFortunePage({

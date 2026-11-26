@@ -14,9 +14,15 @@
 本批在 `fix/divination-audit` 分支实施。关键词来自 2026-11-26 的 Tarotap 英文页面导出，流量为竞品估算值。
 
 - `e4dbfaa` 优化了 `/en/reading`、`/en/draw`、`/en/yes-no`、`/en/love`、`/en/fortune/daily` 和塔罗专厅入口。AI 解读页面标明登录和积分费用。
-- 新增 `/en/one-card-tarot`、`/en/spreads/three-card`、`/en/spreads/celtic-cross`。从英文牌阵库进入。单牌与三牌在浏览器抽取，三牌和凯尔特十字分别提供对应的积分解读入口。这三页收录于英文 sitemap，中文版导航落到已有的中文工具。
+- 新增 `/en/one-card-tarot`、`/en/spreads/three-card`、`/en/spreads/celtic-cross`。从英文牌阵库进入。单牌与三牌在浏览器抽取，三牌和凯尔特十字分别提供对应的积分解读入口。这三页以英文地址收录于落地页地图，中文版导航落到已有的中文工具。
 - 本地生产构建、TypeScript 和定向 ESLint 通过。核对了 17 个中英文页面的 canonical、hreflang、Open Graph URL 和单 H1；Ego Lite 验证了 320–390px 布局、抽牌、键盘焦点、重置、十牌位切换和已选牌阵。构建仍会输出项目现有 Next.js 版本的安全提示。
 - 后续可单独评估 Arcana Calculator 和 Tarot Birth Card Calculator。
+
+## 站点地图拆分（2026-11-26）
+
+- `/sitemap.xml` 为总索引，`robots.txt` 指向总索引。四份子地图分别由公开落地页清单、牌库、中文文章和英文文章生成。新增文章时，按 `getAllPosts(lang)` 的实际语言归入对应地图。
+- 当前落地页 57 个、牌义详情 156 个、中文与英文博客各 4 个。保留现有有效覆盖，去掉东方专厅重复项。博客文章使用文档日期，落地页、牌义详情和博客首页暂省略 `lastmod`。
+- 修复 17 个双语落地页继承语言首页 canonical 的问题。生产构建生成 5 份静态 XML。开发预览逐条请求了 221 个页面，均返回 HTTP 200，canonical、语言声明和收录归属通过。ESLint 和 32 项回归通过。
 
 ## 解读依据整改（2026-11-26）
 
