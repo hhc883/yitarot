@@ -519,10 +519,12 @@ export function CoinTossGsap({ onReadingReady, lang = 'zh' }: CoinTossGsapProps)
                 四柱：{timeInfo?.yearGanzhi}年 {timeInfo?.monthGanzhi}月 {timeInfo?.dayGanzhi}日 {timeInfo?.timeGanzhi}时
               </span>
               <span className="bg-[#171717] text-white px-2 py-0.5 rounded">
-                月建：{timeInfo?.monthZhi}水
+                月建：{timeInfo?.monthZhi}
+                {({ 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' } as Record<string, string>)[timeInfo?.monthZhi ?? ''] ?? ''}
               </span>
               <span className="bg-[#171717] text-white px-2 py-0.5 rounded">
-                日辰：{timeInfo?.dayZhi}火
+                日辰：{timeInfo?.dayZhi}
+                {({ 子: '水', 丑: '土', 寅: '木', 卯: '木', 辰: '土', 巳: '火', 午: '火', 未: '土', 申: '金', 酉: '金', 戌: '土', 亥: '水' } as Record<string, string>)[timeInfo?.dayZhi ?? ''] ?? ''}
               </span>
               <span className="bg-[#F4F4F5] px-2 py-0.5 rounded text-[#52525B]">
                 空亡：{timeInfo?.xunKong}空

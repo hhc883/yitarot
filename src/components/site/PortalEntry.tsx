@@ -51,7 +51,7 @@ export function PortalEntry({ lang = 'zh' }: { lang?: string }) {
                     aria-label={isEn ? 'Explore I Ching and BaZi' : '探索东方：易经与八字'}
                     className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm bg-[#171717] px-6 py-2.5 text-[13px] font-medium text-white transition-all hover:bg-[#27272A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                   >
-                    <span>{isEn ? 'Explore I Ching' : '探索东方'}</span>
+                    <span>{isEn ? 'Explore I Ching & BaZi' : '探索东方'}</span>
                     <span aria-hidden="true">→</span>
                   </Link>
                 </div>

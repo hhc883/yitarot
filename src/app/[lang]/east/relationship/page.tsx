@@ -1,13 +1,40 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { RELATIONSHIP_CONFIGS, RelationshipType } from '@/lib/metaphysics/relationship';
 import { ArrowRight } from 'lucide-react';
 import { RelationshipSynastryWidget } from '@/components/east/RelationshipSynastryWidget';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { buildBreadcrumbJsonLd, buildLocalizedMetadata } from '@/lib/seo/metadata';
 
 export const instant = false;
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+  const isEn = lang === 'en';
+
+  return buildLocalizedMetadata({
+    lang,
+    routePath: '/east/relationship',
+    title: isEn
+      ? 'Relationship Synastry Hub - 9 BaZi & Zodiac Compatibility Models'
+      : '关系合盘中心｜八字合婚·恋爱·商业合伙·婆媳职场九大合盘',
+    description: isEn
+      ? 'Nine specialized BaZi and Zodiac synastry models covering marriage, romance, business partnership, leadership, and family dynamics.'
+      : '涵盖八字合婚、恋爱合盘、商业合伙、上下级职场、婆媳与亲子等九大关系合盘模型，深入解析五行互补与沟通契机。',
+    keywords: isEn
+      ? ['BaZi synastry', 'Relationship compatibility', 'Chinese marriage matching']
+      : ['八字合婚', '关系合盘', '恋爱合盘', '商业合伙命理']
+  });
 }
 
 export default async function RelationshipHubPage({
@@ -23,6 +50,12 @@ export default async function RelationshipHubPage({
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 pt-10 pb-16 sm:pt-14 sm:pb-20 text-[#171717]">
+      <JsonLd
+        data={buildBreadcrumbJsonLd(lang, [
+          { name: isEn ? 'I Ching & BaZi' : '东方专厅', path: '/east' },
+          { name: isEn ? 'Relationship Synastry' : '关系合盘中心', path: '/east/relationship' }
+        ])}
+      />
       {/* 核心交互推演台 */}
       <RelationshipSynastryWidget lang={lang} isHub={true} />
 

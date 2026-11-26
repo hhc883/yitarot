@@ -310,29 +310,58 @@ export function PricingCards({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
         )}
       </div>
 
-      {checkout && region && (
-        available ? (
+      {(() => {
+        const displayRegion: Region = region ?? (isEn ? 'overseas' : 'domestic');
+        return (
           <>
-            <p className="mb-5 text-sm leading-relaxed text-soft">
-              {region === 'domestic'
-                ? isEn ? `CNY checkout uses ${channelName}.` : `人民币结算使用${channelName}。`
-                : isEn ? 'Payhip handles USD checkout. Use the same email address as your YiTatro account to receive your points.' : '美元由 Payhip 结算。购买时请使用与 YiTatro 账号相同的邮箱，以便积分入账。'}
-            </p>
+            {checkout && region && !available && (
+              <p role="status" className="mb-6 rounded-xl border border-line bg-[#FAFAFA] px-5 py-4 text-sm leading-relaxed text-ink">
+                {isEn
+                  ? 'Online checkout is currently unavailable for this region. You can switch regions above or redeem an official code below.'
+                  : '该地区的在线支付暂未开启。你可以切换支付地区，或在下方使用官方兑换码即时充值。'}
+              </p>
+            )}
+            {checkout && region && available && (
+              <p className="mb-5 text-sm leading-relaxed text-soft">
+                {region === 'domestic'
+                  ? isEn ? `CNY checkout uses ${channelName}.` : `人民币结算使用${channelName}。`
+                  : isEn ? 'Payhip handles USD checkout. Use the same email address as your YiTatro account to receive your points.' : '美元由 Payhip 结算。购买时请使用与 YiTatro 账号相同的邮箱，以便积分入账。'}
+              </p>
+            )}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
               {PLANS.map((plan) => {
-                const price = region === 'domestic' ? plan.cny : plan.usd;
+                const price = displayRegion === 'domestic' ? plan.cny : plan.usd;
+                const canCheckout = Boolean(checkout && region && available);
                 return (
-                  <article key={plan.points} className={`flex min-w-0 flex-col rounded-2xl border bg-white p-5 sm:p-6 ${plan.popular ? 'border-ink' : 'border-line'}`}>
-                    <h2 className="break-words text-sm font-semibold text-ink">{plan.points} {isEn ? 'points' : '积分'}</h2>
+                  <article key={plan.points} className={`flex min-w-0 flex-col rounded-2xl border bg-white p-5 sm:p-6 transition-colors ${plan.popular ? 'border-ink shadow-xs' : 'border-line'}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 className="break-words text-sm font-semibold text-ink">{plan.points} {isEn ? 'points' : '积分'}</h2>
+                      {plan.popular && (
+                        <span className="rounded-full bg-[#171717] px-2.5 py-0.5 text-[10px] font-medium tracking-wide text-white">
+                          {isEn ? 'Popular' : '推荐'}
+                        </span>
+                      )}
+                    </div>
                     <p className="mt-3 flex flex-wrap items-baseline gap-x-2">
                       <span className="font-serif text-4xl leading-none text-ink">{price}</span>
-                      <span className="text-xs text-soft">{region === 'domestic' ? 'CNY' : 'USD'}</span>
+                      <span className="text-xs text-soft">{displayRegion === 'domestic' ? 'CNY' : 'USD'}</span>
                     </p>
-                    <p className="my-4 grow border-t border-line pt-4 text-sm text-soft">{isEn ? 'Use points for supported AI readings.' : '可用于支持积分的 AI 解读。'}</p>
-                    <button type="button" className={action} disabled={authLoading || loadingPoints !== null} onClick={() => region === 'domestic' ? void handleDomesticCheckout(plan) : handleOverseasCheckout(plan)}>
+                    <p className="my-4 grow border-t border-line pt-4 text-sm text-soft">
+                      {isEn
+                        ? 'Use points for deep AI hexagram, BaZi, and tarot readings with multi-turn follow-up.'
+                        : '可用于 AI 深度六爻解卦、八字详批、塔罗牌阵推理与多轮追问。'}
+                    </p>
+                    <button
+                      type="button"
+                      className={action}
+                      disabled={!canCheckout || authLoading || loadingPoints !== null}
+                      onClick={() => displayRegion === 'domestic' ? void handleDomesticCheckout(plan) : handleOverseasCheckout(plan)}
+                    >
                       {loadingPoints === plan.points ? (
                         <><Loader2 aria-hidden="true" className="h-4 w-4 shrink-0 motion-safe:animate-spin" />{isEn ? 'Opening checkout…' : '正在打开收银台…'}</>
-                      ) : region === 'domestic' ? (
+                      ) : !canCheckout ? (
+                        <span>{isEn ? 'Redeem code below' : '请使用下方兑换码'}</span>
+                      ) : displayRegion === 'domestic' ? (
                         <><QrCode aria-hidden="true" className="h-4 w-4 shrink-0" />{isEn ? `Pay with ${channelName}` : `使用${channelName}付款`}</>
                       ) : (
                         <><CreditCard aria-hidden="true" className="h-4 w-4 shrink-0" />{isEn ? 'Continue to Payhip' : '前往 Payhip 付款'}</>
@@ -343,12 +372,8 @@ export function PricingCards({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
               })}
             </div>
           </>
-        ) : (
-          <p role="status" className="rounded-xl border border-line bg-white px-5 py-4 text-sm leading-relaxed text-ink">
-            {isEn ? 'Checkout is currently unavailable for this region. Try another payment region or redeem a code below.' : '该地区的在线支付暂不可用。你可以切换支付地区，或在下方兑换卡密。'}
-          </p>
-        )
-      )}
+        );
+      })()}
 
       {qr && (
         <section aria-labelledby="pricing-qr-title" className="mt-8 rounded-2xl border border-line p-6">

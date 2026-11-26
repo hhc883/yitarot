@@ -216,12 +216,12 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
                 </span>
                 <UserAvatar user={user} />
               </Link>
-            ) : userLoading ? (
-              <span className="inline-flex h-8 w-[64px] items-center justify-center rounded-sm bg-[#171717]/10" aria-hidden="true" />
             ) : (
               <Link
                 href={`/${lang}/login`}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-sm bg-[#171717] px-4 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-[#333333] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                className={`inline-flex min-h-[44px] items-center justify-center rounded-sm bg-[#171717] px-4 py-1.5 text-[13px] font-medium text-white transition-all hover:bg-[#333333] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
+                  userLoading ? 'opacity-80' : 'opacity-100'
+                }`}
               >
                 <span>{isEn ? 'Log in' : '登录'}</span>
               </Link>

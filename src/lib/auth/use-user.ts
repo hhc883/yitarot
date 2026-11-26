@@ -1,7 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import {
+  createSupabaseBrowserClient,
+  isSupabaseBrowserConfigured
+} from '@/lib/supabase/client';
 
 export interface CurrentUser {
   id: string;
@@ -29,6 +32,7 @@ export function useUser() {
     balance: 0,
     dailyClaimed: false
   });
+  const configured = isSupabaseBrowserConfigured();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const refresh = useCallback(async () => {
@@ -36,7 +40,7 @@ export function useUser() {
       const res = await fetch('/api/me', { cache: 'no-store' });
       if (res.status === 401) {
         // 客户端兜底校验：若服务端未携带 cookie，尝试确认客户端 Supabase 会话
-        const { data: authData } = await supabase.auth.getUser();
+        const { data: authData } = configured ? await supabase.auth.getUser() : { data: { user: null } };
         if (authData?.user) {
           const u = authData.user;
           setState({
@@ -91,10 +95,38 @@ export function useUser() {
         return;
       }
       const data = (await res.json()) as {
-        user: CurrentUser;
+        authenticated?: boolean;
+        user: CurrentUser | null;
         balance: number;
         daily_claimed: boolean;
       };
+      if (!data.user) {
+        const { data: authData } = configured ? await supabase.auth.getUser() : { data: { user: null } };
+        if (authData?.user) {
+          const u = authData.user;
+          setState({
+            loading: false,
+            user: {
+              id: u.id,
+              email: u.email ?? '',
+              display_name:
+                (u.user_metadata?.full_name as string) ||
+                (u.user_metadata?.name as string) ||
+                u.email?.split('@')[0] ||
+                'User',
+              avatar_url:
+                (u.user_metadata?.avatar_url as string) ||
+                (u.user_metadata?.picture as string) ||
+                ''
+            },
+            balance: 10,
+            dailyClaimed: false
+          });
+          return;
+        }
+        setState({ loading: false, user: null, balance: 0, dailyClaimed: false });
+        return;
+      }
       setState({
         loading: false,
         user: data.user,
@@ -104,9 +136,15 @@ export function useUser() {
     } catch {
       setState((prev) => ({ ...prev, loading: false }));
     }
-  }, [supabase]);
+  }, [configured, supabase]);
 
   useEffect(() => {
+    if (!configured) {
+      const id = window.requestAnimationFrame(() => {
+        void refresh();
+      });
+      return () => window.cancelAnimationFrame(id);
+    }
     // INITIAL_SESSION 在订阅时立即触发，作为首次加载；之后的登录 / 退出事件再刷新
     const {
       data: { subscription }
@@ -121,7 +159,7 @@ export function useUser() {
       }
     });
     return () => subscription.unsubscribe();
-  }, [refresh, supabase]);
+  }, [configured, refresh, supabase]);
 
   return { ...state, refresh };
 }

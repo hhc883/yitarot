@@ -1,6 +1,38 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { TAROT_SPREADS } from '@/lib/tarot/spreads';
+import { buildLocalizedMetadata } from '@/lib/seo/metadata';
+
+export const instant = false;
+
+export async function generateStaticParams() {
+  return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+  const isEn = lang === 'en';
+
+  return buildLocalizedMetadata({
+    lang,
+    routePath: '/spreads',
+    title: isEn
+      ? 'Classic Tarot Spreads Guide - Celtic Cross, Three-Card & Love Layouts'
+      : '经典塔罗牌阵大全｜圣三角·凯尔特十字·二选一牌阵解析',
+    description: isEn
+      ? 'Master classic tarot spreads including Single Card, Three-Card Progression, Love Mirror, Two-Choice Decision, and the 10-card Celtic Cross.'
+      : '系统讲解圣三角、爱情三牌、二选一、四元素与十张凯尔特十字等经典塔罗牌阵结构、适用问题与牌位含义。',
+    keywords: isEn
+      ? ['Tarot spreads', 'Celtic Cross spread', 'Three card tarot', 'Love tarot spread']
+      : ['塔罗牌阵', '凯尔特十字', '圣三角牌阵', '二选一牌阵']
+  });
+}
 
 interface SpreadEnglishContent {
   summary: string;

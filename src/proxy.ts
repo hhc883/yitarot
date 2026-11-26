@@ -6,33 +6,47 @@ import { createServerClient } from '@supabase/ssr';
  * 只做会话续期，不做路由拦截；登录态校验由各页面 / API 自行完成。
  */
 export async function proxy(request: NextRequest) {
-  // Public region discovery and provider callbacks do not need browser sessions.
-  if (['/api/checkout/region', '/api/webhooks/domestic', '/api/webhooks/stripe', '/api/payhip-webhook'].includes(request.nextUrl.pathname)) {
+  const pathname = request.nextUrl.pathname;
+  // Public region discovery, SEO endpoints, and provider callbacks do not need browser sessions.
+  if (
+    [
+      '/api/checkout/region',
+      '/api/webhooks/domestic',
+      '/api/webhooks/stripe',
+      '/api/payhip-webhook',
+      '/opengraph-image',
+      '/manifest.webmanifest',
+      '/robots.txt',
+      '/sitemap.xml'
+    ].includes(pathname)
+  ) {
     return NextResponse.next();
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.next({ request });
   }
 
   let response = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
-        }
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
       }
     }
-  );
+  });
 
   // 关键：getUser() 会用新令牌刷新会话并回写 cookie
   await supabase.auth.getUser();

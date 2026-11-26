@@ -8,7 +8,7 @@ export function SiteFooter({ lang = 'zh' }: { lang?: string }) {
     { href: `/${lang}/east`, zh: '易经与八字', en: 'I Ching & BaZi' },
     { href: `/${lang}/west`, zh: '塔罗', en: 'Tarot' },
     { href: `/${lang}/blog`, zh: '指南', en: 'Learn' },
-    { href: `/${lang}/pricing`, zh: '会员', en: 'Membership' },
+    { href: `/${lang}/pricing`, zh: '积分方案', en: 'Pricing' },
     {
       href: `/${lang}/privacy`,
       zh: '隐私政策',

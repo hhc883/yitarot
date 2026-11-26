@@ -1,6 +1,26 @@
 import React from 'react';
 import { RelationshipSynastryWidget } from '@/components/east/RelationshipSynastryWidget';
 
+import type { Metadata } from 'next';
+import { buildRelationshipAliasMetadata } from '@/lib/seo/metadata';
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+  return buildRelationshipAliasMetadata({
+    lang,
+    type: 'friends',
+    titleZh: '朋友八字合盘｜挚友默契与同行能量',
+    titleEn: 'BaZi Friendship Compatibility',
+    descZh: '从日主五行与地支关系洞察朋友之间的信任基础与相处之道。',
+    descEn: 'Understand friendship dynamics and mutual support through BaZi.'
+  });
+}
+
 export const instant = false;
 
 export async function generateStaticParams() {

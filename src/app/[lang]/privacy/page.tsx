@@ -1,9 +1,30 @@
 import React from 'react';
+import type { Metadata } from 'next';
+import { buildLocalizedMetadata } from '@/lib/seo/metadata';
 
 export const instant = false;
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+  const isEn = lang === 'en';
+
+  return buildLocalizedMetadata({
+    lang,
+    routePath: '/privacy',
+    title: isEn ? 'Privacy Policy' : '隐私政策',
+    description: isEn
+      ? 'Learn how YiTatro collects, uses, and protects your account and reading data.'
+      : '了解 YiTatro 如何收集、使用并保护你的账号信息与占卜测算记录。'
+  });
 }
 
 type Section = {

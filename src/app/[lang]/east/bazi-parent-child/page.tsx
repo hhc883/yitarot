@@ -1,6 +1,26 @@
 import React from 'react';
 import { RelationshipSynastryWidget } from '@/components/east/RelationshipSynastryWidget';
 
+import type { Metadata } from 'next';
+import { buildRelationshipAliasMetadata } from '@/lib/seo/metadata';
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+  return buildRelationshipAliasMetadata({
+    lang,
+    type: 'parent-child',
+    titleZh: '亲子八字合盘｜教养引导与家庭和谐',
+    titleEn: 'BaZi Parent-Child Harmony',
+    descZh: '理解父母与子女之间的性格特质、五行互补与良性沟通方式。',
+    descEn: 'Explore parent-child temperament balance and family harmony in BaZi.'
+  });
+}
+
 export const instant = false;
 
 export async function generateStaticParams() {

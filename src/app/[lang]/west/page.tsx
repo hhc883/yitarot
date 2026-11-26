@@ -210,7 +210,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
                 <Link
                   href={`/${lang}/spreads`}
                   aria-label={isEn ? 'Explore tarot spreads' : '浏览塔罗牌阵'}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm border border-[#171717] px-5 py-2.5 text-[14px] font-medium text-[#171717] transition-colors hover:bg-[#F5F5F6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm border border-[#171717]/30 px-5 py-2.5 text-[14px] font-medium text-[#171717] transition-colors hover:border-[#171717] hover:bg-[#F5F5F6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                 >
                   <span>{isEn ? 'Spreads' : '牌阵'}</span>
                 </Link>
@@ -219,7 +219,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
                 <Link
                   href={`/${lang}/cards`}
                   aria-label={isEn ? 'View 78 card meanings' : '查看 78 牌义大全'}
-                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm border border-[#E4E4E7] px-5 py-2.5 text-[14px] font-medium text-[#52525B] transition-colors hover:border-[#171717] hover:text-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm border border-[#171717]/30 px-5 py-2.5 text-[14px] font-medium text-[#171717] transition-colors hover:border-[#171717] hover:bg-[#F5F5F6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                 >
                   <span>{isEn ? 'Card meanings' : '牌义'}</span>
                 </Link>

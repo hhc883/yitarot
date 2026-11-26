@@ -26,10 +26,13 @@ export async function GET() {
   const user = await getSupabaseUser();
 
   if (!user) {
-    return new Response(JSON.stringify({ error: 'unauthenticated' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({ authenticated: false, user: null, balance: 0, daily_claimed: false }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 
   const supabase = await createSupabaseServerClient();

@@ -84,13 +84,13 @@ export function TaijiIntro({ lang = 'zh' }: { lang?: string }) {
       <div className="flex w-full flex-col items-center pb-2 sm:pb-4">
         <a
           href="#portals"
-          aria-label={isEn ? 'Swipe up to enter portals' : '上滑进入双入口'}
+          aria-label={isEn ? 'Scroll to enter portals' : '向下探索双入口'}
           className="group inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-[13px] tracking-[0.06em] text-[#52525B] transition-colors hover:text-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
         >
-          <span className="text-[13px] leading-none transition-transform group-hover:-translate-y-0.5" aria-hidden="true">
-            ↑
+          <span className="text-[13px] leading-none transition-transform group-hover:translate-y-0.5" aria-hidden="true">
+            ↓
           </span>
-          <span>{isEn ? 'Swipe up to enter' : '上滑进入'}</span>
+          <span>{isEn ? 'Scroll to explore' : '向下探索'}</span>
         </a>
       </div>
     </section>

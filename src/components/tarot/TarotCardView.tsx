@@ -60,12 +60,11 @@ export function TarotCardView({
           >
             <Image
               src={imgError ? getCardImageUrl(card, 'png') : imageSrc}
-              alt={`${card.nameZh} (${card.nameEn})`}
+              alt={isEn ? card.nameEn : `${card.nameZh} (${card.nameEn})`}
               fill
               sizes="(max-width: 640px) 150px, (max-width: 1024px) 240px, 320px"
               className="object-cover"
               onError={() => setImgError(true)}
-              loading="lazy"
             />
 
             {/* 温润光层 */}

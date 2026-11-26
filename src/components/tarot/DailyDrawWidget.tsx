@@ -138,7 +138,15 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
           className="relative cursor-pointer transition-transform duration-300 group"
           role="button"
           tabIndex={0}
-          aria-label={isFlipped ? '收起卡牌' : '抽取卡牌'}
+          aria-label={
+            isFlipped
+              ? lang === 'en'
+                ? 'Hide card'
+                : '收起卡牌'
+              : lang === 'en'
+                ? 'Draw card'
+                : '抽取卡牌'
+          }
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
@@ -174,7 +182,7 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
             ? (lang === 'en'
                 ? (detailEn?.keywords.slice(0, 3).join(' · ') || dailyCard.card.nameEn)
                 : dailyCard.card.nameEn)
-            : (lang === 'en' ? 'Daily Archetype' : '今日能量原形');
+            : (lang === 'en' ? 'Daily Archetype' : '今日能量原型');
           const meaningText = isFlipped
             ? (lang === 'en'
                 ? (detailEn?.uprightMeaning || dailyCard.card.uprightMeaning)

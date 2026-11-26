@@ -1,6 +1,26 @@
 import React from 'react';
 import { RelationshipSynastryWidget } from '@/components/east/RelationshipSynastryWidget';
 
+import type { Metadata } from 'next';
+import { buildRelationshipAliasMetadata } from '@/lib/seo/metadata';
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+  return buildRelationshipAliasMetadata({
+    lang,
+    type: 'lover',
+    titleZh: '恋爱八字合盘｜情感共振与相处走势',
+    titleEn: 'BaZi Romantic & Lover Synastry',
+    descZh: '解析恋人之间的五行互补、情感吸引与冲突化解之道。',
+    descEn: 'Explore romantic resonance, emotional attraction, and harmony in BaZi.'
+  });
+}
+
 export const instant = false;
 
 export async function generateStaticParams() {

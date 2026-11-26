@@ -124,11 +124,14 @@ function DailyDrawPlaceholder({ lang = 'zh' }: { lang?: string }) {
 }
 
 export function LazyTarotShowcase({ lang = 'zh' }: { lang?: string }) {
-  const [shouldLoadInteractive, setShouldLoadInteractive] = useState(() => typeof IntersectionObserver === 'undefined');
+  const [shouldLoadInteractive, setShouldLoadInteractive] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return;
+    if (typeof IntersectionObserver === 'undefined') {
+      const id = window.requestAnimationFrame(() => setShouldLoadInteractive(true));
+      return () => window.cancelAnimationFrame(id);
+    }
 
     const observer = new IntersectionObserver(
       entries => {
@@ -139,7 +142,7 @@ export function LazyTarotShowcase({ lang = 'zh' }: { lang?: string }) {
         }
       },
       {
-        rootMargin: '350px 0px' // 距离视口 350px 时提前开始预热加载
+        rootMargin: '500px 0px' // 提前预热加载，避免滚动到视口时出现白屏
       }
     );
 

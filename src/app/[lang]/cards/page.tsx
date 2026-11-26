@@ -1,166 +1,74 @@
-'use client';
+import React from 'react';
+import type { Metadata } from 'next';
+import { CardsEncyclopediaClient } from '@/components/tarot/CardsEncyclopediaClient';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { buildBreadcrumbJsonLd, buildLocalizedMetadata, SITE_URL } from '@/lib/seo/metadata';
 
-import React, { useState, useMemo } from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { getAllCards, TarotSuit } from '@/lib/tarot/deck';
-import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
-import { TarotCardView } from '@/components/tarot/TarotCardView';
-import { Search } from 'lucide-react';
-import { IconBook78 } from '@/components/icons/QiIcons';
+export const instant = false;
 
-type TabType = 'all' | 'major' | TarotSuit;
+export async function generateStaticParams() {
+  return [{ lang: 'zh' }, { lang: 'en' }];
+}
 
-export default function CardsEncyclopediaPage() {
-  const params = useParams();
-  const lang = (params?.lang as string) || 'zh';
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang: rawLang } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+  const isEn = lang === 'en';
 
-  const [activeTab, setActiveTab] = useState<TabType>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  return buildLocalizedMetadata({
+    lang,
+    routePath: '/cards',
+    title: isEn
+      ? '78 Tarot Card Meanings Encyclopedia - Upright, Reversed & Symbolism'
+      : '78 张塔罗牌义百科大全｜正逆位详解·爱情与事业指引',
+    description: isEn
+      ? 'Complete Rider-Waite tarot encyclopedia covering 22 Major Arcana and 56 Minor Arcana. Explore upright and reversed meanings, love, career, and archetypes.'
+      : '涵盖 22 张大阿卡纳与 56 张小阿卡纳的完整韦特塔罗牌义库：正位、逆位含义、爱情事业启示与心理学原型象征全解。',
+    keywords: isEn
+      ? [
+          '78 tarot card meanings',
+          'Rider-Waite tarot',
+          'Major Arcana meanings',
+          'Minor Arcana meanings',
+          'Tarot encyclopedia'
+        ]
+      : ['78张塔罗牌义', '韦特塔罗牌义大全', '大阿卡纳', '小阿卡纳', '正逆位牌义', '塔罗百科']
+  });
+}
 
-  const allCards = useMemo(() => getAllCards(), []);
+export default async function CardsEncyclopediaPage({
+  params
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang: rawLang } = await params;
+  const lang = rawLang === 'en' ? 'en' : 'zh';
+  const isEn = lang === 'en';
 
-  const filteredCards = useMemo(() => {
-    return allCards.filter(card => {
-      // 类别筛选
-      if (activeTab === 'major' && card.arcana !== 'major') return false;
-      if (['wands', 'cups', 'swords', 'pentacles'].includes(activeTab) && card.suit !== activeTab) return false;
-
-      // 搜索筛选
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const matchesName = card.nameZh.toLowerCase().includes(q) || card.nameEn.toLowerCase().includes(q);
-        const matchesKw = card.keywords.some(k => k.toLowerCase().includes(q));
-        return matchesName || matchesKw;
-      }
-
-      return true;
-    });
-  }, [allCards, activeTab, searchQuery]);
+  const structuredData = [
+    buildBreadcrumbJsonLd(lang, [
+      { name: isEn ? 'Tarot' : '塔罗专厅', path: '/west' },
+      { name: isEn ? '78 Card Meanings' : '78 牌义大全', path: '/cards' }
+    ]),
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: isEn ? 'Tarot Card Encyclopedia' : '塔罗牌义百科大全',
+      description: isEn
+        ? '78 Rider-Waite tarot cards with upright, reversed, love, career, and symbolism interpretations.'
+        : '78 张经典韦特塔罗牌义全解，包含正逆位、爱情、事业与原型象征。',
+      url: `${SITE_URL}/${lang}/cards`
+    }
+  ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-10 sm:py-16">
-      {/* 头部标题与引言 */}
-      <div className="text-center max-w-3xl mx-auto mb-10">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-100 text-neutral-800 border border-neutral-200 text-xs font-medium mb-3">
-          <IconBook78 size={14} className="text-neutral-700" /> {lang === 'en' ? '78 Rider-Waite Cards Codex' : '78 张经典韦特塔罗全解'}
-        </span>
-        <h1 className="font-serif font-black text-3xl sm:text-4xl text-neutral-900 tracking-tight">
-          {lang === 'en' ? 'Tarot Card Encyclopedia' : '塔罗牌义百科大全'}
-        </h1>
-        <p className="text-xs sm:text-sm text-neutral-600 mt-2 leading-relaxed">
-          {lang === 'en'
-            ? 'Explore 22 Major Arcana and 56 Minor Arcana. Tap any card to inspect upright and reversed meanings, psychological archetypes, and symbolism.'
-            : '深入探索 22 张大阿卡纳与 56 张小阿卡纳。点击任意卡牌即可查阅其正逆位深层牌义、爱情与事业映射、象征图案及神谕启示。'}
-        </p>
-      </div>
-
-      {/* 搜索与分类 Tab 工具栏 */}
-      <div className="w-full max-w-4xl mx-auto mb-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* 分类 Tab */}
-        <div className="flex flex-wrap justify-center gap-1.5 p-1 rounded-2xl bg-white border border-neutral-200">
-          {[
-            { id: 'all' as TabType, label: lang === 'en' ? 'All (78)' : '全部 (78)' },
-            { id: 'major' as TabType, label: lang === 'en' ? 'Major (22)' : '大阿卡纳 (22)' },
-            { id: 'wands' as TabType, label: lang === 'en' ? 'Wands · Fire (14)' : '权杖 · 火 (14)' },
-            { id: 'cups' as TabType, label: lang === 'en' ? 'Cups · Water (14)' : '圣杯 · 水 (14)' },
-            { id: 'swords' as TabType, label: lang === 'en' ? 'Swords · Air (14)' : '宝剑 · 风 (14)' },
-            { id: 'pentacles' as TabType, label: lang === 'en' ? 'Pentacles · Earth (14)' : '星币 · 土 (14)' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-black text-white'
-                  : 'text-neutral-600 hover:text-black hover:bg-neutral-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 搜索框 */}
-        <div className="relative w-full sm:w-64">
-          <label htmlFor="card-search-input" className="sr-only">
-            {lang === 'en' ? 'Search cards' : '搜索卡牌'}
-          </label>
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-500" />
-          <input
-            id="card-search-input"
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder={lang === 'en' ? 'Search card (e.g. Fool / Lovers)...' : '搜索牌名（如：愚人 / 恋人）...'}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-white border border-neutral-300 text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:outline-hidden focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
-          />
-        </div>
-      </div>
-
-      {/* 卡牌网格展现 */}
-      {filteredCards.length === 0 ? (
-        <div className="text-center py-20 text-neutral-500 text-sm">
-          {lang === 'en' ? 'No matching cards found. Try another keyword.' : '未检索到匹配的塔罗牌，请尝试更换关键词。'}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
-          {filteredCards.map(card => (
-            <Link
-              key={card.id}
-              href={`/${lang}/cards/${card.slug}`}
-              className="group flex flex-col items-center p-3 rounded-2xl bg-white border border-neutral-200 hover:border-neutral-900 transition-colors"
-            >
-              <div className="group-hover:-translate-y-1 transition-transform duration-300">
-                <TarotCardView
-                  card={card}
-                  isReversed={false}
-                  isFlipped={true}
-                  size="sm"
-                  showDetails={false}
-                  lang={lang === 'en' ? 'en' : 'zh'}
-                />
-              </div>
-
-              <div className="mt-2.5 text-center w-full">
-                <span className="font-serif font-bold text-sm text-neutral-900 group-hover:text-black transition-colors block">
-                  {lang === 'en' ? card.nameEn : card.nameZh}
-                </span>
-                {lang === 'en' ? (
-                  <span className="text-[10px] text-neutral-500 block font-serif">
-                    {card.arcana === 'major' ? `Major · ${card.romanNumeral}` : `${card.suit} · Minor`}
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-neutral-500 block font-serif italic">
-                    {card.nameEn}
-                  </span>
-                )}
-                <div className="mt-1 flex flex-wrap justify-center gap-1">
-                  {lang === 'en' ? (
-                    getLocalizedCardDetailEn(card.slug)?.keywords.slice(0, 2).map((kw, i) => (
-                      <span
-                        key={i}
-                        className="text-[9px] px-1.5 py-0.5 rounded-sm bg-neutral-100 text-neutral-600"
-                      >
-                        {kw}
-                      </span>
-                    ))
-                  ) : (
-                    card.keywords.slice(0, 2).map((kw, i) => (
-                      <span
-                        key={i}
-                        className="text-[9px] px-1.5 py-0.5 rounded-sm bg-neutral-100 text-neutral-600"
-                      >
-                        {kw}
-                      </span>
-                    ))
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
+    <>
+      <JsonLd data={structuredData} />
+      <CardsEncyclopediaClient lang={lang} />
+    </>
   );
 }

@@ -8,10 +8,12 @@ import { cookies } from 'next/headers';
  */
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    key,
     {
       cookies: {
         getAll() {
@@ -31,8 +33,11 @@ export async function createSupabaseServerClient() {
   );
 }
 
-/** 获取当前登录用户（未登录返回 null） */
+/** 获取当前登录用户（未登录或未配置 Supabase 时返回 null） */
 export async function getSupabaseUser() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return null;
+  }
   const supabase = await createSupabaseServerClient();
   const {
     data: { user }
