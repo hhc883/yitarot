@@ -7,7 +7,7 @@ import { FeatureCard } from '@/components/site/FeatureCard';
 import { ToolCardGridMotion } from '@/components/site/ToolCardGridMotion';
 import { ToolIcon } from '@/components/site/ToolIcon';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { buildBilingualMetadata, SITE_URL } from '@/lib/seo/metadata';
+import { buildBilingualMetadata, getSiteUrl } from '@/lib/seo/metadata';
 import { READING_COST } from '@/lib/points/constants';
 
 export const instant = false;
@@ -140,7 +140,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     }
   ];
 
-  const siteUrl = SITE_URL;
+  const siteUrl = getSiteUrl();
   const pageTitle = isEn ? 'Western Tarot Sanctuary' : '塔罗专厅｜自由抽牌·牌阵占卜·78张牌义';
 
   const structuredData = [

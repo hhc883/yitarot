@@ -7,6 +7,7 @@ import { getTarotEvidence, type TarotEvidence } from '@/lib/tarot/waite-basis';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { Sparkles, ArrowLeft, ExternalLink } from 'lucide-react';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 export async function generateStaticParams() {
   const cards = getAllCards();
@@ -49,7 +50,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang, slug } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const card = getCardBySlug(slug);
   if (!card) return { title: lang === 'en' ? 'Card Not Found' : '未找到卡牌' };
 
@@ -214,7 +215,7 @@ export default async function CardDetailPage({
   const reversedEvidence = getTarotEvidence(slug, true, lang);
   const sourcedSummary = buildSourcedSummary(lang, uprightEvidence, reversedEvidence);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const cardName = isEn ? `${card.nameEn} (${card.nameZh})` : `${card.nameZh}（${card.nameEn}）`;
 
   const structuredData = [

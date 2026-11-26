@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { getSpreadById } from '@/lib/tarot/spreads';
 import { READING_COST } from '@/lib/points/constants';
 import { FreeTarotDrawWidget, SpreadSlotMeta } from '@/components/tarot/FreeTarotDrawWidget';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 const PAGE_PATH = '/en/spreads/three-card';
 
@@ -47,7 +48,7 @@ export async function generateMetadata({
     notFound();
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}${PAGE_PATH}`;
   const title = 'Free 3 Card Tarot Reading — Past, Present & Future';
   const ogTitle = `${title} | YiTatro`;

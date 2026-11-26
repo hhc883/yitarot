@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
+import { getSiteUrl, SITE_URL } from '@/lib/seo/site-url';
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+export { getSiteUrl, SITE_URL };
 
 export interface LocalizedMetadataContent {
   title: string;
@@ -26,15 +27,16 @@ export function buildPageAlternates(
   lang: string,
   path: string
 ): NonNullable<Metadata['alternates']> {
+  const siteUrl = getSiteUrl();
   const currentLang = lang === 'en' ? 'en' : 'zh';
   const normalizedPath = path ? (path.startsWith('/') ? path : `/${path}`) : '';
 
   return {
-    canonical: `${SITE_URL}/${currentLang}${normalizedPath}`,
+    canonical: `${siteUrl}/${currentLang}${normalizedPath}`,
     languages: {
-      zh: `${SITE_URL}/zh${normalizedPath}`,
-      en: `${SITE_URL}/en${normalizedPath}`,
-      'x-default': `${SITE_URL}/zh${normalizedPath}`,
+      zh: `${siteUrl}/zh${normalizedPath}`,
+      en: `${siteUrl}/en${normalizedPath}`,
+      'x-default': `${siteUrl}/zh${normalizedPath}`,
     },
   };
 }

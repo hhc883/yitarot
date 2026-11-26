@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import React from 'react';
 import { SiteChrome } from '@/components/site/SiteChrome';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
@@ -15,7 +16,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang } = await params;
   const isEn = rawLang === 'en';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const currentLang = isEn ? 'en' : 'zh';
 
   return {

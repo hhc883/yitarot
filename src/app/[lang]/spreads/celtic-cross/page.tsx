@@ -8,6 +8,7 @@ import {
   CelticCrossDiagram,
   CelticCrossPositionItem
 } from '@/components/tarot/CelticCrossDiagram';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 const PAGE_PATH = '/en/spreads/celtic-cross';
 
@@ -81,7 +82,7 @@ export async function generateMetadata({
     notFound();
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}${PAGE_PATH}`;
   const title = 'Celtic Cross Tarot Spread — 10-Position Diagram & Guide';
   const ogTitle = `${title} | YiTatro`;

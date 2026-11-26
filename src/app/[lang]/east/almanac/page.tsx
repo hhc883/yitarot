@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AlmanacWidget } from '@/components/east/AlmanacWidget';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 export const instant = false;
 
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang: raw } = await params;
   const lang = raw === 'en' ? 'en' : 'zh';
   const { title, description } = COPY[lang];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   return {
     title,
     description,

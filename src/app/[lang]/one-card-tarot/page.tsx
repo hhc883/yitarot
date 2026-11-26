@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { FreeTarotDrawWidget } from '@/components/tarot/FreeTarotDrawWidget';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 const PAGE_PATH = '/en/one-card-tarot';
 
@@ -20,7 +21,7 @@ export async function generateMetadata({
     notFound();
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}${PAGE_PATH}`;
   const title = 'Free One Card Tarot Reading — Daily Reflection & Focus';
   const ogTitle = `${title} | YiTatro`;

@@ -11,6 +11,7 @@ import { BlogToc } from '@/components/blog/BlogToc';
 import { BlogToolCtaBanner } from '@/components/blog/BlogToolCta';
 import { BlogAuthorCard } from '@/components/blog/BlogAuthorCard';
 import { BlogCard } from '@/components/blog/BlogCard';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 export const instant = false;
 
@@ -28,7 +29,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang, slug } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const post = getPostBySlug(slug, lang);
 
   if (!post) {
@@ -37,6 +38,22 @@ export async function generateMetadata({
     };
   }
 
+  const otherLang = lang === 'en' ? 'zh' : 'en';
+  const siblingPost = getPostBySlug(post.slug, otherLang);
+  const selfUrl = `${siteUrl}/${lang}/blog/${post.slug}`;
+  const alternates: Metadata['alternates'] = siblingPost
+    ? {
+        canonical: selfUrl,
+        languages: {
+          zh: `${siteUrl}/zh/blog/${post.slug}`,
+          en: `${siteUrl}/en/blog/${post.slug}`,
+          'x-default': `${siteUrl}/zh/blog/${post.slug}`
+        }
+      }
+    : {
+        canonical: selfUrl
+      };
+
   const title = `${post.title} | YiTatro`;
   const description = post.description;
 
@@ -44,18 +61,11 @@ export async function generateMetadata({
     title,
     description,
     keywords: post.tags.concat(['YiTatro', post.category, lang === 'en' ? 'Article' : '研习文章']),
-    alternates: {
-      canonical: `${siteUrl}/${lang}/blog/${post.slug}`,
-      languages: {
-        zh: `${siteUrl}/zh/blog/${post.slug}`,
-        en: `${siteUrl}/en/blog/${post.slug}`,
-        'x-default': `${siteUrl}/zh/blog/${post.slug}`
-      }
-    },
+    alternates,
     openGraph: {
       title,
       description,
-      url: `${siteUrl}/${lang}/blog/${post.slug}`,
+      url: selfUrl,
       siteName: 'YiTatro',
       locale: lang === 'en' ? 'en_US' : 'zh_CN',
       type: 'article',
@@ -79,7 +89,7 @@ export default async function BlogPostPage({
 }) {
   const { lang: rawLang, slug } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const post = getPostBySlug(slug, lang);
 
   if (!post) {

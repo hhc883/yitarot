@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { PointsGateProvider } from '@/components/site/PointsGateProvider';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+const siteUrl = getSiteUrl();
 
 const globalStructuredData = [
   {
