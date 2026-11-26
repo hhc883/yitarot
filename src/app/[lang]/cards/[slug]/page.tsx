@@ -1,13 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { getAllCards, getCardBySlug } from '@/lib/tarot/deck';
-import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
+import { getTarotEvidence, type TarotEvidence } from '@/lib/tarot/waite-basis';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
 import { JsonLd } from '@/components/seo/JsonLd';
-import { Sparkles, ArrowLeft } from 'lucide-react';
-import { IconLove, IconCareer } from '@/components/icons/QiIcons';
+import { Sparkles, ArrowLeft, ExternalLink } from 'lucide-react';
 
 export async function generateStaticParams() {
   const cards = getAllCards();
@@ -21,6 +20,28 @@ export async function generateStaticParams() {
   return params;
 }
 
+function buildSourcedSummary(
+  lang: 'zh' | 'en',
+  upright?: TarotEvidence,
+  reversed?: TarotEvidence
+): string {
+  if (lang === 'en') {
+    if (upright && reversed) {
+      return `Upright: ${upright.basisText} Reversed: ${reversed.basisText}`;
+    }
+    if (upright) return `Upright: ${upright.basisText}`;
+    if (reversed) return `Reversed: ${reversed.basisText}`;
+    return 'No verified Rider-Waite source entry is available for this card.';
+  }
+
+  if (upright && reversed) {
+    return `正位：${upright.basisText} 逆位：${reversed.basisText}`;
+  }
+  if (upright) return `正位：${upright.basisText}`;
+  if (reversed) return `逆位：${reversed.basisText}`;
+  return '暂缺该牌的已核验韦特文献条目。';
+}
+
 export async function generateMetadata({
   params
 }: {
@@ -30,26 +51,40 @@ export async function generateMetadata({
   const lang = rawLang === 'en' ? 'en' : 'zh';
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
   const card = getCardBySlug(slug);
-  if (!card) return { title: lang === 'en' ? 'Card Not Found | YiTatro' : '未找到卡牌 | YiTatro' };
+  if (!card) return { title: lang === 'en' ? 'Card Not Found' : '未找到卡牌' };
 
   const isEn = lang === 'en';
-  const enDetail = ALL_CARD_DETAIL_EN[slug];
+  const uprightEvidence = getTarotEvidence(slug, false, lang);
+  const reversedEvidence = getTarotEvidence(slug, true, lang);
+  const sourcedSummary = buildSourcedSummary(lang, uprightEvidence, reversedEvidence);
 
   const title = isEn
-    ? enDetail
-      ? `${card.nameEn} Tarot Meaning - Upright, Reversed, Love, Career & Symbolism | YiTatro`
-      : `${card.nameEn} Tarot Meaning | YiTatro`
-    : `${card.nameZh}（${card.nameEn}）牌义详解 - 正逆位、爱情、事业与象征 | YiTatro`;
+    ? `${card.nameEn} Tarot Meaning: Upright & Reversed`
+    : `${card.nameZh}（${card.nameEn}）牌义：正位与逆位`;
+  const socialTitle = `${title} | YiTatro`;
 
   const description = isEn
-    ? enDetail
-      ? `Explore the deep tarot meaning of ${card.nameEn}: upright & reversed themes (${enDetail.uprightKeywords.join(', ')}), with insights on love, career, and archetypal symbolism.`
-      : `Tarot reading and archetype interpretation for ${card.nameEn}. Comprehensive card wisdom.`
-    : `深入解析塔罗牌【${card.nameZh}】的正位与逆位含义：${card.uprightKeywords.join('、')}。在爱情、工作与心理学层面的深刻启示。`;
+    ? `Rider-Waite ${card.nameEn} upright and reversed meanings: ${sourcedSummary}`
+    : `韦特塔罗${card.nameZh}（${card.nameEn}）正位与逆位牌义：${sourcedSummary}`;
 
   const keywords = isEn
-    ? [card.nameEn, `${card.nameEn} tarot meaning`, `${card.nameEn} upright`, `${card.nameEn} reversed`, ...(enDetail ? enDetail.keywords : card.keywords), 'Rider-Waite tarot']
-    : [card.nameZh, card.nameEn, `${card.nameZh}牌义`, `${card.nameZh}正位`, `${card.nameZh}逆位`, ...card.keywords, '韦特塔罗牌'];
+    ? [
+        card.nameEn,
+        `${card.nameEn} tarot meaning`,
+        `${card.nameEn} upright`,
+        `${card.nameEn} reversed`,
+        'Rider-Waite tarot',
+        'The Pictorial Key to the Tarot'
+      ]
+    : [
+        card.nameZh,
+        card.nameEn,
+        `${card.nameZh}牌义`,
+        `${card.nameZh}正位`,
+        `${card.nameZh}逆位`,
+        '韦特塔罗牌',
+        'Rider-Waite'
+      ];
 
   return {
     title,
@@ -67,16 +102,98 @@ export async function generateMetadata({
       type: 'article',
       locale: isEn ? 'en_US' : 'zh_CN',
       url: `${siteUrl}/${lang}/cards/${slug}`,
-      title,
+      title: socialTitle,
       description,
       siteName: 'YiTatro'
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: socialTitle,
       description
     }
   };
+}
+
+function OrientationCard({
+  lang,
+  orientation,
+  evidence
+}: {
+  lang: 'zh' | 'en';
+  orientation: 'upright' | 'reversed';
+  evidence?: TarotEvidence;
+}) {
+  const isEn = lang === 'en';
+  const isReversed = orientation === 'reversed';
+
+  const heading = isEn
+    ? isReversed
+      ? 'Reversed Reference'
+      : 'Upright Reference'
+    : isReversed
+      ? '逆位参考（Reversed）'
+      : '正位参考（Upright）';
+
+  const paraphraseLabel = isEn ? 'Paraphrase' : '文献转述';
+  const missingText = isEn
+    ? 'Missing source data: no verified Rider-Waite reference entry was found for this orientation.'
+    : '缺失依据数据：未检索到该正逆位方向的已核验韦特文献条目。';
+
+  return (
+    <section
+      data-evidence-ref={evidence?.sourceRef}
+      className="p-4 sm:p-5 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between gap-4"
+    >
+      <div>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <h3 className="flex items-center gap-2 text-xs sm:text-sm font-semibold tracking-wide text-zinc-900">
+            <span
+              className={
+                isReversed
+                  ? 'w-2 h-2 rounded-full border border-zinc-900 bg-zinc-300 shrink-0'
+                  : 'w-2 h-2 rounded-full bg-zinc-900 shrink-0'
+              }
+            />
+            <span>{heading}</span>
+          </h3>
+          {evidence && (
+            <span className="px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-[11px] font-medium text-zinc-700 shrink-0">
+              {paraphraseLabel}
+            </span>
+          )}
+        </div>
+
+        {evidence ? (
+          <p className="text-xs sm:text-sm text-zinc-800 leading-relaxed">
+            {evidence.basisText}
+          </p>
+        ) : (
+          <p className="text-xs sm:text-sm text-zinc-500 italic leading-relaxed">
+            {missingText}
+          </p>
+        )}
+      </div>
+
+      {evidence && (
+        <div className="pt-3 border-t border-zinc-100 text-[11px] text-zinc-600 leading-relaxed">
+          <div>
+            <span className="font-medium text-zinc-800">
+              {isEn ? 'Source: ' : '出处：'}
+            </span>
+            <a
+              href={evidence.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-baseline gap-1 text-zinc-700 underline underline-offset-2 hover:text-zinc-950 transition-colors"
+            >
+              <span>{evidence.sourceName}</span>
+              <ExternalLink className="w-3 h-3 self-center shrink-0" aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+      )}
+    </section>
+  );
 }
 
 export default async function CardDetailPage({
@@ -92,21 +209,13 @@ export default async function CardDetailPage({
     notFound();
   }
 
-  const enDetail = lang === 'en' ? ALL_CARD_DETAIL_EN[slug] : undefined;
-  const isFallbackEn = lang === 'en' && !enDetail;
-
-  const keywords = enDetail ? enDetail.keywords : card.keywords;
-  const uprightKeywords = enDetail ? enDetail.uprightKeywords : card.uprightKeywords;
-  const reversedKeywords = enDetail ? enDetail.reversedKeywords : card.reversedKeywords;
-  const uprightMeaning = enDetail ? enDetail.uprightMeaning : card.uprightMeaning;
-  const reversedMeaning = enDetail ? enDetail.reversedMeaning : card.reversedMeaning;
-  const loveMeaning = enDetail ? enDetail.loveMeaning : card.loveMeaning;
-  const careerMeaning = enDetail ? enDetail.careerMeaning : card.careerMeaning;
-  const symbolism = enDetail ? enDetail.symbolism : card.symbolism;
-  const advice = enDetail ? enDetail.advice : card.advice;
+  const isEn = lang === 'en';
+  const uprightEvidence = getTarotEvidence(slug, false, lang);
+  const reversedEvidence = getTarotEvidence(slug, true, lang);
+  const sourcedSummary = buildSourcedSummary(lang, uprightEvidence, reversedEvidence);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
-  const cardName = lang === 'en' ? `${card.nameEn} (${card.nameZh})` : `${card.nameZh}（${card.nameEn}）`;
+  const cardName = isEn ? `${card.nameEn} (${card.nameZh})` : `${card.nameZh}（${card.nameEn}）`;
 
   const structuredData = [
     {
@@ -116,19 +225,19 @@ export default async function CardDetailPage({
         {
           '@type': 'ListItem',
           position: 1,
-          name: lang === 'en' ? 'Home' : '首页',
+          name: isEn ? 'Home' : '首页',
           item: `${siteUrl}/${lang}`
         },
         {
           '@type': 'ListItem',
           position: 2,
-          name: lang === 'en' ? 'Tarot' : '塔罗专厅',
+          name: isEn ? 'Tarot' : '塔罗专厅',
           item: `${siteUrl}/${lang}/west`
         },
         {
           '@type': 'ListItem',
           position: 3,
-          name: lang === 'en' ? 'Tarot Cards' : '塔罗牌库',
+          name: isEn ? 'Tarot Cards' : '塔罗牌库',
           item: `${siteUrl}/${lang}/cards`
         },
         {
@@ -142,8 +251,10 @@ export default async function CardDetailPage({
     {
       '@context': 'https://schema.org',
       '@type': 'Article',
-      headline: `${cardName} ${lang === 'en' ? 'Tarot Meaning & Archetype Interpretation' : '塔罗牌义详解与荣格原型解析'}`,
-      description: uprightMeaning,
+      headline: isEn
+        ? `${cardName} Upright & Reversed Tarot Meaning (Rider-Waite)`
+        : `${cardName} 正位与逆位牌义参考（韦特塔罗）`,
+      description: sourcedSummary,
       image: `${siteUrl}/cards/${card.arcana === 'major' ? 'major-arcana' : 'minor-arcana'}/${card.slug}.webp`,
       author: {
         '@type': 'Organization',
@@ -169,7 +280,7 @@ export default async function CardDetailPage({
           className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors group focus:outline-hidden focus:underline"
         >
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-          <span>{lang === 'en' ? 'Back to Card Library' : '返回 78 牌义库'}</span>
+          <span>{isEn ? 'Back to Card Library' : '返回 78 牌义库'}</span>
         </Link>
       </div>
 
@@ -179,18 +290,18 @@ export default async function CardDetailPage({
           <div className="flex flex-wrap items-center gap-2 mb-2.5">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-800 border border-zinc-200">
               {card.arcana === 'major'
-                ? (lang === 'en' ? `Major Arcana ${card.romanNumeral}` : `大阿卡纳 ${card.romanNumeral}`)
-                : (lang === 'en' ? `${card.suit} · Minor Arcana` : `${card.suit} · 小阿卡纳`)}
+                ? (isEn ? `Major Arcana ${card.romanNumeral}` : `大阿卡纳 ${card.romanNumeral}`)
+                : (isEn ? `${card.suit} · Minor Arcana` : `${card.suit} · 小阿卡纳`)}
             </span>
             {card.element && (
               <span className="text-xs text-zinc-500 font-medium">
-                {lang === 'en' ? `Element: ${card.element}` : `元素：${card.element}`}
+                {isEn ? `Element: ${card.element}` : `元素：${card.element}`}
               </span>
             )}
           </div>
 
           <h1 className="font-serif font-bold text-2xl sm:text-3xl lg:text-4xl text-zinc-900 tracking-tight leading-tight">
-            {lang === 'en' ? (
+            {isEn ? (
               card.nameEn
             ) : (
               <>
@@ -201,32 +312,6 @@ export default async function CardDetailPage({
               </>
             )}
           </h1>
-
-          <div
-            className="flex flex-wrap gap-1.5 mt-3"
-            {...(isFallbackEn ? { lang: 'zh-CN' } : {})}
-          >
-            {keywords.map((kw, i) => (
-              <span
-                key={i}
-                className="px-2.5 py-0.5 rounded-md bg-zinc-50 border border-zinc-200 text-xs text-zinc-600 font-normal"
-              >
-                #{kw}
-              </span>
-            ))}
-          </div>
-
-          {isFallbackEn && (
-            <div className="mt-4 p-3 rounded-lg bg-zinc-50 border border-zinc-200 text-xs text-zinc-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <span>This interpretation is currently available in Chinese.</span>
-              <Link
-                href={`/zh/cards/${card.slug}`}
-                className="font-medium text-zinc-900 underline hover:text-zinc-600 transition-colors inline-block"
-              >
-                View in Chinese
-              </Link>
-            </div>
-          )}
         </header>
 
         {/* 卡牌预览：移动端排第 2（与标题相邻且先于正逆位），桌面端位于左栏并随长文滚动 */}
@@ -238,101 +323,48 @@ export default async function CardDetailPage({
             size="xl"
             showDetails={false}
             className="mb-4"
+            lang={lang}
           />
           <p className="text-xs text-zinc-500 leading-normal">
-            {lang === 'en' ? '💡 Tap card to flip and inspect archetypal symbols' : '💡 点击卡牌可翻转查看背影日月图腾'}
+            {isEn ? 'Upright card illustration' : '正位牌面'}
           </p>
 
           <div className="mt-6 w-full pt-4 border-t border-zinc-200 flex flex-col gap-2">
             <Link
-              href={`/${lang}/reading?card=${card.id}`}
+              href={`/${lang}/reading`}
               className="w-full py-2.5 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors border border-transparent shadow-xs focus:outline-hidden focus:ring-2 focus:ring-zinc-400"
             >
               <Sparkles className="w-4 h-4 text-zinc-300" />
-              <span>{lang === 'en' ? 'Ask AI with this Card' : '以此牌向 AI 塔罗师提问'}</span>
+              <span>{isEn ? 'Open AI Tarot Reading' : '前往 AI 塔罗占卜'}</span>
             </Link>
           </div>
         </div>
 
-        {/* 牌义详析分组：移动端排第 3，桌面端位于右栏标题下方 */}
-        <div
-          className="order-3 lg:order-none lg:col-span-7 lg:col-start-6 flex flex-col gap-6"
-          {...(isFallbackEn ? { lang: 'zh-CN' } : {})}
-        >
-          {/* 正位与逆位对比 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* 正位 */}
-            <div className="p-4 sm:p-5 rounded-xl bg-white border border-zinc-200 shadow-xs">
-              <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-zinc-900 mb-2">
-                <span className="w-2 h-2 rounded-full bg-zinc-900" />
-                <span>{lang === 'en' ? 'Upright Reading' : '正位解读（Upright）'}</span>
-              </div>
-              <div className="text-xs text-zinc-600 font-medium mb-2.5">
-                {uprightKeywords.join(lang === 'en' && !isFallbackEn ? ' · ' : ' · ')}
-              </div>
-              <p className="text-xs sm:text-sm text-zinc-700 leading-relaxed">
-                {uprightMeaning}
-              </p>
-            </div>
+        {/* 正逆位历史文献参考：移动端排第 3，桌面端位于右栏标题下方 */}
+        <div className="order-3 lg:order-none lg:col-span-7 lg:col-start-6 flex flex-col gap-6">
+          <div className="space-y-3">
+            <h2 className="font-serif font-semibold text-base sm:text-lg text-zinc-900">
+              {isEn
+                ? 'Upright & Reversed Reference (Rider-Waite)'
+                : '正位与逆位牌义参考（韦特塔罗）'}
+            </h2>
 
-            {/* 逆位 */}
-            <div className="p-4 sm:p-5 rounded-xl bg-white border border-zinc-200 shadow-xs">
-              <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-zinc-900 mb-2">
-                <span className="w-2 h-2 rounded-full border border-zinc-900 bg-zinc-300" />
-                <span>{lang === 'en' ? 'Reversed Reading' : '逆位解读（Reversed）'}</span>
-              </div>
-              <div className="text-xs text-zinc-600 font-medium mb-2.5">
-                {reversedKeywords.join(lang === 'en' && !isFallbackEn ? ' · ' : ' · ')}
-              </div>
-              <p className="text-xs sm:text-sm text-zinc-700 leading-relaxed">
-                {reversedMeaning}
-              </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <OrientationCard lang={lang} orientation="upright" evidence={uprightEvidence} />
+              <OrientationCard lang={lang} orientation="reversed" evidence={reversedEvidence} />
             </div>
           </div>
 
-          {/* 感情与事业细分 */}
-          <div className="p-4 sm:p-5 rounded-xl bg-white border border-zinc-200 shadow-xs space-y-4">
-            <div>
-              <h3 className="text-xs sm:text-sm font-semibold text-zinc-900 flex items-center gap-2 mb-1.5">
-                <IconLove size={16} className="text-zinc-700" />
-                <span>{lang === 'en' ? 'Love & Relationship Insight' : '情感与人际启示'}</span>
-              </h3>
-              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
-                {loveMeaning}
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-zinc-100">
-              <h3 className="text-xs sm:text-sm font-semibold text-zinc-900 flex items-center gap-2 mb-1.5">
-                <IconCareer size={16} className="text-zinc-700" />
-                <span>{lang === 'en' ? 'Career & Wealth Insight' : '职场与财富启示'}</span>
-              </h3>
-              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
-                {careerMeaning}
-              </p>
-            </div>
-          </div>
-
-          {/* 象征图腾与灵性箴言 */}
-          <div className="p-4 sm:p-5 rounded-xl bg-zinc-50 border border-zinc-200 space-y-4">
-            <div>
-              <span className="text-xs font-semibold text-zinc-900 uppercase tracking-wider block mb-1.5">
-                {lang === 'en' ? 'Archetypal Symbolism' : '图腾象征意义（Symbolism）'}
-              </span>
-              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
-                {symbolism}
-              </p>
-            </div>
-
-            <div className="pt-4 border-t border-zinc-200">
-              <span className="text-xs font-semibold text-zinc-900 uppercase tracking-wider block mb-1.5">
-                {lang === 'en' ? 'Oracle Advice' : '神谕行动指引（Oracle Advice）'}
-              </span>
-              <p className="font-serif italic text-xs sm:text-sm text-zinc-900 leading-relaxed">
-                “{advice}”
-              </p>
-            </div>
-          </div>
+          <section className="p-4 sm:p-5 rounded-xl bg-zinc-50 border border-zinc-200 space-y-2">
+            <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+              {isEn ? 'Source & Reference Scope' : '文献依据与参考说明'}
+            </h2>
+            <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
+              {isEn
+                ? 'These summaries reflect traditional Rider-Waite divinatory themes for historical reference only and do not predict personal outcomes.'
+                : '以上牌义仅梳理韦特塔罗传统文献中的象征主题，作历史参考之用，不作现实结果或个人运势预测。'}
+            </p>
+          </section>
         </div>
       </div>
     </div>

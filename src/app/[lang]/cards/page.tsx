@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { getAllCards, TarotSuit } from '@/lib/tarot/deck';
-import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
 import { Search } from 'lucide-react';
 import { IconBook78 } from '@/components/icons/QiIcons';
@@ -50,8 +49,8 @@ export default function CardsEncyclopediaPage() {
         </h1>
         <p className="text-xs sm:text-sm text-neutral-600 mt-2 leading-relaxed">
           {lang === 'en'
-            ? 'Explore 22 Major Arcana and 56 Minor Arcana. Tap any card to inspect upright and reversed meanings, psychological archetypes, and symbolism.'
-            : '深入探索 22 张大阿卡纳与 56 张小阿卡纳。点击任意卡牌即可查阅其正逆位深层牌义、爱情与事业映射、象征图案及神谕启示。'}
+            ? 'Search all 78 Rider-Waite cards by category or name. Tap any card to view its sourced upright and reversed meanings.'
+            : '按类别或牌名检索全部 78 张韦特塔罗牌。点击任意卡牌即可查阅带有来源依据的正逆位牌义。'}
         </p>
       </div>
 
@@ -135,27 +134,6 @@ export default function CardsEncyclopediaPage() {
                     {card.nameEn}
                   </span>
                 )}
-                <div className="mt-1 flex flex-wrap justify-center gap-1">
-                  {lang === 'en' ? (
-                    getLocalizedCardDetailEn(card.slug)?.keywords.slice(0, 2).map((kw, i) => (
-                      <span
-                        key={i}
-                        className="text-[9px] px-1.5 py-0.5 rounded-sm bg-neutral-100 text-neutral-600"
-                      >
-                        {kw}
-                      </span>
-                    ))
-                  ) : (
-                    card.keywords.slice(0, 2).map((kw, i) => (
-                      <span
-                        key={i}
-                        className="text-[9px] px-1.5 py-0.5 rounded-sm bg-neutral-100 text-neutral-600"
-                      >
-                        {kw}
-                      </span>
-                    ))
-                  )}
-                </div>
               </div>
             </Link>
           ))}
