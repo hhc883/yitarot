@@ -1,19 +1,26 @@
 import { NextRequest } from 'next/server';
-import { streamTarotFollowUp, TarotFollowUpRequest } from '@/lib/tarot/ai-interpreter';
+import { streamTarotFollowUp } from '@/lib/tarot/ai-interpreter';
+import { normalizeTarotFollowUpRequest, TarotValidationError } from '@/lib/tarot/normalize';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as TarotFollowUpRequest;
-
-    if (!body.followUpQuestion?.trim()) {
-      return new Response(JSON.stringify({ error: '追问内容不能为空' }), {
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: '请求体 JSON 格式无效' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    if (!body.drawnCards || body.drawnCards.length === 0) {
-      return new Response(JSON.stringify({ error: '缺少卡牌上下文' }), {
+    let normalized;
+    try {
+      normalized = normalizeTarotFollowUpRequest(rawBody);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof TarotValidationError ? err.message : '追问参数无效';
+      return new Response(JSON.stringify({ error: msg }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -23,7 +30,7 @@ export async function POST(req: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of streamTarotFollowUp(body)) {
+          for await (const chunk of streamTarotFollowUp(normalized)) {
             const data = JSON.stringify({ text: chunk });
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           }

@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   DrawnCard,
   getOrCreateYearSpread,
   redrawYearSpread,
   type YearlySpreadMap
 } from '@/lib/tarot/deck';
-import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
+import { getTarotEvidence } from '@/lib/tarot/waite-basis';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
@@ -67,14 +68,12 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
 
   const cards = cardsByYear[selectedYear];
 
-  const getMeaning = (dc: DrawnCard): string => {
-    if (isEn) {
-      const en = ALL_CARD_DETAIL_EN[dc.card.slug];
-      if (en) {
-        return dc.isReversed ? en.reversedMeaning : en.uprightMeaning;
-      }
-    }
-    return dc.isReversed ? dc.card.reversedMeaning : dc.card.uprightMeaning;
+  const getCardEvidence = (dc: DrawnCard) =>
+    getTarotEvidence(dc.card.slug, dc.isReversed, cardLang);
+
+  const formatSourceLabel = (sourceName: string, sourceRef: string) => {
+    const base = sourceName.includes('Waite') ? sourceName : `A. E. Waite · ${sourceName}`;
+    return sourceRef ? `${base} · ${sourceRef}` : base;
   };
 
   if (!cards || cards.length < 5) {
@@ -232,97 +231,133 @@ export function YearlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
         {/* 详情解读面板 */}
         <div className="p-6 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] space-y-4">
           {activeTab === 'annual' ? (
-            <div>
-              <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between flex-wrap gap-2">
+            (() => {
+              const evidence = getCardEvidence(annualCard);
+              const cardName = isEn ? annualCard.card.nameEn : annualCard.card.nameZh;
+              const orientation = isEn
+                ? (annualCard.isReversed ? 'Reversed' : 'Upright')
+                : (annualCard.isReversed ? '逆位' : '正位');
+              return (
                 <div>
-                  <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
-                    {selectedYear} {isEn ? 'SOUL ARCHETYPE' : '年度核心原型'}
-                  </span>
-                  <h3 className="font-serif font-black text-lg text-[#171717]">
-                    {isEn
-                      ? `Annual Soul Archetype · ${annualCard.card.nameEn} (${annualCard.isReversed ? 'Reversed' : 'Upright'})`
-                      : `年度核心原型 · ${annualCard.card.nameZh}（${annualCard.isReversed ? '逆位' : '正位'}）`}
-                  </h3>
-                </div>
-                <span className="text-xs font-serif text-[#52525B]">
-                  {isEn ? 'Yearlong Spiritual Bedrock' : '全年生命能量基底'}
-                </span>
-              </div>
+                  <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between flex-wrap gap-2">
+                    <div>
+                      <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
+                        {isEn ? `SITE PERIOD LAYOUT · ${selectedYear} ANNUAL SLOT` : `本站年度时段位阶 · ${selectedYear} 年度主牌位`}
+                      </span>
+                      <h3 className="font-serif font-black text-lg text-[#171717]">
+                        {isEn
+                          ? `Annual Soul Archetype · ${cardName} (${orientation})`
+                          : `年度核心原型 · ${cardName}（${orientation}）`}
+                      </h3>
+                    </div>
+                    <span className="text-xs font-serif text-[#52525B]">
+                      {isEn ? 'Site layout: Yearlong Spiritual Bedrock' : '本站位阶定义：全年生命能量基底'}
+                    </span>
+                  </div>
 
-              <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
-                <div>
-                  <span className="font-bold text-[#52525B] block mb-0.5">
-                    {isEn ? 'Annual Question & Deeper Calling' : '【年度命题与深层呼唤】'}
-                  </span>
-                  <p className="text-[#171717]">
-                    {getMeaning(annualCard)}
-                  </p>
+                  <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
+                    <div>
+                      <span className="font-bold text-[#52525B] block mb-0.5">
+                        {isEn ? 'Verified Card Meaning' : '【核验牌义】'}
+                      </span>
+                      {evidence ? (
+                        <>
+                          <p className="text-[#171717]">
+                            {evidence.basisText}
+                          </p>
+                          <p className="mt-2 text-[11px] text-[#52525B]">
+                            {isEn ? 'Original source: ' : '原始文献依据：'}
+                            <a
+                              href={evidence.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+                            >
+                              {formatSourceLabel(evidence.sourceName, evidence.sourceRef)}
+                            </a>
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-[#52525B]">
+                          {isEn
+                            ? `No verified A. E. Waite source excerpt is currently available for ${cardName} (${orientation}).`
+                            : `暂无「${cardName}（${orientation}）」对应的 A. E. Waite 原始文献核验释义。`}
+                        </p>
+                      )}
+                      <Link
+                        href={`/${cardLang}/cards/${annualCard.card.slug}`}
+                        className="mt-2 inline-flex min-h-[32px] items-center text-xs font-medium text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+                      >
+                        {isEn ? `Explore ${cardName} full meaning →` : `查看「${cardName}」完整牌义 →`}
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-bold text-[#52525B] block mb-0.5">
-                    {isEn ? 'Guiding Principle For The Year' : '【全年贯穿性行事心法】'}
-                  </span>
-                  <p className="text-[#171717]">
-                    {isEn
-                      ? 'Throughout the upcoming year, regardless of external volatility, hold steadfast to the wisdom this archetype imparts. Do not let temporary plateaus induce anxiety, nor let brief successes spawn complacency. Cultivate yourself with a long-term, holistic perspective.'
-                      : '在这一年的周期中，无论外界环境如何变幻，始终守住这枚原型教导给你的智慧。不因一时的停滞而焦虑，亦不因短暂的顺境而自满，以整全长远的眼光经营自我。'}
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })()
           ) : (
             <div>
               {(() => {
                 const q = QUARTERS[activeTab as number];
                 const card = quarterCards[activeTab as number];
+                const evidence = getCardEvidence(card);
+                const cardName = isEn ? card.card.nameEn : card.card.nameZh;
+                const orientation = isEn
+                  ? (card.isReversed ? 'Reversed' : 'Upright')
+                  : (card.isReversed ? '逆位' : '正位');
                 return (
                   <div>
                     <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between flex-wrap gap-2">
                       <div>
                         <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
-                          {isEn ? `QUARTERLY WINDOW · ${q.timeframeEn}` : `季度能量窗口 · ${q.timeframeZh}`}
+                          {isEn ? `SITE PERIOD LAYOUT · ${q.timeframeEn}` : `本站年度时段位阶 · ${q.timeframeZh}`}
                         </span>
                         <h3 className="font-serif font-black text-lg text-[#171717]">
                           {isEn
-                            ? `${q.nameEn} · ${card.card.nameEn} (${card.isReversed ? 'Reversed' : 'Upright'})`
-                            : `${q.nameZh} · ${card.card.nameZh}（${card.isReversed ? '逆位' : '正位'}）`}
+                            ? `${q.nameEn} · ${cardName} (${orientation})`
+                            : `${q.nameZh} · ${cardName}（${orientation}）`}
                         </h3>
                       </div>
                       <span className="text-xs font-serif text-[#52525B]">
-                        {isEn ? q.energyRoleEn : q.energyRoleZh}
+                        {isEn ? `Site layout: ${q.energyRoleEn}` : `本站位阶定义：${q.energyRoleZh}`}
                       </span>
                     </div>
 
                     <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
                       <div>
                         <span className="font-bold text-[#52525B] block mb-0.5">
-                          {isEn ? 'Quarterly Energy State' : '【季度态势呈现】'}
+                          {isEn ? 'Verified Card Meaning' : '【核验牌义】'}
                         </span>
-                        <p className="text-[#171717]">
-                          {getMeaning(card)}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-bold text-[#52525B] block mb-0.5">
-                          {isEn ? 'Tactical Focus' : '【当季处事着力点】'}
-                        </span>
-                        <p className="text-[#171717]">
-                          {isEn
-                            ? (activeTab === 0
-                                ? 'Spring centers on planting. Do not demand immediate blossoms; patiently nurture roots and establish clear alliances.'
-                                : activeTab === 1
-                                ? 'Summer centers on expansion. Unleash passion and proactive execution, broadening professional horizons.'
-                                : activeTab === 2
-                                ? 'Autumn centers on consolidation. Prune unprofitable or energy-draining pursuits and secure core assets.'
-                                : 'Winter centers on quiet renewal. Retreat inwardly, conserve resources, and complete the annual review with tranquil clarity.')
-                            : (activeTab === 0
-                                ? '春季重在布局。不必急于看到开花结果，耐下心来耕耘种子，建立清晰的同盟与契约。'
-                                : activeTab === 1
-                                ? '夏季重在冲刺。释放内在激情与行动力，勇敢拓展业务边界与人际网络。'
-                                : activeTab === 2
-                                ? '秋季重在盘整。梳理沉淀已有资产，清理冗余流程，果断剥离不盈利或耗费心神的项目。'
-                                : '冬季重在蓄力。深居内照，减少不必要的消耗，在静定中完成一整年的智慧复盘。')}
-                        </p>
+                        {evidence ? (
+                          <>
+                            <p className="text-[#171717]">
+                              {evidence.basisText}
+                            </p>
+                            <p className="mt-2 text-[11px] text-[#52525B]">
+                              {isEn ? 'Original source: ' : '原始文献依据：'}
+                              <a
+                                href={evidence.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+                              >
+                                {formatSourceLabel(evidence.sourceName, evidence.sourceRef)}
+                              </a>
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-[#52525B]">
+                            {isEn
+                              ? `No verified A. E. Waite source excerpt is currently available for ${cardName} (${orientation}).`
+                              : `暂无「${cardName}（${orientation}）」对应的 A. E. Waite 原始文献核验释义。`}
+                          </p>
+                        )}
+                        <Link
+                          href={`/${cardLang}/cards/${card.card.slug}`}
+                          className="mt-2 inline-flex min-h-[32px] items-center text-xs font-medium text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+                        >
+                          {isEn ? `Explore ${cardName} full meaning →` : `查看「${cardName}」完整牌义 →`}
+                        </Link>
                       </div>
                     </div>
                   </div>

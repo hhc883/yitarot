@@ -204,6 +204,7 @@ function ReadingConsoleInner({
           spread: selectedSpread,
           reader: selectedReader,
           drawnCards: cards,
+          lang: isEn ? 'en' : 'zh',
           points_ref: consumed.ref_id
         })
       });
@@ -248,7 +249,7 @@ function ReadingConsoleInner({
     } finally {
       setIsStreaming(false);
     }
-  }, [category, question, selectedReader, selectedSpread, pointsGate]);
+  }, [category, question, selectedReader, selectedSpread, pointsGate, isEn]);
 
   // 重置占卜
   const handleReset = () => {
@@ -465,6 +466,7 @@ function ReadingConsoleInner({
             question={question}
             reader={selectedReader}
             drawnCards={drawnCards}
+            spreadId={initialSavedSession ? undefined : selectedSpread.id}
             interpretationText={interpretationText}
             isStreaming={isStreaming}
             onReset={handleReset}

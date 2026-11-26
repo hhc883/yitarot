@@ -142,22 +142,10 @@ export function BaziDailyWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
 
 function BaziReading({ reading, isEn }: { reading: Reading; isEn: boolean }) {
   const { fortune, birth } = reading;
-  const { queryDate, scores, dailyTenGod, userDayMaster, todayGanZhi, elementSynergy, dosAndDonts, luckyGuides } = fortune;
+  const { queryDate, dailyTenGod, userDayMaster, todayGanZhi, elementSynergy } = fortune;
   const day = localDate(queryDate.year, queryDate.month, queryDate.day);
   const birthDate = localDate(birth.year, birth.month, birth.day);
   const birthTime = `${String(birth.hour).padStart(2, '0')}:00`;
-  const measures = [
-    [isEn ? 'Career' : '事业', scores.career],
-    [isEn ? 'Wealth' : '财富', scores.wealth],
-    [isEn ? 'Relationships' : '情感', scores.romance],
-    [isEn ? 'Well-being' : '身心', scores.wellness]
-  ] as const;
-  const pointers = [
-    [isEn ? 'Supportive direction' : '贵人方位', isEn ? luckyGuides.directionEn : luckyGuides.directionZh],
-    [isEn ? 'Suggested colors' : '参考色系', isEn ? luckyGuides.colorEn : luckyGuides.colorZh],
-    [isEn ? 'Favorable hours' : '参考时段', isEn ? luckyGuides.timeWindowEn : luckyGuides.timeWindowZh],
-    [isEn ? 'Mindset' : '心态提示', isEn ? luckyGuides.mindsetEn : luckyGuides.mindsetZh]
-  ] as const;
 
   return (
     <>
@@ -183,63 +171,85 @@ function BaziReading({ reading, isEn }: { reading: Reading; isEn: boolean }) {
 
       <div className="mt-4 rounded-md border border-neutral-200 bg-neutral-50 p-3.5 text-xs leading-5 text-neutral-700 space-y-1.5">
         <p>{isEn ? fortune.ziHourRuleEn : fortune.ziHourRuleZh}</p>
-        <p>{isEn ? fortune.methodologyNoteEn : fortune.methodologyNoteZh}</p>
+        <p>
+          {isEn
+            ? 'Source & scope: Calendar pillars, solar terms, and 12/13 hour pillars are computed by lunar-typescript (EightChar sect 2). Day and hour Ten Gods and Five-Element relationships are derived from the local Ten God & Five-Element lookup comparing your Day Master against the target day and hour stems. Daily scores, auspiciousness grades, dos/don’ts, lucky colors, directions, and favorable-hour rankings are omitted because they lack primary-source backing without full-chart strength and YongShen analysis.'
+            : '口径与依据说明：流日干支、节气与十二/十三时辰柱由 lunar-typescript（EightChar sect 2）推算；流日与各时辰十神及五行生克关系由本地十神与五行对照表，将出生日主与目标日干及各时干逐一比对得出。本页不提供综合/分项运势打分、吉凶等级、宜忌清单或颜色/方位/吉时建议，因该类断语缺乏原典依据且未结合原局旺衰与喜用神分析。'}
+        </p>
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="min-w-0 rounded-lg border border-neutral-200 p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-sm text-neutral-600">{isEn ? 'Daily influence (Ten Gods)' : '流日十神'}</p>
+              <p className="text-sm text-neutral-600">{isEn ? 'Daily Ten God (Local Lookup)' : '流日十神（本地词条对照）'}</p>
               <h3 className="mt-1 font-serif text-xl font-semibold">{isEn ? dailyTenGod.nameEn : dailyTenGod.nameZh}</h3>
-              <p className="mt-1 text-sm text-neutral-600">{isEn ? dailyTenGod.cosmicThemeEn : dailyTenGod.cosmicThemeZh}</p>
+              <p className="mt-1 text-xs text-neutral-600">
+                {isEn ? `Local Ten God lookup · ${dailyTenGod.cosmicThemeEn}` : `本地对照主题 · ${dailyTenGod.cosmicThemeZh}`}
+              </p>
             </div>
-            <div>
-              <p className="text-sm text-neutral-600">{isEn ? 'Overall index (Site Rule)' : '综合参考分（站内规则）'}</p>
-              <p className="mt-1 font-serif text-xl font-semibold tabular-nums">{scores.overall} <span className="text-sm text-neutral-600">/ 100</span></p>
+            <div className="text-left sm:text-right">
+              <p className="text-xs text-neutral-600">{isEn ? 'Target Day Pillar' : '目标流日干支'}</p>
+              <p className="mt-1 font-serif text-lg font-semibold text-neutral-900" lang={isEn ? 'zh' : undefined}>
+                {todayGanZhi.day}
+              </p>
+              <p className="text-xs text-neutral-600">
+                {isEn ? `NaYin: ${todayGanZhi.naYin}` : `纳音：${todayGanZhi.naYin}`}
+              </p>
             </div>
           </div>
-          <p className="mt-4 text-sm leading-6 text-neutral-700">{isEn ? dailyTenGod.descEn : dailyTenGod.descZh}</p>
-          <div className="mt-4 border-t border-neutral-200 pt-4 text-sm leading-6">
-            <p>{isEn ? 'Day Master' : '日主'} · <span className="font-medium">{isEn ? userDayMaster.nameEn : userDayMaster.nameZh}</span></p>
-            <p className="font-medium">{isEn ? elementSynergy.labelEn : elementSynergy.labelZh}</p>
+
+          <p className="mt-4 text-sm leading-6 text-neutral-700">
+            <span className="font-medium text-neutral-900">
+              {isEn ? 'Local Ten God note: ' : '本地十神释义：'}
+            </span>
+            {isEn ? dailyTenGod.descEn : dailyTenGod.descZh}
+          </p>
+
+          <div className="mt-4 border-t border-neutral-200 pt-4 text-sm leading-6 space-y-1.5">
+            <p className="font-medium text-neutral-900">
+              {isEn ? 'Element Relationship Inputs' : '五行生克比对输入'}
+            </p>
+            <p className="text-neutral-700">
+              {isEn
+                ? `Your Day Master: ${userDayMaster.nameEn} (${userDayMaster.stem}, ${userDayMaster.element}) vs. Target Day Stem: ${todayGanZhi.dayStem} (${todayGanZhi.dayElement}) · Branch: ${todayGanZhi.dayBranch}`
+                : `出生日主：${userDayMaster.nameZh}（${userDayMaster.stem}，五行属${userDayMaster.elementZh}）对照流日天干：${todayGanZhi.dayStem}（五行属${todayGanZhi.dayElementZh}）· 日支：${todayGanZhi.dayBranch}`}
+            </p>
+            <p className="font-medium text-neutral-900">{isEn ? elementSynergy.labelEn : elementSynergy.labelZh}</p>
             <p className="text-neutral-700">{isEn ? elementSynergy.descEn : elementSynergy.descZh}</p>
           </div>
-          <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-neutral-200 pt-4 text-sm sm:grid-cols-4">
-            {measures.map(([label, score]) => (
-              <div key={label}>
-                <dt className="text-neutral-600">{label}</dt>
-                <dd className="mt-1 font-medium tabular-nums">{score} / 100</dd>
-              </div>
-            ))}
-          </dl>
         </div>
 
         <div className="min-w-0 rounded-lg border border-neutral-200 p-4 sm:p-5">
           <div className="flex items-baseline justify-between gap-2">
-            <h3 className="font-serif text-xl font-semibold">{isEn ? 'Today’s pointers' : '今日参考'}</h3>
-            <span className="text-xs text-neutral-600">{isEn ? 'Site heuristic rule' : '站内规则映射'}</span>
+            <h3 className="font-serif text-xl font-semibold">{isEn ? 'Calculation Basis' : '排盘依据与口径'}</h3>
+            <span className="text-xs text-neutral-600">{isEn ? 'Dated facts' : '可核验事实'}</span>
           </div>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {[
-              [isEn ? 'Consider' : '宜', isEn ? dosAndDonts.dosEn : dosAndDonts.dos],
-              [isEn ? 'Avoid' : '忌', isEn ? dosAndDonts.dontsEn : dosAndDonts.donts]
-            ].map(([label, items]) => (
-              <div key={String(label)}>
-                <h4 className="text-sm font-medium">{label}</h4>
-                <ul className="mt-1 list-disc space-y-1 pl-4 text-sm leading-5 text-neutral-700">
-                  {Array.isArray(items) && items.map((item) => <li key={item}>{item}</li>)}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-neutral-200 pt-4 text-sm">
-            {pointers.map(([label, value]) => (
-              <div key={label}>
-                <dt className="font-medium">{label}</dt>
-                <dd className="mt-1 text-neutral-700">{value}</dd>
-              </div>
-            ))}
+          <dl className="mt-4 space-y-3 text-sm leading-6">
+            <div>
+              <dt className="font-medium text-neutral-900">{isEn ? 'Calendar Engine' : '历法与排盘引擎'}</dt>
+              <dd className="text-neutral-700">
+                {isEn
+                  ? 'lunar-typescript (EightChar sect 2: daily pillar changes at 00:00; hour stem advances at 23:00).'
+                  : 'lunar-typescript（EightChar sect 2：公历 00:00 换日柱，23:00 晚子时起次日五鼠遁时干）。'}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-neutral-900">{isEn ? 'Ten God & Element Lookup' : '十神与五行对照'}</dt>
+              <dd className="text-neutral-700">
+                {isEn
+                  ? `Local Ten God lookup (TEN_GOD_MAP / LunarUtil.SHI_SHEN) mapping Day Master ${userDayMaster.stem} (${userDayMaster.element}) to day stem ${todayGanZhi.dayStem} (${todayGanZhi.dayElement}) and each hour stem.`
+                  : `本地十神对照表（TEN_GOD_MAP / LunarUtil.SHI_SHEN），以日主 ${userDayMaster.stem}（${userDayMaster.elementZh}）对照流日天干 ${todayGanZhi.dayStem}（${todayGanZhi.dayElementZh}）及各时辰天干。`}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-neutral-900">{isEn ? 'Scope Boundary' : '推断边界'}</dt>
+              <dd className="text-neutral-700">
+                {isEn
+                  ? 'Does not evaluate natal month-branch seasonal strength or YongShen (favorable element); therefore no fortune grades, dos/don’ts, lucky colors, or directions are claimed.'
+                  : '未结合原局月令旺衰与喜用神，因此不生成运势评分、宜忌、幸运色、方位或吉凶等级。'}
+              </dd>
+            </div>
           </dl>
         </div>
       </div>
@@ -249,13 +259,13 @@ function BaziReading({ reading, isEn }: { reading: Reading; isEn: boolean }) {
           <h3 id="daily-bazi-periods" className={headingClass}>{isEn ? 'Twelve time periods' : '十二时辰'}</h3>
           <span className="text-xs text-neutral-600">
             {isEn
-              ? 'True solar-date hour pillars + Ten Gods vs. Day Master; ratings follow YiTatro site rules'
-              : '目标日真实时柱干支 + 相对日主十神；评分与时段标签为站内规则'}
+              ? 'Daily and hourly pillars with Ten Gods relative to the Day Master (lunar-typescript EightChar sect 2 and the local Ten Gods lookup)'
+              : '目标日真实时柱干支 + 相对日主十神（lunar-typescript EightChar sect 2 与本地十神对照）'}
           </span>
         </div>
         <ol id="daily-bazi-timeline" className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           {fortune.hourlyTimeline.map((period) => (
-            <li key={period.hourIndex} className={`min-w-0 rounded-md border p-3 text-sm leading-5 ${period.isFavorable ? 'border-neutral-300 bg-neutral-50' : 'border-neutral-200'}`}>
+            <li key={period.hourIndex} className="min-w-0 rounded-md border border-neutral-200 p-3 text-sm leading-5">
               <span className="block tabular-nums text-xs text-neutral-600">{period.timeRange}</span>
               <span className="mt-1 block font-medium text-neutral-900">
                 {isEn
@@ -265,8 +275,6 @@ function BaziReading({ reading, isEn }: { reading: Reading; isEn: boolean }) {
               <span className="mt-0.5 block text-xs text-neutral-700">
                 {isEn ? `Ten God: ${period.tenGodEn}` : `十神：${period.tenGodZh}`}
               </span>
-              <span className="mt-1 block text-xs font-medium tabular-nums">{period.score} / 100</span>
-              <span className="mt-0.5 block text-xs text-neutral-600">{isEn ? period.verdictEn : period.verdict}</span>
             </li>
           ))}
         </ol>
@@ -277,8 +285,8 @@ function BaziReading({ reading, isEn }: { reading: Reading; isEn: boolean }) {
           </span>
           <span>
             {isEn
-              ? `${fortune.lateZiHour.ganZhi} (${fortune.lateZiHour.branchNameEn}) · Ten God: ${fortune.lateZiHour.tenGodEn} · ${fortune.lateZiHour.score}/100 — uses next day's (${fortune.nextDayGanZhi}) stem sequence while the daily pillar remains ${todayGanZhi.day}.`
-              : `${fortune.lateZiHour.stemName}${fortune.lateZiHour.branchName}（十神：${fortune.lateZiHour.tenGodZh}，参考分 ${fortune.lateZiHour.score}/100）—— 过 23:00 时干切换为次日【${fortune.nextDayGanZhi}】五鼠遁序列，本日日柱仍按公历 00:00 计为【${todayGanZhi.day}】。`}
+              ? `${fortune.lateZiHour.ganZhi} (${fortune.lateZiHour.branchNameEn}) · Ten God: ${fortune.lateZiHour.tenGodEn} — uses next day's (${fortune.nextDayGanZhi}) stem sequence while the daily pillar remains ${todayGanZhi.day}.`
+              : `${fortune.lateZiHour.stemName}${fortune.lateZiHour.branchName}（十神：${fortune.lateZiHour.tenGodZh}）—— 过 23:00 时干切换为次日【${fortune.nextDayGanZhi}】五鼠遁序列，本日日柱仍按公历 00:00 计为【${todayGanZhi.day}】。`}
           </span>
         </div>
       </section>

@@ -4,72 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
+import { TarotEvidence, extractSourceTheme } from './TarotEvidence';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
-import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
-
-function calculateLoveHarmony(cards: DrawnCard[], isEn: boolean): {
-  score: number;
-  level: string;
-  dynamicSummary: string;
-} {
-  let score = 65;
-
-  cards.forEach(c => {
-    const name = c.card.nameEn.toLowerCase();
-    const isRev = c.isReversed;
-
-    if (c.card.suit === 'cups' || name.includes('lovers') || name.includes('empress') || name.includes('star') || name.includes('sun')) {
-      score += isRev ? 2 : 10;
-    }
-    if (c.card.suit === 'swords' || name.includes('tower') || name.includes('devil')) {
-      score -= isRev ? 5 : 10;
-    }
-    if (c.card.suit === 'wands') {
-      score += isRev ? -3 : 6;
-    }
-    if (c.card.suit === 'pentacles') {
-      score += isRev ? 0 : 5;
-    }
-  });
-
-  score = Math.max(35, Math.min(98, score));
-
-  let level = isEn ? 'Harmonious Flow' : '良性共振';
-  let dynamicSummary = '';
-
-  if (isEn) {
-    if (score >= 85) {
-      level = 'Profound Soul Resonance';
-      dynamicSummary = 'Both parties share high resonance in emotional values and spiritual pacing, providing genuine psychological safety and mutual empowerment.';
-    } else if (score >= 70) {
-      level = 'Gentle & Constructive Flow';
-      dynamicSummary = 'The overarching dynamic is warm and flowing. Occasional differences in viewpoints are healthy growth opportunities easily bridged by open dialogue.';
-    } else if (score >= 50) {
-      level = 'Expectation vs Reality Friction';
-      dynamicSummary = 'You may currently be moving at different paces or constrained by external variables (work, distance). Patience and clear expectations are advised.';
-    } else {
-      level = 'Needs Reconciliation & Renewal';
-      dynamicSummary = 'Defensive postures are elevated. Release the impulse to win arguments, step back, and re-examine the core authentic needs of the relationship.';
-    }
-  } else {
-    if (score >= 85) {
-      level = '深层心智共振';
-      dynamicSummary = '双方在情感需求与灵魂步调上高度契合，彼此能提供充分的安全感与滋养，是一段能够共同成长的双向关系。';
-    } else if (score >= 70) {
-      level = '温润和谐相长';
-      dynamicSummary = '总体基调温和顺畅，存在真实的情感流动。偶有的观念分歧属于良性磨合，坦诚沟通即可消除隔阂。';
-    } else if (score >= 50) {
-      level = '现实与期待博弈';
-      dynamicSummary = '双方目前可能处于不同步调，或受到外界现实因素（工作、距离、家庭）的牵制，内心期待与实际行动存在微弱落差。';
-    } else {
-      level = '亟待破冰与重构';
-      dynamicSummary = '彼此防御心较强，可能存在未表达的委屈或误解。当前最需要的是放下输赢执念，退一步审视关系的本质需求。';
-    }
-  }
-
-  return { score, level, dynamicSummary };
-}
+import { getTarotEvidence } from '@/lib/tarot/waite-basis';
 
 export function LoveTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
   const isEn = lang === 'en';
@@ -134,7 +72,6 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
   }
 
   const scenario = t.scenarios.find((item) => item.id === selectedScenario) ?? t.scenarios[0];
-  const harmony = calculateLoveHarmony(drawnCards, isEn);
 
   return (
     <section aria-labelledby="love-result" className="space-y-7 border-t border-neutral-200 pt-6 sm:space-y-8 sm:pt-8">
@@ -152,10 +89,37 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
           const orientation = isEn
             ? (drawn.isReversed ? 'Reversed' : 'Upright')
             : (drawn.isReversed ? '逆位' : '正位');
-          const translated = isEn ? ALL_CARD_DETAIL_EN[drawn.card.slug]?.loveMeaning : undefined;
-          const meaning = isEn
-            ? (translated ?? drawn.card.loveMeaning)
-            : (drawn.isReversed ? drawn.card.reversedMeaning : drawn.card.uprightMeaning);
+          const evidence = getTarotEvidence(drawn.card.slug, drawn.isReversed, lang);
+          const sourceTheme = evidence?.basisText
+            ? extractSourceTheme(evidence.basisText, lang)
+            : '';
+
+          let observationPrompt = '';
+          if (index === 0) {
+            observationPrompt = sourceTheme
+              ? isEn
+                ? `Self-reflection: Where in your own expectations or actions do you notice "${sourceTheme}"?`
+                : `自我觉察：在你的期待或实际行动中，哪些地方呼应了「${sourceTheme}」？`
+              : isEn
+                ? 'Self-reflection: Observe what you are bringing to this situation in your own words.'
+                : '自我觉察：结合自身真实感受，梳理你在这段关系中的期待与立场。';
+          } else if (index === 1) {
+            observationPrompt = sourceTheme
+              ? isEn
+                ? `Observable check (no mind-reading): Rather than assuming their inner thoughts, what concrete words or actions can you observe or ask about regarding "${sourceTheme}"?`
+                : `可验证观察（非读心揣测）：牌面不能代替对方真实想法。围绕「${sourceTheme}」，你可以从对方哪些具体言行中核实，或通过坦诚沟通直接确认？`
+              : isEn
+                ? 'Observable check (no mind-reading): Cards cannot reveal another person’s private thoughts. Verify through direct, respectful communication.'
+                : '可验证观察（非读心揣测）：牌面无法窥探他人内心，请以实际互动中的言行与坦诚沟通为准。';
+          } else {
+            observationPrompt = sourceTheme
+              ? isEn
+                ? `Next-step reflection: What practical communication or boundary would help you test "${sourceTheme}" in reality?`
+                : `互动观察：在接下来的相处中，什么样的具体沟通或边界能帮你核验「${sourceTheme}」？`
+              : isEn
+                ? 'Next-step reflection: Focus on clear communication and observable behavior as the relationship unfolds.'
+                : '互动观察：在接下来的相处中，以清晰的沟通与实际行动作为判断依据。';
+          }
 
           return (
             <li key={drawn.card.id} className="min-w-0 rounded-lg border border-neutral-200 p-4 sm:p-5">
@@ -181,14 +145,17 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
                 </figcaption>
               </figure>
 
-              {isEn && !translated ? (
-                <details className="mt-4 text-sm text-neutral-600">
-                  <summary className="min-h-11 cursor-pointer py-2 leading-6 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-neutral-900">Card notes (Chinese only)</summary>
-                  <p lang="zh-CN" className="leading-relaxed">{meaning}</p>
-                </details>
-              ) : (
-                <p className="mt-4 text-base leading-relaxed text-neutral-700">{meaning}</p>
-              )}
+              <TarotEvidence
+                slug={drawn.card.slug}
+                isReversed={drawn.isReversed}
+                lang={lang}
+                compact
+                className="mt-4"
+              />
+
+              <p className="mt-3 rounded-md border border-neutral-200 bg-neutral-50 p-2.5 text-xs leading-relaxed text-neutral-700">
+                {observationPrompt}
+              </p>
 
               <Link
                 href={`/${lang}/cards/${drawn.card.slug}`}
@@ -201,18 +168,18 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
         })}
       </ol>
 
-      <section aria-labelledby="love-reflection" className="rounded-lg border border-neutral-200 bg-neutral-50 p-5 sm:p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-2">
-          <h3 id="love-reflection" className="font-serif text-xl font-semibold">{t.harmonyLabel}</h3>
-          <span className="font-mono tabular-nums text-neutral-700">{harmony.score}%</span>
-        </div>
-        <p className="mt-1 font-medium">{harmony.level}</p>
-        <div aria-hidden="true" className="my-4 h-1.5 overflow-hidden rounded-full bg-neutral-200">
-          <div className="h-full bg-neutral-800" style={{ width: `${harmony.score}%` }} />
-        </div>
-        <p className="text-base leading-relaxed text-neutral-700">{harmony.dynamicSummary}</p>
-        <h4 className="mt-4 font-semibold">{isEn ? 'A next step' : '可以尝试的下一步'}</h4>
-        <p className="mt-1 text-base leading-relaxed text-neutral-700">{t.bridgeText}</p>
+      <section aria-labelledby="love-reflection" className="rounded-lg border border-neutral-200 bg-neutral-50 p-5 sm:p-6 space-y-2">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-neutral-500">
+          {isEn ? 'Site Reflection Prompt' : '站点反思提示'}
+        </p>
+        <h3 id="love-reflection" className="font-serif text-xl font-semibold">
+          {isEn ? 'Compare Positions & Verify by Communication' : '对照牌位并通过沟通核实'}
+        </h3>
+        <p className="text-base leading-relaxed text-neutral-700">
+          {isEn
+            ? `Compare Position 1 (${drawnCards[0].card.nameEn}) with Position 3 (${drawnCards[2].card.nameEn}) to reflect on how your own stance relates to the direction you are considering. Treat Position 2 (${drawnCards[1].card.nameEn}) as an open question to verify through direct, respectful communication rather than an assumption.`
+            : `对照第一张牌「${drawnCards[0].card.nameZh}」（你的立场）与第三张牌「${drawnCards[2].card.nameZh}」（关系走向），梳理自身期待与现实互动的落差。对于第二张牌「${drawnCards[1].card.nameZh}」，请将其视为待沟通确认的问题，通过坦诚对话核实，而非单方面揣测。`}
+        </p>
       </section>
 
       <div className="flex flex-wrap items-center gap-4">

@@ -1,27 +1,42 @@
 import { NextRequest } from 'next/server';
-import { streamTarotReading, InterpretationRequest } from '@/lib/tarot/ai-interpreter';
+import { streamTarotReading } from '@/lib/tarot/ai-interpreter';
+import { normalizeTarotReadRequest, TarotValidationError } from '@/lib/tarot/normalize';
 import { verifyReadingSpend, pointsErrorResponse } from '@/lib/points/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as InterpretationRequest;
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: '请求体 JSON 格式无效' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
-    if (!body.question || !body.drawnCards || body.drawnCards.length === 0) {
-      return new Response(JSON.stringify({ error: '缺少问题或卡牌数据' }), {
+    // 积分校验前先完成服务端参数规范化与严格校验
+    let normalized;
+    try {
+      normalized = normalizeTarotReadRequest(rawBody);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof TarotValidationError ? err.message : '请求参数无效';
+      return new Response(JSON.stringify({ error: msg }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
     // 积分校验：确认本次测算已完成扣分（服务端二次防线）
-    const spend = await verifyReadingSpend(body.points_ref);
+    const spend = await verifyReadingSpend(normalized.points_ref);
     if (!spend.ok) return pointsErrorResponse(spend.status);
 
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of streamTarotReading(body)) {
+          for await (const chunk of streamTarotReading(normalized)) {
             const data = JSON.stringify({ text: chunk });
             controller.enqueue(encoder.encode(`data: ${data}\n\n`));
           }

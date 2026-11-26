@@ -10,6 +10,11 @@ import {
   shuffleArray,
   TAROT_DECK,
 } from '../src/lib/tarot/deck.ts';
+import {
+  getTarotEvidence,
+  WAITE_CARD_BASIS,
+  WAITE_SOURCE_URL,
+} from '../src/lib/tarot/waite-basis.ts';
 
 test('Tarot deck contains 78 unique cards', () => {
   assert.equal(TAROT_DECK.length, 78);
@@ -96,4 +101,50 @@ test('Monthly Tarot last segment matches actual month end for Feb (28/29), 30-da
   const dec = getMonthlyPhases(2026, 12)[3];
   assert.equal(dec.timingZh, '第 22 - 31 天');
   assert.equal(dec.timingEn, 'Days 22 - 31');
+});
+
+test('Waite historical basis covers all 78 cards across both locales and orientations', () => {
+  const basisSlugs = Object.keys(WAITE_CARD_BASIS);
+  assert.equal(basisSlugs.length, 78);
+  assert.equal(
+    WAITE_SOURCE_URL,
+    'https://en.wikisource.org/w/index.php?title=The_Pictorial_Key_to_the_Tarot/Part_3&oldid=15274510'
+  );
+
+  for (const card of TAROT_DECK) {
+    assert.equal(Object.prototype.hasOwnProperty.call(WAITE_CARD_BASIS, card.slug), true);
+    for (const lang of ['en', 'zh']) {
+      for (const isReversed of [false, true]) {
+        const orientation = isReversed ? 'reversed' : 'upright';
+        const ev = getTarotEvidence(card.slug, isReversed, lang);
+        assert.ok(ev, `Missing evidence for ${card.slug} (${orientation}, ${lang})`);
+        assert.ok(ev.basisText.trim().length > 0, `Empty basisText for ${card.slug} (${orientation}, ${lang})`);
+        assert.equal(ev.basisText.startsWith('Paraphrase of Waite:'), false);
+        assert.equal(ev.basisText.startsWith('韦特原著意译：'), false);
+        assert.ok(ev.sourceRef.includes(card.slug), `sourceRef missing slug for ${card.slug}`);
+        assert.ok(ev.sourceRef.endsWith(`-${orientation}`), `sourceRef missing orientation for ${card.slug}`);
+        assert.equal(ev.sourceUrl, WAITE_SOURCE_URL);
+      }
+    }
+  }
+
+  const twoCupsUpEn = getTarotEvidence('two-of-cups', false, 'en');
+  assert.ok(twoCupsUpEn?.sourceName.includes('Part III §2'));
+  assert.equal(twoCupsUpEn?.sourceRef, 'WAITE-III-2-two-of-cups-upright');
+
+  const twoCupsRevEn = getTarotEvidence('two-of-cups', true, 'en');
+  const twoCupsRevZh = getTarotEvidence('two-of-cups', true, 'zh');
+  assert.ok(twoCupsRevEn?.sourceName.includes('Part III §4'));
+  assert.equal(twoCupsRevEn?.sourceRef, 'WAITE-III-4-two-of-cups-reversed');
+  assert.ok(twoCupsRevZh?.sourceName.includes('Part III §4'));
+  assert.equal(twoCupsRevZh?.sourceRef, 'WAITE-III-4-two-of-cups-reversed');
+
+  assert.equal(getTarotEvidence('unknown-card-slug', false, 'en'), undefined);
+  assert.equal(getTarotEvidence('toString', false, 'en'), undefined);
+  assert.equal(getTarotEvidence('constructor', true, 'zh'), undefined);
+
+  const foolUpright = getTarotEvidence('the-fool', false, 'en');
+  const sunUpright = getTarotEvidence('the-sun', false, 'en');
+  assert.notEqual(foolUpright?.basisText, sunUpright?.basisText);
+  assert.notEqual(foolUpright?.sourceRef, sunUpright?.sourceRef);
 });

@@ -3,137 +3,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
+import { TarotEvidence, extractSourceTheme } from './TarotEvidence';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
-
-interface YesNoAnalysis {
-  verdict: 'YES' | 'NO' | 'MAYBE';
-  score: number; // 0 - 100
-  title: string;
-  energy: string;
-  blockage: string;
-  guidance: string;
-}
-
-function evaluateYesNo(drawn: DrawnCard, isEn: boolean): YesNoAnalysis {
-  const { card, isReversed } = drawn;
-  const name = card.nameEn.toLowerCase();
-
-  const strongYesNames = [
-    'the sun', 'the star', 'the world', 'the empress', 'the magician',
-    'wheel of fortune', 'ace of cups', 'two of cups', 'three of cups',
-    'nine of cups', 'ten of cups', 'ace of pentacles', 'three of pentacles',
-    'nine of pentacles', 'ten of pentacles', 'ace of wands', 'four of wands',
-    'six of wands', 'the lovers', 'the chariot', 'the hierophant'
-  ];
-
-  const strongNoNames = [
-    'the tower', 'death', 'three of swords', 'nine of swords', 'ten of swords',
-    'five of pentacles', 'five of cups', 'the devil', 'seven of swords',
-    'eight of swords', 'five of wands', 'ten of wands'
-  ];
-
-  const maybeNames = [
-    'the high priestess', 'the hanged man', 'two of swords', 'four of swords',
-    'seven of cups', 'the hermit', 'the moon', 'justice'
-  ];
-
-  let verdict: 'YES' | 'NO' | 'MAYBE' = 'MAYBE';
-  let score = 50;
-
-  if (strongYesNames.some(k => name.includes(k))) {
-    if (!isReversed) {
-      verdict = 'YES';
-      score = 85 + Math.floor(Math.random() * 12);
-    } else {
-      verdict = 'MAYBE';
-      score = 45 + Math.floor(Math.random() * 10);
-    }
-  } else if (strongNoNames.some(k => name.includes(k))) {
-    if (!isReversed) {
-      verdict = 'NO';
-      score = 15 + Math.floor(Math.random() * 15);
-    } else {
-      verdict = 'MAYBE';
-      score = 40 + Math.floor(Math.random() * 15);
-    }
-  } else if (maybeNames.some(k => name.includes(k))) {
-    verdict = 'MAYBE';
-    score = 50 + (isReversed ? -8 : 8);
-  } else {
-    if (!isReversed) {
-      verdict = 'YES';
-      score = 65 + Math.floor(Math.random() * 15);
-    } else {
-      verdict = 'NO';
-      score = 30 + Math.floor(Math.random() * 15);
-    }
-  }
-
-  const orientationStr = isEn
-    ? (isReversed ? 'Reversed' : 'Upright')
-    : (isReversed ? '逆位' : '正位');
-  const cardName = isEn ? card.nameEn : card.nameZh;
-  const meaning = isReversed ? card.reversedMeaning : card.uprightMeaning;
-
-  let title = '';
-  let energy = '';
-  let blockage = '';
-  let guidance = '';
-
-  if (isEn) {
-    if (verdict === 'YES') {
-      title = 'Verdict: YES · Positive Forward Momentum';
-      energy = `${cardName} (${orientationStr}) reveals favorable expansion. Your conscious intent resonates harmoniously with outer circumstances.`;
-      blockage = isReversed
-        ? 'Beware of dragging momentum, fatigue, or overlooking operational details.'
-        : 'External friction is minimal; main resistance stems from unnecessary internal doubt.';
-      guidance = 'Seize the present window with clarity. Act with grounded confidence.';
-    } else if (verdict === 'NO') {
-      title = 'Verdict: NO · Restraint & Caution Advised';
-      energy = `${cardName} (${orientationStr}) signals structural friction or timing misalignment. Forcing an outcome will likely cause counterproductive friction.`;
-      blockage = isReversed
-        ? 'Root conflicts have not fully surfaced; hasty decisions risk unnecessary complications.'
-        : 'Conditions remain unripened. Hidden costs and risks warrant careful reassessment.';
-      guidance = 'Hold back on irreversible commitments. Verify core facts and protect your resources.';
-    } else {
-      title = 'Verdict: MAYBE · Dynamic Waiting Period';
-      energy = `${cardName} (${orientationStr}) signifies gestation and shifting variables. The situation remains in flux.`;
-      blockage = 'Key blind spots or unexpressed intentions remain between involved parties.';
-      guidance = 'Avoid rushing into premature conclusions. Gather missing data and let the landscape clarify naturally.';
-    }
-  } else {
-    if (verdict === 'YES') {
-      title = '决断倾向：是（YES） · 赞同推进';
-      energy = `${cardName}（${orientationStr}）显现顺遂与丰盈之势。当前心识与外界客体处于正向共振期，阻力较小。${meaning}`;
-      blockage = isReversed
-        ? '虽有成事之机，但需警惕节奏拖沓或细节疏忽。'
-        : '外在阻碍轻微，主要的变数来自于内心的犹豫与过度保守。';
-      guidance = '果断把握当下时机，保持清晰的目标感，顺势而为即可见成效。';
-    } else if (verdict === 'NO') {
-      title = '决断倾向：否（NO） · 建议暂缓或规避';
-      energy = `${cardName}（${orientationStr}）揭示潜在的能量摩擦或结构性限制。强行推动容易事与愿违。${meaning}`;
-      blockage = isReversed
-        ? '深层矛盾尚未见底，仓促决策容易引发连锁反应。'
-        : '客观条件尚未成熟，或存在未曾察觉的隐形成本与风险。';
-      guidance = '暂缓采取不可逆的行动，重新核验底层事实，保护好现有资源与精力。';
-    } else {
-      title = '决断倾向：静观（MAYBE） · 机缘未显';
-      energy = `${cardName}（${orientationStr}）呈现出潜伏、沉淀或多方拉扯的态势。事物的发展仍在动态演变中。${meaning}`;
-      blockage = '信息存在盲区，或是双方/多方的意图尚未完全明朗。';
-      guidance = '避免急躁求成，先探明未公开的关键信息，等待更明确的征兆浮现。';
-    }
-  }
-
-  return { verdict, score, title, energy, blockage, guidance };
-}
+import { getTarotEvidence } from '@/lib/tarot/waite-basis';
 
 export function YesNoWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
   const isEn = lang === 'en';
   const t = getDictionary(lang).yesNo;
 
   const [question, setQuestion] = useState('');
-  const [result, setResult] = useState<{ drawn: DrawnCard; analysis: YesNoAnalysis } | null>(null);
+  const [result, setResult] = useState<DrawnCard | null>(null);
   const [isFaceUp, setIsFaceUp] = useState(true);
   const focusAfterAction = useRef(false);
   const questionRef = useRef<HTMLInputElement>(null);
@@ -149,7 +29,7 @@ export function YesNoWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
     const drawn = drawRandomCards(1)[0];
     focusAfterAction.current = true;
     setIsFaceUp(true);
-    setResult({ drawn, analysis: evaluateYesNo(drawn, isEn) });
+    setResult(drawn);
   };
 
   const handleReset = () => {
@@ -201,16 +81,37 @@ export function YesNoWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
     );
   }
 
-  const { drawn, analysis } = result;
+  const drawn = result;
   const cardName = isEn ? drawn.card.nameEn : drawn.card.nameZh;
   const orientation = isEn
     ? (drawn.isReversed ? 'Reversed' : 'Upright')
     : (drawn.isReversed ? '逆位' : '正位');
-  const breakdown = [
-    { label: isEn ? 'What the card suggests' : '牌面提示', detail: analysis.energy },
-    { label: isEn ? 'What could get in the way' : '可能的阻碍', detail: analysis.blockage },
-    { label: isEn ? 'A next step' : '可以尝试的下一步', detail: analysis.guidance }
-  ];
+  const evidence = getTarotEvidence(drawn.card.slug, drawn.isReversed, lang);
+  const sourceTheme = evidence?.basisText ? extractSourceTheme(evidence.basisText, lang) : '';
+
+  const breakdown = evidence
+    ? [
+        {
+          label: isEn ? 'What the card supports / points to' : '牌面典籍指向',
+          detail: isEn
+            ? `Based on the historical source below, this card orientation points to "${sourceTheme}" rather than a binary Yes/No verdict.`
+            : `依据下方原始文献，该牌面此朝向指向「${sourceTheme}」，而非直接给出「是」或「否」的二元定论。`
+        },
+        {
+          label: isEn ? 'Reflection check' : '现实核验问题',
+          detail: isEn
+            ? `What concrete facts in your situation support or challenge acting on "${sourceTheme}"${question.trim() ? ` regarding "${question.trim()}"` : ''}?`
+            : `${question.trim() ? `针对「${question.trim()}」，` : ''}现实中有哪些具体事实支持或限制你按「${sourceTheme}」这一方向行动？`
+        }
+      ]
+    : [
+        {
+          label: isEn ? 'Outcome inconclusive' : '结果待定（缺乏典籍依据）',
+          detail: isEn
+            ? 'No historical source basis is available for this card orientation, so no directional support can be derived.'
+            : '当前未收录该牌面此朝向的原始文献依据，无法基于典籍提供倾向性参考。'
+        }
+      ];
 
   return (
     <section aria-labelledby="yes-no-result" className="max-w-4xl space-y-7 border-t border-neutral-200 pt-6 sm:space-y-8 sm:pt-8">
@@ -240,15 +141,28 @@ export function YesNoWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
         </figure>
 
         <div className="min-w-0 space-y-5">
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
-            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-              <h3 className="font-serif text-xl font-semibold">{analysis.title}</h3>
-              <span className="font-mono text-sm tabular-nums text-neutral-700">{analysis.score}%</span>
-            </div>
-            <div aria-hidden="true" className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-200">
-              <div className="h-full bg-neutral-800" style={{ width: `${analysis.score}%` }} />
-            </div>
+          <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 sm:p-5 space-y-1.5">
+            <p className="font-mono text-[11px] uppercase tracking-wider text-neutral-500">
+              {isEn ? 'Inconclusive · Reflection Support' : '结论待定 · 反思辅助'}
+            </p>
+            <h3 className="font-serif text-xl font-semibold">
+              {isEn
+                ? 'A single historical card does not decide Yes or No'
+                : '单张历史塔罗牌不代替现实「是／否」决断'}
+            </h3>
+            <p className="text-sm leading-relaxed text-neutral-600">
+              {isEn
+                ? 'Historical tarot texts describe symbolic themes rather than scientific predictions or binary outcomes. Use the card source below to reflect on your decision.'
+                : '历史塔罗文献记录的是象征主题，而非科学预测或二元定论。请结合下方牌面原始依据与现实条件自行权衡。'}
+            </p>
           </div>
+
+          <TarotEvidence
+            slug={drawn.card.slug}
+            isReversed={drawn.isReversed}
+            lang={lang}
+          />
+
           <dl className="divide-y divide-neutral-200">
             {breakdown.map(({ label, detail }) => (
               <div key={label} className="py-3 first:pt-0 last:pb-0">

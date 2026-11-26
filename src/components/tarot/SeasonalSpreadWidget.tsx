@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
-import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
+import { getTarotEvidence } from '@/lib/tarot/waite-basis';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
@@ -108,16 +109,6 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
     setSelectedIdx(0);
   };
 
-  const getMeaning = (dc: DrawnCard): string => {
-    if (isEn) {
-      const en = ALL_CARD_DETAIL_EN[dc.card.slug];
-      if (en) {
-        return dc.isReversed ? en.reversedMeaning : en.uprightMeaning;
-      }
-    }
-    return dc.isReversed ? dc.card.reversedMeaning : dc.card.uprightMeaning;
-  };
-
   const currentPos = POSITIONS[selectedIdx];
   const currentCard = cards[selectedIdx];
   const posTitle = isEn ? currentPos.titleEn : currentPos.titleZh;
@@ -127,6 +118,13 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
   const orientationStr = isEn
     ? (currentCard.isReversed ? 'Reversed' : 'Upright')
     : (currentCard.isReversed ? '逆位' : '正位');
+  const evidence = getTarotEvidence(currentCard.card.slug, currentCard.isReversed, isEn ? 'en' : 'zh');
+  const sourceBase = evidence
+    ? (evidence.sourceName.includes('Waite') ? evidence.sourceName : `A. E. Waite · ${evidence.sourceName}`)
+    : '';
+  const sourceLabel = evidence
+    ? (evidence.sourceRef ? `${sourceBase} · ${evidence.sourceRef}` : sourceBase)
+    : '';
 
   return (
     <div className="w-full max-w-5xl mx-auto">
@@ -206,21 +204,21 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
           <div className="pb-3 border-b border-[#E4E4E7] flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
             <div>
               <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
-                {currentPos.element} · {posDirection}
+                {isEn ? `SITE SPREAD LAYOUT · ${currentPos.element} · ${posDirection}` : `本站牌阵位阶 · ${currentPos.element} · ${posDirection}`}
               </span>
               <h3 className="font-serif font-black text-lg text-[#171717]">
                 {posTitle}（{posElement}）· {cardName}（{orientationStr}）
               </h3>
             </div>
             <span className="text-xs font-serif text-[#52525B]">
-              {isEn ? currentPos.governanceEn : currentPos.governanceZh}
+              {isEn ? `Site layout: ${currentPos.governanceEn}` : `本站位阶定义：${currentPos.governanceZh}`}
             </span>
           </div>
 
           <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717]">
             <div>
               <span className="font-bold text-[#52525B] block mb-0.5">
-                {isEn ? '【Placement Definition & Mapping】' : '【位阶定义与映射】'}
+                {isEn ? '【Site Spread Layout · Placement Definition】' : '【本站牌阵位阶说明】'}
               </span>
               <p className="text-[#171717]">
                 {isEn ? currentPos.descriptionEn : currentPos.descriptionZh}
@@ -229,30 +227,38 @@ export function SeasonalSpreadWidget({ lang = 'zh' }: { lang?: string }) {
 
             <div>
               <span className="font-bold text-[#52525B] block mb-0.5">
-                {isEn ? '【Archetypal Insight】' : '【卡牌能量启示】'}
+                {isEn ? '【Verified Card Meaning】' : '【核验牌义】'}
               </span>
-              <p className="text-[#171717]">
-                {getMeaning(currentCard)}
-              </p>
-            </div>
-
-            <div>
-              <span className="font-bold text-[#52525B] block mb-0.5">
-                {isEn ? '【Seasonal Counsel】' : '【季内行事调候建议】'}
-              </span>
-              <p className="text-[#171717]">
-                {isEn
-                  ? `In this element position, maintain mindful energetic moderation. ${
-                      currentCard.isReversed
-                        ? 'Guard against defensive resistance or impulsive overextension. Slow down; stepping back often opens strategic horizons.'
-                        : 'Energy flows abundantly and cleanly here; make this your anchor for proactive execution this season.'
-                    }`
-                  : `在该元素位上，保持动态的能量节流。${
-                      currentCard.isReversed
-                        ? '注意防范内在的防御阻滞或冲动冒进，放慢节奏，以退为进。'
-                        : '此位能量充沛通畅，是本季值得重点发力与倚重的坚实支点。'
-                    }`}
-              </p>
+              {evidence ? (
+                <>
+                  <p className="text-[#171717]">
+                    {evidence.basisText}
+                  </p>
+                  <p className="mt-2 text-[11px] text-[#52525B]">
+                    {isEn ? 'Original source: ' : '原始文献依据：'}
+                    <a
+                      href={evidence.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+                    >
+                      {sourceLabel}
+                    </a>
+                  </p>
+                </>
+              ) : (
+                <p className="text-[#52525B]">
+                  {isEn
+                    ? `No verified A. E. Waite source excerpt is currently available for ${cardName} (${orientationStr}).`
+                    : `暂无「${cardName}（${orientationStr}）」对应的 A. E. Waite 原始文献核验释义。`}
+                </p>
+              )}
+              <Link
+                href={`/${isEn ? 'en' : 'zh'}/cards/${currentCard.card.slug}`}
+                className="mt-2 inline-flex min-h-[32px] items-center text-xs font-medium text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+              >
+                {isEn ? `Explore ${cardName} full meaning →` : `查看「${cardName}」完整牌义 →`}
+              </Link>
             </div>
           </div>
         </div>

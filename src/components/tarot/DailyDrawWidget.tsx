@@ -5,7 +5,7 @@ import Link from 'next/link';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TAROT_DECK, drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
-import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
+import { getTarotEvidence } from '@/lib/tarot/waite-basis';
 import { TarotCardView } from './TarotCardView';
 import { Sparkles, RefreshCw, ArrowRight } from 'lucide-react';
 
@@ -166,29 +166,36 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
       {/* 右侧卡牌解读与行动 */}
       <div ref={textContentRef} className="flex-1 flex flex-col justify-between text-left w-full h-full">
         {(() => {
-          const detailEn = lang === 'en' ? getLocalizedCardDetailEn(dailyCard.card.slug) : undefined;
+          const evidence = isFlipped
+            ? getTarotEvidence(dailyCard.card.slug, dailyCard.isReversed, lang === 'en' ? 'en' : 'zh')
+            : undefined;
+          const orientationLabel = lang === 'en'
+            ? (dailyCard.isReversed ? 'Reversed' : 'Upright')
+            : (dailyCard.isReversed ? '逆位' : '正位');
+          const sourceBase = evidence
+            ? (evidence.sourceName.includes('Waite') ? evidence.sourceName : `A. E. Waite · ${evidence.sourceName}`)
+            : '';
+          const sourceLabel = evidence
+            ? (evidence.sourceRef ? `${sourceBase} · ${evidence.sourceRef}` : sourceBase)
+            : '';
+
           const cardTitle = isFlipped
             ? (lang === 'en' ? dailyCard.card.nameEn : dailyCard.card.nameZh)
             : (lang === 'en' ? 'Daily Draw' : '每日一签');
           const cardSubtitle = isFlipped
             ? (lang === 'en'
-                ? (detailEn?.keywords.slice(0, 3).join(' · ') || dailyCard.card.nameEn)
-                : dailyCard.card.nameEn)
+                ? `${orientationLabel} · Site daily draw`
+                : `${dailyCard.card.nameEn} · ${orientationLabel}（本站每日一签）`)
             : (lang === 'en' ? 'Daily Archetype' : '今日能量原形');
           const meaningText = isFlipped
-            ? (lang === 'en'
-                ? (detailEn?.uprightMeaning || dailyCard.card.uprightMeaning)
-                : dailyCard.card.uprightMeaning)
+            ? (evidence
+                ? evidence.basisText
+                : (lang === 'en'
+                    ? `No verified A. E. Waite source excerpt is currently available for ${dailyCard.card.nameEn} (${orientationLabel}).`
+                    : `暂无「${dailyCard.card.nameZh}（${orientationLabel}）」对应的 A. E. Waite 原始文献核验释义。`))
             : (lang === 'en'
                 ? 'Take a quiet moment. Click the card to draw your guiding archetype for today.'
                 : '留白三分钟，感应时空能量。轻触牌面，显化今日指引。');
-          const adviceText = isFlipped
-            ? (lang === 'en'
-                ? (detailEn?.advice || 'Trust your inner wisdom and take measured steps.')
-                : dailyCard.card.advice)
-            : (lang === 'en'
-                ? 'A direct psychological mirror for clear decisions.'
-                : '不做宿命判决，只作内心镜像。');
 
           return (
             <div>
@@ -219,12 +226,38 @@ export function DailyDrawWidget({ lang = 'zh' }: { lang?: string }) {
                 {meaningText}
               </p>
 
-              {/* 启示箴言 */}
+              {/* 来源依据或翻牌前提示 */}
               <div
                 ref={adviceRef}
                 className="p-3 rounded-xl bg-[#F5F5F6] text-xs text-[#171717] font-serif border-l-2 border-[#171717] mt-3 mb-1 transition-colors duration-300"
               >
-                <span>{adviceText}</span>
+                {isFlipped ? (
+                  evidence ? (
+                    <span className="block">
+                      {lang === 'en' ? 'Original source: ' : '原始文献依据：'}
+                      <a
+                        href={evidence.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline underline-offset-4 hover:text-[#52525B] focus-visible:outline-2 focus-visible:outline-[#171717] focus-visible:outline-offset-2"
+                      >
+                        {sourceLabel}
+                      </a>
+                    </span>
+                  ) : (
+                    <span>
+                      {lang === 'en'
+                        ? 'Source status: No verified A. E. Waite excerpt is available for this card orientation yet.'
+                        : '来源说明：暂缺该牌正逆位对应的 A. E. Waite 原始文献核验片段。'}
+                    </span>
+                  )
+                ) : (
+                  <span>
+                    {lang === 'en'
+                      ? 'A direct psychological mirror for clear decisions.'
+                      : '不做宿命判决，只作内心镜像。'}
+                  </span>
+                )}
               </div>
             </div>
           );

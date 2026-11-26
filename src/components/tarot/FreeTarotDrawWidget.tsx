@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { RotateCcw, Sparkles } from 'lucide-react';
 import { DrawnCard, drawRandomCards } from '@/lib/tarot/deck';
 import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
+import { getTarotEvidence } from '@/lib/tarot/waite-basis';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
+import { TarotEvidence, extractSourceTheme } from '@/components/tarot/TarotEvidence';
 
 export interface SpreadSlotMeta {
   index: number;
@@ -45,20 +47,6 @@ const DEFAULT_THREE_CARD_SLOTS: SpreadSlotMeta[] = [
     description: 'The emerging direction and next theme to consider as things unfold.'
   }
 ];
-
-function buildReflectionPrompts(cardName: string, isReversed: boolean, keywords: string[]): string[] {
-  const focusKeyword = keywords[0]?.toLowerCase() || 'this theme';
-  if (isReversed) {
-    return [
-      `Where might you be resisting, delaying, or overcomplicating ${focusKeyword} right now?`,
-      `What small, practical adjustment would help restore balance around ${cardName} (Reversed)?`
-    ];
-  }
-  return [
-    `Where in your day is ${focusKeyword} already showing up, and how can you work with it consciously?`,
-    `If you honored the core message of ${cardName} today, what would your next honest step be?`
-  ];
-}
 
 type PendingFocusTarget =
   | { type: 'one-card-result' }
@@ -225,14 +213,8 @@ export function FreeTarotDrawWidget({ mode, slots }: FreeTarotDrawWidgetProps) {
         ? detailEn.reversedKeywords
         : detailEn.uprightKeywords
       : [];
-    const meaning = detailEn
-      ? drawn.isReversed
-        ? detailEn.reversedMeaning
-        : detailEn.uprightMeaning
-      : 'Reflect on how this archetype relates to your current question and inner state.';
-    const reflectionPrompts = drawn
-      ? buildReflectionPrompts(drawn.card.nameEn, drawn.isReversed, keywords)
-      : [];
+    const evidence = drawn ? getTarotEvidence(drawn.card.slug, drawn.isReversed, 'en') : undefined;
+    const sourceTheme = evidence?.basisText ? extractSourceTheme(evidence.basisText, 'en') : '';
 
     return (
       <section
@@ -307,7 +289,7 @@ export function FreeTarotDrawWidget({ mode, slots }: FreeTarotDrawWidgetProps) {
                   isFlipped={true}
                   size="lg"
                   lang="en"
-                  showDetails={true}
+                  showDetails={false}
                 />
                 <button
                   type="button"
@@ -350,30 +332,37 @@ export function FreeTarotDrawWidget({ mode, slots }: FreeTarotDrawWidgetProps) {
                   </div>
                 )}
 
-                <div className="space-y-1.5">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-[#52525B]">
-                    {drawn.isReversed ? 'Reversed Meaning' : 'Upright Meaning'}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-[#171717]">
-                    {meaning}
-                  </p>
-                </div>
+                <TarotEvidence
+                  slug={drawn.card.slug}
+                  isReversed={drawn.isReversed}
+                  lang="en"
+                />
 
                 <div className="rounded-lg border border-[#E4E4E7] bg-[#F5F5F6]/70 p-4 space-y-2">
                   <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#171717]">
                     <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>Reflection Prompts</span>
+                    <span>Site Reflection Prompts (Educational)</span>
                   </h3>
-                  <ul className="list-disc pl-4 space-y-1.5 text-sm text-[#171717]">
-                    {reflectionPrompts.map((prompt) => (
-                      <li key={prompt}>{prompt}</li>
-                    ))}
-                    {detailEn?.advice && (
-                      <li className="text-[#52525B]">
-                        <span className="font-medium text-[#171717]">Card advice:</span> {detailEn.advice}
+                  {sourceTheme ? (
+                    <ul className="list-disc pl-4 space-y-1.5 text-sm text-[#171717]">
+                      <li>
+                        What part of &ldquo;{sourceTheme}&rdquo; can you observe in your current situation?
                       </li>
-                    )}
-                  </ul>
+                      {question.trim() ? (
+                        <li>
+                          How does this historical theme relate to your focus: &ldquo;{question.trim()}&rdquo;?
+                        </li>
+                      ) : (
+                        <li>
+                          Which concrete detail in your day aligns with or contrasts against this theme?
+                        </li>
+                      )}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-[#52525B]">
+                      No verified historical source text is available for {drawn.card.nameEn} ({drawn.isReversed ? 'Reversed' : 'Upright'}), so no source-based prompt is generated.
+                    </p>
+                  )}
                 </div>
 
                 <div className="pt-1">
@@ -471,7 +460,7 @@ export function FreeTarotDrawWidget({ mode, slots }: FreeTarotDrawWidgetProps) {
                     isFlipped={true}
                     size="md"
                     lang="en"
-                    showDetails={true}
+                    showDetails={false}
                     className="!w-full !h-auto max-w-[9rem] aspect-[36/58]"
                   />
                 )}
@@ -491,11 +480,9 @@ export function FreeTarotDrawWidget({ mode, slots }: FreeTarotDrawWidgetProps) {
             if (!isSlotRevealed) return null;
 
             const drawn = drawnCards[idx];
-            const detailEn = getLocalizedCardDetailEn(drawn.card.slug);
-            const meaning = detailEn
-              ? drawn.isReversed
-                ? detailEn.reversedMeaning
-                : detailEn.uprightMeaning
+            const evidence = getTarotEvidence(drawn.card.slug, drawn.isReversed, 'en');
+            const sourceTheme = evidence?.basisText
+              ? extractSourceTheme(evidence.basisText, 'en')
               : '';
 
             return (
@@ -523,15 +510,23 @@ export function FreeTarotDrawWidget({ mode, slots }: FreeTarotDrawWidgetProps) {
                     </span>
                   </div>
 
-                  {meaning && (
-                    <p className="text-xs leading-relaxed text-[#171717]">
-                      {meaning}
-                    </p>
-                  )}
+                  <TarotEvidence
+                    slug={drawn.card.slug}
+                    isReversed={drawn.isReversed}
+                    lang="en"
+                    compact
+                  />
 
                   <p className="rounded border border-[#E4E4E7] bg-white p-2.5 text-xs leading-relaxed text-[#52525B]">
                     <span className="font-medium text-[#171717]">Position lens: </span>
                     {slot.framing}
+                  </p>
+
+                  <p className="rounded border border-[#E4E4E7] bg-white p-2.5 text-xs leading-relaxed text-[#171717]">
+                    <span className="font-medium text-[#52525B]">Site prompt: </span>
+                    {sourceTheme
+                      ? `What part of "${sourceTheme}" can you observe in ${slot.name}?`
+                      : `Observe what stands out to you in ${slot.name} without relying on unverified card text.`}
                   </p>
                 </div>
 

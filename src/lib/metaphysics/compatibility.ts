@@ -78,6 +78,185 @@ function areInSameTriad(a: string, b: string): boolean {
   return THREE_HARMONIES_TRIADS.some(t => t.includes(a) && t.includes(b));
 }
 
+export interface ZodiacBranchInfo {
+  char: string;
+  pinyin: string;
+}
+
+export const ZODIAC_BRANCH_MAP: Record<string, ZodiacBranchInfo> = {
+  rat: { char: "子", pinyin: "Zǐ" },
+  ox: { char: "丑", pinyin: "Chǒu" },
+  tiger: { char: "寅", pinyin: "Yín" },
+  rabbit: { char: "卯", pinyin: "Mǎo" },
+  dragon: { char: "辰", pinyin: "Chén" },
+  snake: { char: "巳", pinyin: "Sì" },
+  horse: { char: "午", pinyin: "Wǔ" },
+  goat: { char: "未", pinyin: "Wèi" },
+  monkey: { char: "申", pinyin: "Shēn" },
+  rooster: { char: "酉", pinyin: "Yǒu" },
+  dog: { char: "戌", pinyin: "Xū" },
+  pig: { char: "亥", pinyin: "Hài" },
+};
+
+export type ZodiacRuleMatchType =
+  | "six_harmony"
+  | "three_harmony_pair"
+  | "six_clash"
+  | "same_sign"
+  | "none";
+
+export interface ZodiacRuleCitation {
+  bookZh: string;
+  bookEn: string;
+  chapterZh: string;
+  chapterEn: string;
+  url: string;
+}
+
+export interface ZodiacRuleMatchResult {
+  signA: ZodiacSignDef;
+  signB: ZodiacSignDef;
+  branchA: ZodiacBranchInfo;
+  branchB: ZodiacBranchInfo;
+  ruleType: ZodiacRuleMatchType;
+  citation: ZodiacRuleCitation | null;
+  sixHarmonyElement?: { zh: string; en: string };
+  triadInfo?: {
+    signs: [ZodiacSignDef, ZodiacSignDef, ZodiacSignDef];
+    branches: [string, string, string];
+    missingSign: ZodiacSignDef;
+    missingBranch: string;
+    elementZh: string;
+    elementEn: string;
+  };
+}
+
+const SANMING_VOL2_URL =
+  "https://zh.wikisource.org/zh-hant/%E4%B8%89%E5%91%BD%E9%80%9A%E6%9C%83/%E5%8D%B7%E4%BA%8C";
+
+const SIX_HARMONY_ELEMENTS: { zh: string; en: string }[] = [
+  { zh: "土", en: "Earth" },
+  { zh: "木", en: "Wood" },
+  { zh: "火", en: "Fire" },
+  { zh: "金", en: "Metal" },
+  { zh: "水", en: "Water" },
+  { zh: "土", en: "Earth" },
+];
+
+const TRIAD_ELEMENTS: { zh: string; en: string }[] = [
+  { zh: "水", en: "Water" },
+  { zh: "木", en: "Wood" },
+  { zh: "火", en: "Fire" },
+  { zh: "金", en: "Metal" },
+];
+
+/**
+ * Looks up factual Earthly Branch rule matches between two Chinese Zodiac signs
+ * using the core rule arrays and verified Sanming Tonghui Vol. 2 chapters.
+ */
+export function getZodiacBranchRuleMatch(idA: string, idB: string): ZodiacRuleMatchResult {
+  const signA = ZODIAC_SIGNS.find(s => s.id === idA) || ZODIAC_SIGNS[0];
+  const signB = ZODIAC_SIGNS.find(s => s.id === idB) || ZODIAC_SIGNS[1];
+  const branchA = ZODIAC_BRANCH_MAP[signA.id];
+  const branchB = ZODIAC_BRANCH_MAP[signB.id];
+
+  if (signA.id === signB.id) {
+    return {
+      signA,
+      signB,
+      branchA,
+      branchB,
+      ruleType: "same_sign",
+      citation: null,
+    };
+  }
+
+  const sixHarmonyIdx = SIX_HARMONIES.findIndex(
+    ([x, y]) => (x === signA.id && y === signB.id) || (x === signB.id && y === signA.id)
+  );
+  if (sixHarmonyIdx !== -1) {
+    return {
+      signA,
+      signB,
+      branchA,
+      branchB,
+      ruleType: "six_harmony",
+      sixHarmonyElement: SIX_HARMONY_ELEMENTS[sixHarmonyIdx],
+      citation: {
+        bookZh: "《三命通會》卷二",
+        bookEn: "Sanming Tonghui, Vol. 2",
+        chapterZh: "§論支元六合",
+        chapterEn: "§論支元六合 (Six Harmonies)",
+        url: SANMING_VOL2_URL,
+      },
+    };
+  }
+
+  const triadIdx = THREE_HARMONIES_TRIADS.findIndex(
+    t => t.includes(signA.id) && t.includes(signB.id)
+  );
+  if (triadIdx !== -1) {
+    const triadIds = THREE_HARMONIES_TRIADS[triadIdx];
+    const triadSigns = triadIds.map(
+      id => ZODIAC_SIGNS.find(s => s.id === id) || ZODIAC_SIGNS[0]
+    ) as [ZodiacSignDef, ZodiacSignDef, ZodiacSignDef];
+    const triadBranches = triadIds.map(id => ZODIAC_BRANCH_MAP[id].char) as [string, string, string];
+    const missingId = triadIds.find(id => id !== signA.id && id !== signB.id) || triadIds[2];
+    const missingSign = ZODIAC_SIGNS.find(s => s.id === missingId) || ZODIAC_SIGNS[0];
+    const missingBranch = ZODIAC_BRANCH_MAP[missingId].char;
+    const el = TRIAD_ELEMENTS[triadIdx];
+
+    return {
+      signA,
+      signB,
+      branchA,
+      branchB,
+      ruleType: "three_harmony_pair",
+      triadInfo: {
+        signs: triadSigns,
+        branches: triadBranches,
+        missingSign,
+        missingBranch,
+        elementZh: el.zh,
+        elementEn: el.en,
+      },
+      citation: {
+        bookZh: "《三命通會》卷二",
+        bookEn: "Sanming Tonghui, Vol. 2",
+        chapterZh: "§論支元三合",
+        chapterEn: "§論支元三合 (Three Harmonies)",
+        url: SANMING_VOL2_URL,
+      },
+    };
+  }
+
+  if (isPairIn([signA.id, signB.id], SIX_CLASHES)) {
+    return {
+      signA,
+      signB,
+      branchA,
+      branchB,
+      ruleType: "six_clash",
+      citation: {
+        bookZh: "《三命通會》卷二",
+        bookEn: "Sanming Tonghui, Vol. 2",
+        chapterZh: "§論衝擊",
+        chapterEn: "§論衝擊 (Six Clashes)",
+        url: SANMING_VOL2_URL,
+      },
+    };
+  }
+
+  return {
+    signA,
+    signB,
+    branchA,
+    branchB,
+    ruleType: "none",
+    citation: null,
+  };
+}
+
 /**
  * Calculates compatibility between two Chinese Zodiac signs
  */

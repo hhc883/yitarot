@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
-import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from './TarotCardView';
+import { TarotEvidence } from './TarotEvidence';
 import { RefreshCw } from 'lucide-react';
 
 export function FreeDrawConsole({
@@ -185,14 +185,6 @@ export function FreeDrawConsole({
             const orientationStr = isEn
               ? (drawn.isReversed ? 'Reversed' : 'Upright')
               : (drawn.isReversed ? '逆位' : '正位');
-            const detailEn = isEn ? getLocalizedCardDetailEn(drawn.card.slug) : undefined;
-            const meaning = isEn
-              ? (drawn.isReversed
-                  ? (detailEn?.reversedMeaning || drawn.card.reversedMeaning)
-                  : (detailEn?.uprightMeaning || drawn.card.uprightMeaning))
-              : (drawn.isReversed
-                  ? drawn.card.reversedMeaning
-                  : drawn.card.uprightMeaning);
 
             return (
               <div
@@ -222,13 +214,24 @@ export function FreeDrawConsole({
                   />
                 </div>
 
-                <div className="w-full mt-3 pt-3 border-t border-[#111111]/8 text-left">
-                  <p className="text-[11px] font-serif leading-relaxed text-[#444444] line-clamp-3">
-                    {meaning}
-                  </p>
+                <div className="w-full mt-3 pt-3 border-t border-[#111111]/8 text-left space-y-2">
+                  {isFlipped ? (
+                    <TarotEvidence
+                      slug={drawn.card.slug}
+                      isReversed={drawn.isReversed}
+                      lang={isEn ? 'en' : 'zh'}
+                      compact
+                    />
+                  ) : (
+                    <p className="text-[11px] font-serif leading-relaxed text-[#52525B]">
+                      {isEn
+                        ? 'Flip this card to view its historical source basis.'
+                        : '翻开卡牌后查看对应的典籍牌义依据。'}
+                    </p>
+                  )}
                   <Link
                     href={`/${isEn ? 'en' : 'zh'}/cards/${drawn.card.slug}`}
-                    className="mt-2 inline-flex min-h-[36px] items-center text-[11px] font-medium text-[#171717] underline underline-offset-4 hover:text-[#52525B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                    className="inline-flex min-h-[36px] items-center text-[11px] font-medium text-[#171717] underline underline-offset-4 hover:text-[#52525B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                   >
                     {isEn ? `Read ${cardName} meaning →` : `查看「${cardName}」完整牌义 →`}
                   </Link>
@@ -239,15 +242,15 @@ export function FreeDrawConsole({
         </div>
       )}
 
-      {/* 综合启示 */}
+      {/* 使用说明 */}
       <div className="w-full rounded-xl bg-white border border-[#111111]/10 p-6 sm:p-8 text-xs font-serif leading-relaxed text-[#111111] space-y-3">
         <h3 className="font-serif font-black text-base text-[#111111] pb-2 border-b border-[#111111]/8">
-          {isEn ? 'Subconscious Mirror & Synthesis' : '潜意识能量投射与综合启示'}
+          {isEn ? 'How to Use This Free Draw' : '自由抽牌使用说明'}
         </h3>
         <p className="text-[#333333]">
           {isEn
-            ? `You have drawn ${cardCount} cards. When viewing multiple cards side by side, notice the elemental flow (fire, water, air, earth). Where your eye lands first often points to what your subconscious is currently prioritizing.`
-            : `你当前共抽取了 ${cardCount} 张卡牌。多张卡牌并置时，观察元素能量的流转（权杖之火、圣杯之水、宝剑之风、星币之土）。视线停留最久的那张牌，往往映射出你当下最迫切需要觉察的心智焦点。`}
+            ? `You have drawn ${cardCount} card${cardCount > 1 ? 's' : ''}. Click any card to flip it, or use "Flip All" above. Each revealed card displays its orientation-specific text from A. E. Waite's The Pictorial Key to the Tarot alongside a link to the full card reference. Use these historical themes as prompts for your own observation rather than fixed predictions.`
+            : `你当前抽取了 ${cardCount} 张卡牌。点击单张卡牌即可翻面，或使用上方「全部翻开」。每张翻开的卡牌都会展示对应的韦特《塔罗图钥》原始文献依据，并提供完整牌义详情页链接。请将文献主题作为自我观察的参考线索，而非既定预言。`}
         </p>
       </div>
     </div>

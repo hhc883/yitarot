@@ -13,6 +13,7 @@ interface ReadingResultProps {
   question: string;
   reader: TarotReader;
   drawnCards: DrawnCard[];
+  spreadId?: string;
   interpretationText: string;
   isStreaming: boolean;
   onReset: () => void;
@@ -24,6 +25,7 @@ export function ReadingResult({
   question,
   reader,
   drawnCards,
+  spreadId,
   interpretationText,
   isStreaming,
   onReset,
@@ -113,6 +115,7 @@ export function ReadingResult({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question,
+          ...(spreadId ? { spreadId } : {}),
           reader,
           drawnCards,
           initialInterpretation: interpretationText,

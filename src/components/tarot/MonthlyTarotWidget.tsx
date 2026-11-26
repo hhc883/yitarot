@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   drawRandomCards,
   DrawnCard,
@@ -8,7 +9,7 @@ import {
   getMonthlyPhases,
   type MonthPhase
 } from '@/lib/tarot/deck';
-import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
+import { getTarotEvidence } from '@/lib/tarot/waite-basis';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
@@ -50,14 +51,12 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
 
   const phases = getMonthlyPhases(monthMeta.year, monthMeta.month);
 
-  const getMeaning = (dc: DrawnCard): string => {
-    if (isEn) {
-      const en = ALL_CARD_DETAIL_EN[dc.card.slug];
-      if (en) {
-        return dc.isReversed ? en.reversedMeaning : en.uprightMeaning;
-      }
-    }
-    return dc.isReversed ? dc.card.reversedMeaning : dc.card.uprightMeaning;
+  const getCardEvidence = (dc: DrawnCard) =>
+    getTarotEvidence(dc.card.slug, dc.isReversed, cardLang);
+
+  const formatSourceLabel = (sourceName: string, sourceRef: string) => {
+    const base = sourceName.includes('Waite') ? sourceName : `A. E. Waite · ${sourceName}`;
+    return sourceRef ? `${base} · ${sourceRef}` : base;
   };
 
   if (cards.length < 5) {
@@ -201,97 +200,133 @@ export function MonthlyTarotWidget({ lang = 'zh' }: { lang?: string }) {
         {/* 详情解读面板 */}
         <div className="p-6 rounded-xl bg-[#F5F5F6] border border-[#E4E4E7] space-y-4">
           {activeTab === 'anchor' ? (
-            <div>
-              <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between flex-wrap gap-2">
+            (() => {
+              const evidence = getCardEvidence(anchorCard);
+              const cardName = isEn ? anchorCard.card.nameEn : anchorCard.card.nameZh;
+              const orientation = isEn
+                ? (anchorCard.isReversed ? 'Reversed' : 'Upright')
+                : (anchorCard.isReversed ? '逆位' : '正位');
+              return (
                 <div>
-                  <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
-                    {isEn ? 'MONTHLY MASTER LESSON' : '本月核心课题'}
-                  </span>
-                  <h3 className="font-serif font-black text-lg text-[#171717]">
-                    {isEn
-                      ? `${monthName} Core Lesson · ${anchorCard.card.nameEn} (${anchorCard.isReversed ? 'Reversed' : 'Upright'})`
-                      : `${monthName} 核心课题 · ${anchorCard.card.nameZh}（${anchorCard.isReversed ? '逆位' : '正位'}）`}
-                  </h3>
-                </div>
-                <span className="text-xs font-serif text-[#52525B]">
-                  {isEn ? 'Monthly Overarching Baseline' : '全局能量主轴'}
-                </span>
-              </div>
+                  <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between flex-wrap gap-2">
+                    <div>
+                      <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
+                        {isEn ? 'SITE PERIOD LAYOUT · MONTHLY MASTER SLOT' : '本站月度时段位阶 · 核心主牌位'}
+                      </span>
+                      <h3 className="font-serif font-black text-lg text-[#171717]">
+                        {isEn
+                          ? `${monthName} Core Slot · ${cardName} (${orientation})`
+                          : `${monthName} 核心位 · ${cardName}（${orientation}）`}
+                      </h3>
+                    </div>
+                    <span className="text-xs font-serif text-[#52525B]">
+                      {isEn ? 'Site layout: Monthly Overarching Baseline' : '本站位阶定义：全局能量主轴'}
+                    </span>
+                  </div>
 
-              <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
-                <div>
-                  <span className="font-bold text-[#52525B] block mb-0.5">
-                    {isEn ? 'Monthly Evolutionary Leitmotif' : '【本月心智成长主旋律】'}
-                  </span>
-                  <p className="text-[#171717]">
-                    {getMeaning(anchorCard)}
-                  </p>
+                  <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
+                    <div>
+                      <span className="font-bold text-[#52525B] block mb-0.5">
+                        {isEn ? 'Verified Card Meaning' : '【核验牌义】'}
+                      </span>
+                      {evidence ? (
+                        <>
+                          <p className="text-[#171717]">
+                            {evidence.basisText}
+                          </p>
+                          <p className="mt-2 text-[11px] text-[#52525B]">
+                            {isEn ? 'Original source: ' : '原始文献依据：'}
+                            <a
+                              href={evidence.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+                            >
+                              {formatSourceLabel(evidence.sourceName, evidence.sourceRef)}
+                            </a>
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-[#52525B]">
+                          {isEn
+                            ? `No verified A. E. Waite source excerpt is currently available for ${cardName} (${orientation}).`
+                            : `暂无「${cardName}（${orientation}）」对应的 A. E. Waite 原始文献核验释义。`}
+                        </p>
+                      )}
+                      <Link
+                        href={`/${cardLang}/cards/${anchorCard.card.slug}`}
+                        className="mt-2 inline-flex min-h-[32px] items-center text-xs font-medium text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+                      >
+                        {isEn ? `Explore ${cardName} full meaning →` : `查看「${cardName}」完整牌义 →`}
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-bold text-[#52525B] block mb-0.5">
-                    {isEn ? 'Strategic Counsel' : '【月度战略建议】'}
-                  </span>
-                  <p className="text-[#171717]">
-                    {isEn
-                      ? 'Anchor this month in deep self-honesty and strategic patience. Avoid rushing to monetize or finalize every emergent impulse. Build a solid foundation first and prioritize essential signal over noise.'
-                      : '将本月的重点放在深层价值的沉淀与自省上。不急于快速变现所有想法，而是先筑牢底盘，厘清主次轻重。'}
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })()
           ) : (
             <div>
               {(() => {
                 const phase = phases[activeTab as number];
                 const card = weeklyCards[activeTab as number];
+                const evidence = getCardEvidence(card);
+                const cardName = isEn ? card.card.nameEn : card.card.nameZh;
+                const orientation = isEn
+                  ? (card.isReversed ? 'Reversed' : 'Upright')
+                  : (card.isReversed ? '逆位' : '正位');
                 return (
                   <div>
                     <div className="pb-3 border-b border-[#E4E4E7] flex items-baseline justify-between flex-wrap gap-2">
                       <div>
                         <span className="text-[11px] font-mono tracking-widest text-[#52525B] uppercase block">
-                          {isEn ? `WEEKLY EVOLUTION · ${phase.timingEn}` : `周度演进 · ${phase.timingZh}`}
+                          {isEn ? `SITE PERIOD LAYOUT · ${phase.timingEn}` : `本站月度时段位阶 · ${phase.timingZh}`}
                         </span>
                         <h3 className="font-serif font-black text-lg text-[#171717]">
                           {isEn
-                            ? `${phase.nameEn} · ${card.card.nameEn} (${card.isReversed ? 'Reversed' : 'Upright'})`
-                            : `${phase.nameZh} · ${card.card.nameZh}（${card.isReversed ? '逆位' : '正位'}）`}
+                            ? `${phase.nameEn} · ${cardName} (${orientation})`
+                            : `${phase.nameZh} · ${cardName}（${orientation}）`}
                         </h3>
                       </div>
                       <span className="text-xs font-serif text-[#52525B]">
-                        {isEn ? phase.themeEn : phase.themeZh}
+                        {isEn ? `Site layout: ${phase.themeEn}` : `本站位阶定义：${phase.themeZh}`}
                       </span>
                     </div>
 
                     <div className="space-y-3 text-xs font-serif leading-relaxed text-[#171717] mt-4">
                       <div>
                         <span className="font-bold text-[#52525B] block mb-0.5">
-                          {isEn ? 'Phase Dynamics' : '【阶段能量特征】'}
+                          {isEn ? 'Verified Card Meaning' : '【核验牌义】'}
                         </span>
-                        <p className="text-[#171717]">
-                          {getMeaning(card)}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-bold text-[#52525B] block mb-0.5">
-                          {isEn ? 'Weekly Focus' : '【当周践行要点】'}
-                        </span>
-                        <p className="text-[#171717]">
-                          {isEn
-                            ? (activeTab === 0
-                                ? 'Set clear, manageable initial milestones. Travel light and protect mental bandwidth.'
-                                : activeTab === 1
-                                ? 'Expect minor operational friction. De-escalate emotional reactivity and focus on core facts.'
-                                : activeTab === 2
-                                ? 'Energy runs high. Tackle the toughest outstanding challenges and celebrate milestones.'
-                                : 'Simplify and subtract. Review key lessons and prepare cleanly for the next month.')
-                            : (activeTab === 0
-                                ? '适合立下清晰小目标，轻装上阵，不被琐事分散心神。'
-                                : activeTab === 1
-                                ? '可能遇到沟通或执行上的摩擦，保持情绪脱敏，专注于就事论事。'
-                                : activeTab === 2
-                                ? '能量高涨阶段，全力攻克此前积压的硬骨头，收获阶段性反馈。'
-                                : '主动做减法，复盘经验得失，为下个月的循环做好整备。')}
-                        </p>
+                        {evidence ? (
+                          <>
+                            <p className="text-[#171717]">
+                              {evidence.basisText}
+                            </p>
+                            <p className="mt-2 text-[11px] text-[#52525B]">
+                              {isEn ? 'Original source: ' : '原始文献依据：'}
+                              <a
+                                href={evidence.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+                              >
+                                {formatSourceLabel(evidence.sourceName, evidence.sourceRef)}
+                              </a>
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-[#52525B]">
+                            {isEn
+                              ? `No verified A. E. Waite source excerpt is currently available for ${cardName} (${orientation}).`
+                              : `暂无「${cardName}（${orientation}）」对应的 A. E. Waite 原始文献核验释义。`}
+                          </p>
+                        )}
+                        <Link
+                          href={`/${cardLang}/cards/${card.card.slug}`}
+                          className="mt-2 inline-flex min-h-[32px] items-center text-xs font-medium text-[#171717] underline underline-offset-4 hover:text-[#52525B]"
+                        >
+                          {isEn ? `Explore ${cardName} full meaning →` : `查看「${cardName}」完整牌义 →`}
+                        </Link>
                       </div>
                     </div>
                   </div>

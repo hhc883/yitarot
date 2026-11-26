@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { getAllCards, DrawnCard } from '@/lib/tarot/deck';
-import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
+import { getTarotEvidence } from '@/lib/tarot/waite-basis';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
 import { getDictionary } from '@/lib/i18n/dict';
@@ -132,14 +132,13 @@ export function DailyTarotWidget({ lang = 'zh' }: { lang?: string }) {
     : (isReversed ? '逆位' : '正位');
   const cardName = isEn ? card.nameEn : card.nameZh;
 
-  // 英文版牌义检查：优先选用已校正的英文牌义，若仅有中文牌义则标记 lang="zh-CN" 并给出明确中英文提示
-  const enDetail = isEn ? ALL_CARD_DETAIL_EN[card.slug] : null;
-  const hasEnMeaning = Boolean(enDetail);
-  const meaning = isEn
-    ? (hasEnMeaning
-        ? (isReversed ? enDetail!.reversedMeaning : enDetail!.uprightMeaning)
-        : (isReversed ? card.reversedMeaning : card.uprightMeaning))
-    : (isReversed ? card.reversedMeaning : card.uprightMeaning);
+  const evidence = getTarotEvidence(card.slug, isReversed, isEn ? 'en' : 'zh');
+  const sourceBase = evidence
+    ? (evidence.sourceName.includes('Waite') ? evidence.sourceName : `A. E. Waite · ${evidence.sourceName}`)
+    : '';
+  const sourceLabel = evidence
+    ? (evidence.sourceRef ? `${sourceBase} · ${evidence.sourceRef}` : sourceBase)
+    : '';
 
   const suitLabelZh: Record<string, string> = {
     wands: '权杖',
@@ -244,11 +243,11 @@ export function DailyTarotWidget({ lang = 'zh' }: { lang?: string }) {
             />
           </div>
 
-          {/* 今日解读与结构化指引 */}
+          {/* 今日解读与文献依据 */}
           <div className="flex-1 space-y-4 text-xs font-serif leading-relaxed text-neutral-900 w-full">
             <div className="pb-3 border-b border-neutral-200">
               <span className="text-[11px] text-neutral-500 block uppercase tracking-wide">
-                {t.todayArchetype}
+                {t.todayArchetype} · {isEn ? 'Site daily slot' : '本站每日牌位'}
               </span>
               <h2 className="font-serif font-black text-lg text-black mt-0.5">
                 {cardName}
@@ -258,68 +257,40 @@ export function DailyTarotWidget({ lang = 'zh' }: { lang?: string }) {
               </h2>
             </div>
 
-            {/* 英文环境下若无英文牌义，给出明确提示及 zh-CN 语言标记 */}
-            {isEn && !hasEnMeaning && (
-              <div className="p-3 rounded-lg bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <span>This card interpretation is currently available in Chinese.</span>
-                <Link
-                  href={`/zh/cards/${card.slug}`}
-                  className="font-medium text-black underline hover:text-neutral-600 transition-colors inline-block focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2 min-h-[44px] sm:min-h-0 py-2 sm:py-0 inline-flex items-center"
-                >
-                  View in Chinese
-                </Link>
-              </div>
-            )}
-
             <div>
-              <span className="font-bold text-neutral-700 block mb-0.5">{t.resonance}</span>
-              <p
-                className="text-neutral-800 leading-normal"
-                {...(isEn && !hasEnMeaning ? { lang: 'zh-CN' } : {})}
-              >
-                {meaning}
-              </p>
+              <span className="font-bold text-neutral-700 block mb-0.5">
+                {isEn ? 'Verified Card Meaning' : '【核验牌义】'}
+              </span>
+              {evidence ? (
+                <>
+                  <p className="text-neutral-800 leading-normal">
+                    {evidence.basisText}
+                  </p>
+                  <p className="mt-2 text-[11px] text-neutral-600">
+                    {isEn ? 'Original source: ' : '原始文献依据：'}
+                    <a
+                      href={evidence.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-black underline underline-offset-4 hover:text-neutral-600 focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
+                    >
+                      {sourceLabel}
+                    </a>
+                  </p>
+                </>
+              ) : (
+                <p className="text-neutral-600 leading-normal">
+                  {isEn
+                    ? `No verified A. E. Waite source excerpt is currently available for ${cardName} (${orientationStr}).`
+                    : `暂无「${cardName}（${orientationStr}）」对应的 A. E. Waite 原始文献核验释义。`}
+                </p>
+              )}
               <Link
                 href={`/${isEn ? 'en' : 'zh'}/cards/${card.slug}`}
                 className="mt-2 inline-flex min-h-[36px] items-center text-xs font-medium text-black underline underline-offset-4 hover:text-neutral-600 focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
               >
                 {isEn ? `Explore ${cardName} full meaning →` : `查看「${cardName}」完整牌义 →`}
               </Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200">
-                <span className="font-bold text-black block mb-1">{t.doTitle}</span>
-                <p className="text-neutral-700 text-[11px] leading-relaxed">
-                  {isEn
-                    ? (isReversed
-                        ? 'Slow down, accept imperfections, and gently declutter mental overload.'
-                        : 'Communicate proactively, ground nurtured plans, and embrace fresh opportunities.')
-                    : (isReversed
-                        ? '放慢脚步，接纳不完美，清理过度负荷的心思。'
-                        : '主动沟通表达，落实酝酿已久的想法，拥抱新的可能性。')}
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200">
-                <span className="font-bold text-black block mb-1">{t.dontTitle}</span>
-                <p className="text-neutral-700 text-[11px] leading-relaxed">
-                  {isEn
-                    ? (isReversed
-                        ? 'Evading core friction, clinging rigidly to old habits, or dwelling on past regrets.'
-                        : 'Rushing ahead prematurely, ignoring subtle emotional cues, or overpromising.')
-                    : (isReversed
-                        ? '逃避关键冲突，固执己见，或沉溺于过去的无益情绪。'
-                        : '急躁冒进，忽视细微感受，在未准备充分时仓促承诺。')}
-                </p>
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-neutral-200">
-              <span className="font-bold text-neutral-700 block mb-0.5">{t.reflectionTitle}</span>
-              <p className="text-neutral-600 italic text-[11px] leading-relaxed">
-                {t.reflectionQuestion}
-              </p>
             </div>
           </div>
         </div>

@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
+import { getTarotEvidence } from '@/lib/tarot/waite-basis';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
-import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 
 interface WeeklyAspect {
   titleZh: string;
@@ -44,7 +45,15 @@ export function WeeklyTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
   const selected = cards[selectedIndex];
   const aspect = ASPECTS[selectedIndex];
   const aspectTitle = isEn ? aspect.titleEn : aspect.titleZh;
-  const detail = selected && isEn ? ALL_CARD_DETAIL_EN[selected.card.slug] : undefined;
+  const evidence = selected
+    ? getTarotEvidence(selected.card.slug, selected.isReversed, isEn ? 'en' : 'zh')
+    : undefined;
+  const sourceBase = evidence
+    ? (evidence.sourceName.includes('Waite') ? evidence.sourceName : `A. E. Waite · ${evidence.sourceName}`)
+    : '';
+  const sourceLabel = evidence
+    ? (evidence.sourceRef ? `${sourceBase} · ${evidence.sourceRef}` : sourceBase)
+    : '';
   const selectedName = selected ? (isEn ? selected.card.nameEn : selected.card.nameZh) : '';
   const selectedOrientation = selected ? getOrientation(isEn, selected.isReversed) : '';
 
@@ -116,41 +125,47 @@ export function WeeklyTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
         </div>
         <div className="min-w-0 space-y-4">
           <div>
+            <span className="text-xs font-mono uppercase tracking-wider text-neutral-500 block">
+              {isEn ? 'Site spread slot' : '本站牌阵位阶说明'}
+            </span>
             <h3 id="weekly-detail-heading" className="font-serif text-2xl font-semibold">{aspectTitle}</h3>
             <p className="mt-1 text-sm text-neutral-600">{isEn ? aspect.focusEn : aspect.focusZh}</p>
           </div>
           {selected ? (
             <>
               <p className="font-medium">{selectedName} <span className="text-sm font-normal text-neutral-600">· {selectedOrientation}</span></p>
-              {isEn && !detail ? (
-                <details className="border-y border-neutral-200 text-base text-neutral-700">
-                  <summary className="min-h-11 cursor-pointer py-2 leading-6 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-neutral-900">Card meaning (Chinese only)</summary>
-                  <p lang="zh-CN" className="pb-3 leading-relaxed">{selected.isReversed ? selected.card.reversedMeaning : selected.card.uprightMeaning}</p>
-                </details>
-              ) : (
-                <div>
-                  <h4 className="font-semibold">{isEn ? 'Card meaning' : '牌面解读'}</h4>
-                  <p className="mt-1 text-base leading-relaxed text-neutral-700">
-                    {selected.isReversed ? (detail?.reversedMeaning ?? selected.card.reversedMeaning) : (detail?.uprightMeaning ?? selected.card.uprightMeaning)}
-                  </p>
-                </div>
-              )}
-
               <div>
-                <h4 className="font-semibold">{isEn ? 'A next step for this week' : '本周可以尝试的行动'}</h4>
-                <p className="mt-1 text-base leading-relaxed text-neutral-700">
-                  {isEn
-                    ? `Regarding ${aspect.titleEn}, maintain grounded pacing this week. ${
-                        selected.isReversed
-                          ? 'Beware of energy drain from unworkable routines. Yielding minor ground often yields superior strategic leverage.'
-                          : 'Align with the clear positive momentum. Step forward with authentic commitment and embrace the weekly window.'
-                      }`
-                    : `在${aspect.titleZh}方面，本周宜维持客观理性的节律。${
-                        selected.isReversed
-                          ? '留意隐蔽的能量损耗，切勿强行推进行不通的旧模式，适度退让反而能赢得转圜空间。'
-                          : '顺应当前清晰的正向动能，主动作出积极承诺与实质行动，把握本周的窗口期。'
-                      }`}
-                </p>
+                <h4 className="font-semibold">{isEn ? 'Verified card meaning' : '核验牌义'}</h4>
+                {evidence ? (
+                  <>
+                    <p className="mt-1 text-base leading-relaxed text-neutral-700">
+                      {evidence.basisText}
+                    </p>
+                    <p className="mt-2 text-xs text-neutral-600">
+                      {isEn ? 'Original source: ' : '原始文献依据：'}
+                      <a
+                        href={evidence.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-neutral-900 underline underline-offset-4 hover:text-neutral-600 focus-visible:outline-2 focus-visible:outline-neutral-900"
+                      >
+                        {sourceLabel}
+                      </a>
+                    </p>
+                  </>
+                ) : (
+                  <p className="mt-1 text-sm leading-relaxed text-neutral-600">
+                    {isEn
+                      ? `No verified A. E. Waite source excerpt is currently available for ${selectedName} (${selectedOrientation}).`
+                      : `暂无「${selectedName}（${selectedOrientation}）」对应的 A. E. Waite 原始文献核验释义。`}
+                  </p>
+                )}
+                <Link
+                  href={`/${isEn ? 'en' : 'zh'}/cards/${selected.card.slug}`}
+                  className="mt-2 inline-flex min-h-[36px] items-center text-sm font-medium text-neutral-900 underline underline-offset-4 hover:text-neutral-600 focus-visible:outline-2 focus-visible:outline-neutral-900"
+                >
+                  {isEn ? `Explore ${selectedName} full meaning →` : `查看「${selectedName}」完整牌义 →`}
+                </Link>
               </div>
             </>
           ) : (
