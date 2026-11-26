@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { TarotCardView } from './TarotCardView';
 import { RotateCcw } from 'lucide-react';
@@ -188,6 +189,13 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
               ) : (
                 <p className="mt-4 text-base leading-relaxed text-neutral-700">{meaning}</p>
               )}
+
+              <Link
+                href={`/${lang}/cards/${drawn.card.slug}`}
+                className="mt-3 inline-flex min-h-[36px] items-center text-sm font-medium text-neutral-900 underline underline-offset-4 hover:text-neutral-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+              >
+                {isEn ? `Read ${cardName} meaning →` : `查看「${cardName}」牌义 →`}
+              </Link>
             </li>
           );
         })}
@@ -207,10 +215,24 @@ export function LoveTarotWidget({ lang = 'zh' }: { lang?: 'zh' | 'en' }) {
         <p className="mt-1 text-base leading-relaxed text-neutral-700">{t.bridgeText}</p>
       </section>
 
-      <button type="button" onClick={handleReset} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-800 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900">
-        <RotateCcw aria-hidden="true" className="size-4" />
-        {isEn ? t.switchScenario : '重新选择情境'}
-      </button>
+      <div className="flex flex-wrap items-center gap-4">
+        <button type="button" onClick={handleReset} className="inline-flex min-h-11 items-center gap-2 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-800 hover:bg-neutral-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900">
+          <RotateCcw aria-hidden="true" className="size-4" />
+          {isEn ? t.switchScenario : '重新选择情境'}
+        </button>
+        <Link
+          href={`/${lang}/reading?spread=love_three`}
+          className="inline-flex min-h-11 items-center text-sm font-medium text-neutral-900 underline underline-offset-4 hover:text-neutral-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900"
+        >
+          {isEn ? 'Try AI Love Spread (10 pts) →' : '进入 AI 爱情深度牌阵（10 积分）→'}
+        </Link>
+        <Link
+          href={`/${lang}/yes-no`}
+          className="inline-flex min-h-11 items-center text-sm text-neutral-600 underline underline-offset-4 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-neutral-900"
+        >
+          {isEn ? 'Yes or No Tarot' : '是／否塔罗'}
+        </Link>
+      </div>
     </section>
   );
 }

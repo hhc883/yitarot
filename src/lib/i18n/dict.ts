@@ -229,7 +229,7 @@ export const i18nDict = {
       bridgeText: 'Cultivate emotional flexibility. Avoid projecting past baggage onto the present moment. Approach the unknown with curiosity rather than fear, and listen actively without premature conclusions.',
     },
     fortune: {
-      dailyTitle: 'Daily Tarot Fortune',
+      dailyTitle: 'Daily Tarot Card',
       dailySubtitle: 'Draw your morning archetype card to attune to the energetic flow of today.',
       todayArchetype: 'Today\'s Dominant Archetype',
       resonance: '【Inner Resonance】',

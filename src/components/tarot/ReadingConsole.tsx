@@ -264,18 +264,6 @@ function ReadingConsoleInner({
       {/* 步骤一：意图输入与配置 */}
       {step === 'input' && (
         <div className="w-full max-w-3xl flex flex-col items-center">
-          {/* 标头与指引 */}
-          <header className="text-center mb-8">
-            <h1 className="font-serif font-bold text-2xl sm:text-3xl lg:text-4xl text-[#171717] tracking-tight">
-              {isEn ? 'Tarot Reading' : '塔罗完整解读'}
-            </h1>
-            <p className="text-xs sm:text-sm text-[#52525B] mt-2 max-w-lg mx-auto">
-              {isEn
-                ? 'Clarify your inquiry, pick a spread, and draw the cards for structured insight.'
-                : '凝练心中困惑，选定牌阵与视角，抽牌获取结构化启示。'}
-            </p>
-          </header>
-
           {/* 分类选项胶囊 */}
           <div className="w-full flex flex-wrap justify-center gap-2 mb-6">
             {CATEGORIES.map(cat => {

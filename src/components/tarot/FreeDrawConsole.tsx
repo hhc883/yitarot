@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { drawRandomCards, DrawnCard } from '@/lib/tarot/deck';
 import { getLocalizedCardDetailEn } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from './TarotCardView';
@@ -100,18 +101,6 @@ export function FreeDrawConsole({
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col items-center">
-      {/* 标题 */}
-      <div className="w-full text-center mb-6">
-        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#111111] tracking-tight">
-          {isEn ? 'Free Tarot Draw' : '自由抽牌'}
-        </h1>
-        <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-1.5 max-w-md mx-auto">
-          {isEn
-            ? 'Free from fixed spread boundaries. Select 1 to 6 cards to mirror your present subconscious state.'
-            : '无需固定牌阵束缚。自由设定抽取 1 至 6 张卡牌，探寻当下潜意识的真实镜像。'}
-        </p>
-      </div>
-
       {/* 控制工具条 (Linear 极简风) */}
       <div className="w-full rounded-xl bg-white border border-[#111111]/10 p-4 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* 卡牌数量切换 */}
@@ -158,7 +147,7 @@ export function FreeDrawConsole({
             className="px-4 py-1.5 rounded-lg bg-[#111111] hover:bg-[#333333] text-xs font-serif text-white tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
           >
             <RefreshCw className={`w-3 h-3 ${isShuffling ? 'animate-spin' : ''}`} />
-            <span>{isEn ? 'Reshuffle' : '重新洗牌'}</span>
+            <span>{isEn ? (cardCount === 1 ? 'Draw a Card' : 'Draw Again') : '重新洗牌'}</span>
           </button>
         </div>
       </div>
@@ -237,6 +226,12 @@ export function FreeDrawConsole({
                   <p className="text-[11px] font-serif leading-relaxed text-[#444444] line-clamp-3">
                     {meaning}
                   </p>
+                  <Link
+                    href={`/${isEn ? 'en' : 'zh'}/cards/${drawn.card.slug}`}
+                    className="mt-2 inline-flex min-h-[36px] items-center text-[11px] font-medium text-[#171717] underline underline-offset-4 hover:text-[#52525B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
+                  >
+                    {isEn ? `Read ${cardName} meaning →` : `查看「${cardName}」完整牌义 →`}
+                  </Link>
                 </div>
               </div>
             );

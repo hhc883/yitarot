@@ -279,6 +279,12 @@ export function DailyTarotWidget({ lang = 'zh' }: { lang?: string }) {
               >
                 {meaning}
               </p>
+              <Link
+                href={`/${isEn ? 'en' : 'zh'}/cards/${card.slug}`}
+                className="mt-2 inline-flex min-h-[36px] items-center text-xs font-medium text-black underline underline-offset-4 hover:text-neutral-600 focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
+              >
+                {isEn ? `Explore ${cardName} full meaning →` : `查看「${cardName}」完整牌义 →`}
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">

@@ -1,11 +1,36 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { YesNoWidget } from '@/components/tarot/YesNoWidget';
+import { buildBilingualMetadata } from '@/lib/seo/metadata';
 
 export const instant = false;
 
 export async function generateStaticParams() {
   return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}): Promise<Metadata> {
+  const { lang } = await params;
+
+  return buildBilingualMetadata({
+    lang,
+    path: '/yes-no',
+    zh: {
+      title: '是／否塔罗｜单张牌快速决断',
+      description: '免费抽取一张经典韦特塔罗牌，为二选一或犹豫不决的问题提供「是、否或静观」的倾向性参考。',
+      keywords: ['是否塔罗', 'Yes or No 塔罗', '单张塔罗占卜', '二选一塔罗', 'YiTatro'],
+    },
+    en: {
+      title: 'Yes or No Tarot - Free Single-Card Reading',
+      description: 'Ask a question and draw a free single tarot card for a Yes, No, or Maybe reflection with upright and reversed meaning.',
+      keywords: ['Yes or no tarot', 'Free yes no tarot', 'Single card tarot', 'Yes no maybe tarot', 'Tarot decision tool', 'YiTatro'],
+    },
+  });
 }
 
 export default async function YesNoPage({
@@ -28,7 +53,9 @@ export default async function YesNoPage({
           {isEn ? 'Yes or No Tarot' : '是／否塔罗'}
         </h1>
         <p className="mt-3 text-base leading-relaxed text-neutral-600">
-          {isEn ? 'Draw one card to reflect on a question with two possible answers.' : '抽一张牌，从另一个角度思考一个可以用「是」或「否」回答的问题。'}
+          {isEn
+            ? 'Draw one free tarot card for a Yes, No, or Maybe reflection on a focused question—meant for perspective, not guaranteed predictions.'
+            : '抽一张牌，从另一个角度思考一个可以用「是」或「否」回答的问题。'}
         </p>
       </div>
       <Suspense fallback={<p role="status" className="border-t border-neutral-200 py-6 text-neutral-600">{isEn ? 'Loading the spread…' : '正在载入牌阵…'}</p>}>

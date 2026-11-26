@@ -7,6 +7,8 @@ import { FeatureCard } from '@/components/site/FeatureCard';
 import { ToolCardGridMotion } from '@/components/site/ToolCardGridMotion';
 import { ToolIcon } from '@/components/site/ToolIcon';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { buildBilingualMetadata, SITE_URL } from '@/lib/seo/metadata';
+import { READING_COST } from '@/lib/points/constants';
 
 export const instant = false;
 
@@ -19,37 +21,26 @@ export async function generateMetadata({
 }: {
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
-  const { lang: rawLang } = await params;
-  const isEn = rawLang === 'en';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
-  const currentLang = isEn ? 'en' : 'zh';
+  const { lang } = await params;
 
-  return {
-    title: isEn ? 'Western Tarot Sanctuary - Free Draw, Spreads & Card Meanings' : '塔罗专厅｜自由抽牌·牌阵占卜·78张牌义',
-    description: isEn
-      ? 'Western tarot sanctuary: 78 Rider-Waite card interpretations, free single and multi-card draws, Celtic Cross spread, love tarot, and daily fortunes.'
-      : 'YiTatro 塔罗专厅：78 张经典韦特塔罗牌义库、自由选牌、牌阵占卜、爱情塔罗、是否决断与每日一牌。',
-    keywords: isEn
-      ? ['Tarot reading', 'Free tarot draw', '78 tarot card meanings', 'Rider-Waite deck', 'Celtic Cross spread', 'Love tarot', 'Daily tarot', 'YiTatro Tarot']
-      : ['塔罗专厅', '自由抽牌', '78张牌义库', '经典韦特塔罗', '牌阵占卜', '爱情塔罗', '是否占卜', 'YiTatro 塔罗'],
-    alternates: {
-      canonical: `${siteUrl}/${currentLang}/west`,
-      languages: {
-        zh: `${siteUrl}/zh/west`,
-        en: `${siteUrl}/en/west`,
-        'x-default': `${siteUrl}/zh/west`
-      }
+  return buildBilingualMetadata({
+    lang,
+    path: '/west',
+    zh: {
+      title: '塔罗专厅｜自由抽牌·牌阵占卜·78张牌义',
+      description: 'YiTatro 塔罗专厅：78 张经典韦特塔罗牌义库、自由选牌、牌阵占卜、爱情塔罗、是否决断与每日一牌。',
+      keywords: ['塔罗专厅', '自由抽牌', '78张牌义库', '经典韦特塔罗', '牌阵占卜', '爱情塔罗', '是否占卜', 'YiTatro 塔罗'],
+      ogTitle: '塔罗专厅｜经典韦特塔罗 | YiTatro',
+      ogDescription: '深度心理学与直觉塔罗指引，静心照见内心真实答案。'
     },
-    openGraph: {
-      type: 'website',
-      locale: isEn ? 'en_US' : 'zh_CN',
-      url: `${siteUrl}/${currentLang}/west`,
-      title: isEn ? 'Tarot Sanctuary | YiTatro' : '塔罗专厅｜经典韦特塔罗 | YiTatro',
-      description: isEn
-        ? 'Deep archetypal psychology and intuitive tarot guidance.'
-        : '深度心理学与直觉塔罗指引，静心照见内心真实答案。'
+    en: {
+      title: 'Tarot Sanctuary - Free Card Tools & AI Tarot Reading',
+      description: 'Start with free online tarot tools—random card draw, daily card, yes or no, and love spread—or sign in for a personalized AI tarot reading.',
+      keywords: ['Free tarot reading', 'Random tarot card', 'AI tarot reading', '78 tarot card meanings', 'Rider-Waite deck', 'Love tarot', 'Yes or no tarot', 'YiTatro Tarot'],
+      ogTitle: 'Tarot Sanctuary | YiTatro',
+      ogDescription: 'Free Rider-Waite tarot card tools and personalized AI tarot reading.'
     }
-  };
+  });
 }
 
 /**
@@ -70,11 +61,11 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     {
       href: `/${lang}/draw`,
       icon: <ToolIcon name="west-draw" />,
-      titleEn: 'Free Tarot Draw',
+      titleEn: 'Random Tarot Card Generator',
       titleZh: '自由抽牌',
-      descEn: 'Draw cards to reflect on whatever is on your mind.',
+      descEn: 'Free online tarot deck draw (1–6 cards) with upright and reversed meanings.',
       descZh: '随手抽牌，理一理眼下最在意的事。',
-      actionEn: 'Draw cards',
+      actionEn: 'Draw cards free',
       actionZh: '开始抽牌'
     },
     {
@@ -82,19 +73,19 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
       icon: <ToolIcon name="west-reading" />,
       titleEn: 'AI Tarot Reading',
       titleZh: 'AI 塔罗深度占卜',
-      descEn: 'Enter a specific question to get a tarot reading about it.',
+      descEn: `Personalized AI spread analysis for your specific question (sign-in required, ${READING_COST} points).`,
       descZh: '输入一个具体问题，获取针对它的塔罗解读。',
-      actionEn: 'Start reading',
+      actionEn: `Start AI reading (${READING_COST} pts)`,
       actionZh: '进入占卜'
     },
     {
       href: `/${lang}/fortune/daily`,
       icon: <ToolIcon name="west-daily" />,
-      titleEn: 'Daily Card',
+      titleEn: 'Daily Tarot Card',
       titleZh: '每日一牌 · 晨间神谕',
-      descEn: 'Draw a card to find something worth paying attention to today.',
+      descEn: 'Reveal today’s free daily tarot card, key meaning, and a mindful reflection prompt.',
       descZh: '抽一张牌，想想今天值得关注什么。',
-      actionEn: 'See today',
+      actionEn: 'See today’s card',
       actionZh: '抽取今日'
     },
     {
@@ -120,9 +111,9 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     {
       href: `/${lang}/yes-no`,
       icon: <ToolIcon name="west-yes-no" />,
-      titleEn: 'Yes / No Tarot',
+      titleEn: 'Yes or No Tarot',
       titleZh: '是否塔罗 · 快速决断',
-      descEn: 'Ask a question that can be answered with yes or no.',
+      descEn: 'Free single-card reflection for a focused Yes, No, or Maybe question.',
       descZh: '问一个能用「是」或「否」回答的问题。',
       actionEn: 'Ask yes or no',
       actionZh: '即刻决断'
@@ -130,11 +121,11 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     {
       href: `/${lang}/love`,
       icon: <ToolIcon name="west-love" />,
-      titleEn: 'Love & Relationship Tarot',
+      titleEn: 'Free Love Tarot Reading',
       titleZh: '爱情与关系塔罗',
-      descEn: 'Reflect on how your relationship is going and what to do next.',
+      descEn: 'Free 3-card relationship spread to reflect on your perspective and next step.',
       descZh: '梳理两个人的相处状态，想清下一步怎么走。',
-      actionEn: 'Explore love',
+      actionEn: 'Explore love spread',
       actionZh: '测算关系'
     },
     {
@@ -149,7 +140,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
     }
   ];
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = SITE_URL;
   const pageTitle = isEn ? 'Western Tarot Sanctuary' : '塔罗专厅｜自由抽牌·牌阵占卜·78张牌义';
 
   const structuredData = [
@@ -201,7 +192,7 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
 
               <p className="mt-4 max-w-[56ch] text-[15px] sm:text-[16px] leading-relaxed text-[#52525B]">
                 {isEn
-                  ? 'Draw from the classic Rider–Waite deck, look up a card meaning, or choose a spread for a question.'
+                  ? `Start with a free tarot reading or random card draw from the 78-card Rider–Waite deck, explore card meanings and spreads, or sign in for personalized AI tarot analysis (${READING_COST} points per reading).`
                   : '从经典韦特牌组抽一张牌、查看牌义，或选一个牌阵梳理你的问题。'}
               </p>
 
@@ -210,10 +201,10 @@ export default async function WestLandingPage({ params }: { params: Promise<{ la
                 {/* 实心主按钮：直达 /{lang}/draw?count=1 */}
                 <Link
                   href={`/${lang}/draw?count=1`}
-                  aria-label={isEn ? 'Draw one card from the tarot deck' : '抽一张牌：进入自由抽牌'}
+                  aria-label={isEn ? 'Draw a free tarot card from the deck' : '抽一张牌：进入自由抽牌'}
                   className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-sm bg-[#171717] px-6 py-2.5 text-[14px] font-medium text-white transition-colors hover:bg-[#333333] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
                 >
-                  <span>{isEn ? 'Draw one card' : '抽一张牌'}</span>
+                  <span>{isEn ? 'Draw a free card' : '抽一张牌'}</span>
                   <span aria-hidden="true">→</span>
                 </Link>
 

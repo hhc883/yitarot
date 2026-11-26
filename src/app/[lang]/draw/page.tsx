@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { FreeDrawConsole } from '@/components/tarot/FreeDrawConsole';
+import { buildBilingualMetadata } from '@/lib/seo/metadata';
 
 export const instant = false;
 
@@ -9,32 +10,26 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({
-  params
+  params,
 }: {
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
-  const { lang: rawLang } = await params;
-  const isEn = rawLang === 'en';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
-  const currentLang = isEn ? 'en' : 'zh';
+  const { lang } = await params;
 
-  return {
-    title: isEn ? 'Free Tarot Draw (1–6 Cards)' : '自由抽牌｜1–6 张塔罗自选占卜',
-    description: isEn
-      ? 'Draw 1 to 6 cards freely from the classic 78 Rider-Waite tarot deck to reflect your present subconscious thoughts.'
-      : '自由设定抽取 1 至 6 张经典韦特塔罗牌，沉淀当下思绪，映照深层潜意识。',
-    keywords: isEn
-      ? ['Free tarot draw', '1-6 card spread', 'Online tarot reading', 'Daily tarot card', 'Intuitive card picker', 'YiTatro Draw']
-      : ['自由抽牌', '自选塔罗牌', '1到6张抽牌', '在线塔罗抽取', '潜意识直觉选牌', 'YiTatro 抽牌'],
-    alternates: {
-      canonical: `${siteUrl}/${currentLang}/draw`,
-      languages: {
-        zh: `${siteUrl}/zh/draw`,
-        en: `${siteUrl}/en/draw`,
-        'x-default': `${siteUrl}/zh/draw`
-      }
-    }
-  };
+  return buildBilingualMetadata({
+    lang,
+    path: '/draw',
+    zh: {
+      title: '自由抽牌｜1–6 张塔罗自选占卜',
+      description: '自由设定抽取 1 至 6 张经典韦特塔罗牌，沉淀当下思绪，映照深层潜意识。',
+      keywords: ['自由抽牌', '自选塔罗牌', '1到6张抽牌', '在线塔罗抽取', '潜意识直觉选牌', 'YiTatro 抽牌'],
+    },
+    en: {
+      title: 'Random Tarot Card Generator - Free Online Tarot Deck (1–6 Cards)',
+      description: 'Draw 1 to 6 random tarot cards for free from the 78-card online Rider-Waite tarot deck with upright and reversed card meanings.',
+      keywords: ['Random tarot card generator', 'Random tarot card', 'Online tarot deck', 'Free tarot draw', '1-6 card spread', 'YiTatro Draw'],
+    },
+  });
 }
 
 export default async function DrawPage({
@@ -46,22 +41,23 @@ export default async function DrawPage({
 }) {
   const { lang: rawLang } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
+  const isEn = lang === 'en';
 
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-8 sm:py-12 md:py-16 text-[#171717]">
+      <header className="w-full text-center mb-6">
+        <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#171717] tracking-tight">
+          {isEn ? 'Random Tarot Card Generator' : '自由抽牌'}
+        </h1>
+        <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-1.5 max-w-md mx-auto">
+          {isEn
+            ? 'Free online tarot deck draw. Pick 1 to 6 random tarot cards to explore upright and reversed meanings.'
+            : '无需固定牌阵束缚。自由设定抽取 1 至 6 张卡牌，探寻当下潜意识的真实镜像。'}
+        </p>
+      </header>
       <Suspense
         fallback={
           <div className="w-full max-w-5xl mx-auto flex flex-col items-center animate-pulse">
-            <div className="w-full text-center mb-6">
-              <h1 className="font-serif font-black text-2xl sm:text-4xl text-[#171717] tracking-tight">
-                {lang === 'en' ? 'Free Tarot Draw' : '自由抽牌'}
-              </h1>
-              <p className="text-xs sm:text-sm font-serif text-[#52525B] mt-1.5 max-w-md mx-auto">
-                {lang === 'en'
-                  ? 'Select 1 to 6 cards to mirror your present subconscious state.'
-                  : '自由设定抽取 1 至 6 张卡牌，探寻当下潜意识的真实镜像。'}
-              </p>
-            </div>
             <div className="w-full rounded-xl bg-white border border-[#E4E4E7] p-4 mb-8 h-16" />
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10 justify-items-center">
               {[0, 1, 2].map(i => (
