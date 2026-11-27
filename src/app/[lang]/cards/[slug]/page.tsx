@@ -6,6 +6,7 @@ import { getAllCards, getCardBySlug } from '@/lib/tarot/deck';
 import { ALL_CARD_DETAIL_EN } from '@/lib/tarot/card-detail-en';
 import { TarotCardView } from '@/components/tarot/TarotCardView';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { getSiteUrl } from '@/lib/seo/site-url';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { IconLove, IconCareer } from '@/components/icons/QiIcons';
 
@@ -28,7 +29,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang, slug } = await params;
   const lang = rawLang === 'en' ? 'en' : 'zh';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const card = getCardBySlug(slug);
   if (!card) return { title: lang === 'en' ? 'Card Not Found | YiTatro' : '未找到卡牌 | YiTatro' };
 
@@ -105,7 +106,7 @@ export default async function CardDetailPage({
   const symbolism = enDetail ? enDetail.symbolism : card.symbolism;
   const advice = enDetail ? enDetail.advice : card.advice;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const cardName = lang === 'en' ? `${card.nameEn} (${card.nameZh})` : `${card.nameZh}（${card.nameEn}）`;
 
   const structuredData = [

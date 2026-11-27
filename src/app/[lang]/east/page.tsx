@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { CONTAINER } from '@/components/site/constants';
 import { HexagramGraphic } from '@/components/site/HexagramGraphic';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 export const instant = false;
 
@@ -18,7 +19,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang } = await params;
   const isEn = rawLang === 'en';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const currentLang = isEn ? 'en' : 'zh';
 
   return {
@@ -147,7 +148,7 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
     }
   ];
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const pageTitle = isEn ? 'I Ching & BaZi East Metaphysics Portal' : '东方专厅｜周易六爻·四柱八字·紫微斗数';
 
   const structuredData = [

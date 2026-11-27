@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+export const SITE_URL = getSiteUrl();
 
 export type SupportedLang = 'zh' | 'en';
 

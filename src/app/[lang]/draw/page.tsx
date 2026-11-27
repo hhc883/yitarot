@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { FreeDrawConsole } from '@/components/tarot/FreeDrawConsole';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 export const instant = false;
 
@@ -15,7 +16,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: rawLang } = await params;
   const isEn = rawLang === 'en';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yitarot.net';
+  const siteUrl = getSiteUrl();
   const currentLang = isEn ? 'en' : 'zh';
 
   return {
