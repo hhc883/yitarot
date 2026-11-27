@@ -55,6 +55,11 @@
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
 
+- **拆分 Sitemap 落地 `main`（2026-11-27，Antigravity 实现，Codex 验收通过）**：
+  - 参照 `fix/divination-audit` 已批准提交 `34b218a` / `3379d6e` 的拆分架构，在当前 `main` 上新增 `src/lib/seo/site-url.ts`、`src/lib/seo/sitemap-xml.ts`、`src/lib/seo/blog-sitemap.ts` 与五个 Route Handler（`src/app/sitemap.xml/route.ts`、`src/app/sitemap-landing.xml/route.ts`、`src/app/sitemap-cards.xml/route.ts`、`src/app/sitemap-blog-zh.xml/route.ts`、`src/app/sitemap-blog-en.xml/route.ts`）；`src/app/robots.ts` 复用 `getSiteUrl()` 归一化尾斜杠并保持仅暴露根 `/sitemap.xml`。
+  - `/sitemap-landing.xml` 仅保留当前 `main` 实际存在的独立落地页（含 `/cards` 列表页）与规范的 `/east/relationship/{type}` 页面，排除不存在的 3 个英文指南、博客与卡牌详情页以及已指向其它页面 canonical 的已知别名路由（共排除 26 个已知别名）；`scripts/verify-seo.mjs` 改为校验 5 个 sitemap route。
+  - 验收通过：Codex 已移除旧版冲突的 `src/app/sitemap.ts`，定向 ESLint、`node scripts/verify-seo.mjs` 与生产构建通过；`robots.txt`、根 `/sitemap.xml` 及 4 个子 XML 地图均有效，237 条收录 URL（landing 72、cards 156、zh blog 4、en blog 5）在生产构建中全部返回 200、自指向 canonical 且无 robots `noindex`。
+
 - **博客索引页改版（2026-11-27，Antigravity 实现，Codex 验收通过）**：
   - 调整 `src/components/blog/BlogIndexClient.tsx`：默认未筛选文章视图改为「单篇宽图头条 + 单栏纯文本发丝分隔归档列表」；头条仅从当前语言下 `featured=true` 且 `coverImage` 非空的文章中确定性选取最新 1 篇，使用 `16:9` 稳定容器配合 `object-contain` 完整展示原图不裁切；若无合格封面（如当前 `zh`）或封面加载失败（含水合前 `complete && naturalWidth === 0` 失败检测），自动移除头条区并将文章回退至常规列表。
   - 归档列表移除双栏边框卡片、缩略图与重复 `Read` / `阅读` 按钮，改为单栏发丝分隔行（分类/日期/阅读时长响应式换行、链接标题、简短摘要），保留搜索（含标签）、分类筛选、心法手册切换、排序、语言路由及详情页 `BlogCard` 相关推荐行为。

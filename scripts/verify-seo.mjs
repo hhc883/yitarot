@@ -1,6 +1,6 @@
 /**
  * Automated SEO & Metadata Verification Script
- * Scans src/app/[lang] pages, sitemap.ts, robots.ts, manifest.ts, and opengraph-image.tsx
+ * Scans src/app/[lang] pages, split sitemap routes, robots.ts, manifest.ts, and opengraph-image.tsx
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,7 +9,11 @@ const root = process.cwd();
 const langAppDir = path.join(root, 'src', 'app', '[lang]');
 
 const requiredInfra = [
-  'src/app/sitemap.ts',
+  'src/app/sitemap.xml/route.ts',
+  'src/app/sitemap-landing.xml/route.ts',
+  'src/app/sitemap-cards.xml/route.ts',
+  'src/app/sitemap-blog-zh.xml/route.ts',
+  'src/app/sitemap-blog-en.xml/route.ts',
   'src/app/robots.ts',
   'src/app/manifest.ts',
   'src/app/opengraph-image.tsx',
