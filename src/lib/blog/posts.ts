@@ -457,6 +457,7 @@ At YiTatro, metaphysical consultation is not fatalistic clairvoyance. It is **th
     readingTime: 6,
     category: 'tarot',
     tags: ['Tarot AI', 'AI Tarot Reading', 'Online Tarot', 'Digital Divination', 'Tarot Guide'],
+    coverImage: 'https://uzypprkaomjvmilftuww.supabase.co/storage/v1/object/public/blog-covers/tarot-ai-reading-guide.jpg',
     featured: true,
     author: {
       name: 'YiTarot Research Collective',
