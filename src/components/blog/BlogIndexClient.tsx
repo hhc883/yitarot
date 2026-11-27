@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, Sparkles, Search } from 'lucide-react';
 import { BlogPost } from '@/types/blog';
-import { BLOG_CATEGORIES } from '@/lib/blog/posts';
+import { BLOG_CATEGORIES } from '@/lib/blog/categories';
 import { BlogCard } from './BlogCard';
 import { TarotHandbook } from '@/components/tarot/TarotHandbook';
 

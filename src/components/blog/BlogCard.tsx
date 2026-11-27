@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Clock, Calendar, ArrowRight } from 'lucide-react';
 import { BlogPost } from '@/types/blog';
-import { BLOG_CATEGORIES } from '@/lib/blog/posts';
+import { BLOG_CATEGORIES } from '@/lib/blog/categories';
 
 interface BlogCardProps {
   post: BlogPost;
