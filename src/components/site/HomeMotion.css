@@ -1,0 +1,161 @@
+/*
+ * 首页太极开屏原生 CSS Scroll-Driven Animations（仅 TaijiIntro 使用）
+ * - 默认与减弱动效下完全静态：opacity: 1、无位移、无 opacity: 0 基础态
+ * - 仅在 prefers-reduced-motion: no-preference 且 @supports 支持 view timeline 时启用
+ */
+
+.yitatro-home-intro {
+  position: relative;
+  overflow-x: clip;
+}
+
+.yitatro-home-intro-stage {
+  position: relative;
+}
+
+.yitatro-home-taiji {
+  transform-origin: center center;
+}
+
+.yitatro-home-taiji-spin {
+  transform-origin: center center;
+}
+
+.yitatro-home-intro-arrow {
+  display: inline-block;
+}
+
+@keyframes yitatro-taiji-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes yitatro-taiji-intro-exit {
+  0% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0svh) scale(1);
+  }
+  14% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0svh) scale(1.48);
+  }
+  33.3% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0svh) scale(2.35);
+  }
+  43% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(11.6svh) scale(2.62);
+  }
+  50% {
+    opacity: 0.88;
+    visibility: visible;
+    transform: translateY(20svh) scale(2.82);
+  }
+  58% {
+    opacity: 0.65;
+    visibility: visible;
+    transform: translateY(20svh) scale(3.05);
+  }
+  78% {
+    opacity: 0.16;
+    visibility: visible;
+    transform: translateY(20svh) scale(3.2);
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20svh) scale(3.28);
+  }
+}
+
+@keyframes yitatro-intro-copy-exit {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  9%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+}
+
+@keyframes yitatro-intro-chrome-exit {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+  16% {
+    opacity: 0;
+    visibility: visible;
+  }
+  17% {
+    opacity: 0;
+    visibility: hidden;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .yitatro-home-taiji-spin {
+    animation: yitatro-taiji-spin 24s linear infinite;
+    will-change: transform;
+  }
+
+  .yitatro-home-intro-arrow {
+    transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .yitatro-home-intro-link:hover .yitatro-home-intro-arrow,
+  .yitatro-home-intro-link:focus-visible .yitatro-home-intro-arrow {
+    transform: translateY(-2px);
+  }
+
+  @supports (animation-timeline: view()) and (animation-range: contain 0% exit 100%) and (view-timeline-name: --yitatro-intro-view) {
+    .yitatro-home-intro {
+      min-height: 140svh;
+      view-timeline-name: --yitatro-intro-view;
+      view-timeline-axis: block;
+    }
+
+    .yitatro-home-intro-stage {
+      position: sticky;
+      top: 0;
+      overflow: clip;
+    }
+
+    .yitatro-home-taiji {
+      animation: yitatro-taiji-intro-exit 1ms linear both;
+      animation-timeline: --yitatro-intro-view;
+      animation-range: contain 0% exit 80%;
+      will-change: transform, opacity;
+    }
+
+    .yitatro-home-intro-copy {
+      animation: yitatro-intro-copy-exit 1ms linear both;
+      animation-timeline: --yitatro-intro-view;
+      animation-range: contain 0% exit 80%;
+      will-change: transform, opacity;
+    }
+
+    .yitatro-home-intro-topbar,
+    .yitatro-home-intro-cue {
+      animation: yitatro-intro-chrome-exit 1ms linear both;
+      animation-timeline: --yitatro-intro-view;
+      animation-range: contain 0% exit 80%;
+      will-change: opacity;
+    }
+  }
+}

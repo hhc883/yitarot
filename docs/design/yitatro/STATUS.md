@@ -55,6 +55,10 @@
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
 
+- **首页太极开屏动效回补到 `main`（2026-11-27，Antigravity 从 `fix/divination-audit` 提交 `396e9bf` / `7d17f2b` 移植）**：
+  - 仅移植 `src/components/site/TaijiIntro.tsx` 与开屏专用的 `src/components/site/HomeMotion.css`（24s 慢速 CSS 自转、sticky 居中滚动缩放渐隐、`#portals` 真实锚点、服务端双语文案与 `prefers-reduced-motion` / `@supports` 降级）；保留 `main` 现有 `src/app/[lang]/page.tsx` 与 `src/components/site/PortalEntry.tsx` 不变，未引入 GSAP/Lenis 或修改全局样式。
+  - 工程与浏览器验收：定向 ESLint 与 `git diff --check` 通过；Chromium 1365×900 中文与 390×844 模拟英文实测通过（24s CSS 自转、居中放大至 3.28x、渐隐至 0 并露出双入口、`#portals` 原生点击可用）；模拟减弱动效保持静态开屏、无 sticky 延展且保留锚点；生产构建通过。
+
 - **博客卡片 UI 改版（2026-11-27，Antigravity 实现，Codex 验收通过）**：
   - 重构 `src/components/blog/BlogCard.tsx` 为服务端兼容的紧凑黑白文优先卡片，将缩略图链接与加载失败状态拆入仅接收标量 props 的客户端组件 `src/components/blog/BlogCardThumbnail.tsx`，缺图或加载失败时自动释放为全宽文本；同步更新 `src/components/blog/BlogIndexClient.tsx` 与 `src/app/[lang]/blog/[slug]/page.tsx` 双栏顶部对齐（`items-start`），并修正该详情页遗留分类导入。
   - 工程与浏览器验收通过：定向 ESLint 通过，Next TypeScript 检查通过并生成 348 个静态页面；1365px 英文列表双栏顶部对齐（含真实缩略图与无封面全宽文本）；320px 中英文视口均为单栏且无横向溢出；真实 404 缩略图请求触发后恢复全宽文本；英文文章详情页正常展示完整封面与相关推荐卡片。
