@@ -216,12 +216,18 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
                 </span>
                 <UserAvatar user={user} />
               </Link>
+            ) : userLoading ? (
+              <div
+                className="flex min-h-[44px] items-center gap-2.5"
+                aria-hidden="true"
+              >
+                <span className="h-[30px] w-14 animate-pulse rounded-full bg-[#F4F4F5]" />
+                <span className="h-8 w-8 animate-pulse rounded-full bg-[#F4F4F5]" />
+              </div>
             ) : (
               <Link
                 href={`/${lang}/login`}
-                className={`inline-flex min-h-[44px] items-center justify-center rounded-sm bg-[#171717] px-4 py-1.5 text-[13px] font-medium text-white transition-all hover:bg-[#333333] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717] ${
-                  userLoading ? 'opacity-80' : 'opacity-100'
-                }`}
+                className="inline-flex min-h-[44px] items-center justify-center rounded-sm bg-[#171717] px-4 py-1.5 text-[13px] font-medium text-white transition-all hover:bg-[#333333] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
               >
                 <span>{isEn ? 'Log in' : '登录'}</span>
               </Link>
@@ -309,6 +315,8 @@ export function SiteNavbar({ lang = 'zh' }: { lang?: string }) {
               </div>
               <span className="text-[12px] text-[#52525B]" aria-hidden="true">→</span>
             </Link>
+          ) : userLoading ? (
+            <div className="h-[44px] w-full animate-pulse rounded-sm bg-[#F4F4F5]" aria-hidden="true" />
           ) : (
             <Link
               href={`/${lang}/login`}
