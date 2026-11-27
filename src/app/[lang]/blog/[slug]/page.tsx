@@ -3,7 +3,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Calendar, Clock, Sparkles } from 'lucide-react';
-import { BLOG_POSTS, getPostBySlug, getAllPosts, BLOG_CATEGORIES } from '@/lib/blog/posts';
+import { BLOG_POSTS, getPostBySlug, getAllPosts } from '@/lib/blog/posts';
+import { BLOG_CATEGORIES } from '@/lib/blog/categories';
 import { renderMarkdownToHtml, extractHeadings } from '@/lib/blog/markdown';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { BlogReadingProgress } from '@/components/blog/BlogReadingProgress';
@@ -272,7 +273,7 @@ export default async function BlogPostPage({
                 {lang === 'en' ? 'Related In-Depth Articles' : '延伸研习推荐'}
               </h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {relatedPosts.map((rPost) => (
                 <BlogCard key={rPost.id} post={rPost} lang={lang} />
               ))}

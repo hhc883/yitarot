@@ -178,7 +178,7 @@ export function BlogIndexClient({ posts, lang }: BlogIndexClientProps) {
 
           {/* Posts Grid */}
           {filteredPosts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {filteredPosts.map((post) => (
                 <BlogCard key={post.id} post={post} lang={lang} />
               ))}

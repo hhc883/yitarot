@@ -55,6 +55,10 @@
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
 
+- **博客卡片 UI 改版（2026-11-27，Antigravity 实现，Codex 验收通过）**：
+  - 重构 `src/components/blog/BlogCard.tsx` 为服务端兼容的紧凑黑白文优先卡片，将缩略图链接与加载失败状态拆入仅接收标量 props 的客户端组件 `src/components/blog/BlogCardThumbnail.tsx`，缺图或加载失败时自动释放为全宽文本；同步更新 `src/components/blog/BlogIndexClient.tsx` 与 `src/app/[lang]/blog/[slug]/page.tsx` 双栏顶部对齐（`items-start`），并修正该详情页遗留分类导入。
+  - 工程与浏览器验收通过：定向 ESLint 通过，Next TypeScript 检查通过并生成 348 个静态页面；1365px 英文列表双栏顶部对齐（含真实缩略图与无封面全宽文本）；320px 中英文视口均为单栏且无横向溢出；真实 404 缩略图请求触发后恢复全宽文本；英文文章详情页正常展示完整封面与相关推荐卡片。
+
 - P（Antigravity 实现、全量生产构建通过、测字秘牒知识库全量入库）：
   1. **测字断相心易分仓架构（Stage P.1）**：
      - **测字断相知识子系统（`src/lib/kb/cezi/`）**：收录清代程省《测字秘牒》（模式 A·实战应用型）35 条核心断法通则（`CEZI_RULES`，涵盖装头、接脚、穿心、包笼、破解、添笔、减笔、对关、摘字、观梅等）与 35 个经典实战占验案例（`CEZI_CASES`，涵盖问六甲、疾疫、功名、婚姻、词讼、失物、行人、南巡、风水等）；
