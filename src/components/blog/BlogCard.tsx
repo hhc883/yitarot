@@ -17,6 +17,18 @@ export function BlogCard({ post, lang }: BlogCardProps) {
   return (
     <article className="group flex flex-col justify-between p-6 rounded-xl border border-[#E4E4E7] bg-[#FFFFFF] hover:border-[#171717] transition-all duration-200 shadow-xs hover:shadow-sm">
       <div className="space-y-3">
+        {post.coverImage && (
+          <Link href={`/${lang}/blog/${post.slug}`} className="block overflow-hidden rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] mb-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              className="w-full aspect-[16/9] object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              loading="lazy"
+              decoding="async"
+            />
+          </Link>
+        )}
         <div className="flex items-center justify-between text-xs text-[#71717A]">
           <span className="font-mono text-[11px] uppercase tracking-wider text-[#171717] font-medium bg-[#F4F4F5] px-2.5 py-0.5 rounded">
             {categoryLabel}

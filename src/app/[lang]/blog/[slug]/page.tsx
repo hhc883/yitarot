@@ -59,6 +59,7 @@ export async function generateMetadata({
       siteName: 'YiTatro',
       locale: lang === 'en' ? 'en_US' : 'zh_CN',
       type: 'article',
+      images: post.coverImage ? [{ url: post.coverImage, alt: post.title }] : undefined,
       publishedTime: post.publishedAt,
       modifiedTime: post.modifiedAt || post.publishedAt,
       authors: [post.author.name],
@@ -67,7 +68,8 @@ export async function generateMetadata({
     twitter: {
       card: 'summary_large_image',
       title,
-      description
+      description,
+      images: post.coverImage ? [post.coverImage] : undefined
     }
   };
 }
@@ -130,6 +132,7 @@ export default async function BlogPostPage({
       '@type': 'BlogPosting',
       headline: post.title,
       description: post.description,
+      image: post.coverImage || undefined,
       datePublished: post.publishedAt,
       dateModified: post.modifiedAt || post.publishedAt,
       mainEntityOfPage: {
@@ -206,6 +209,19 @@ export default async function BlogPostPage({
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Main Article Text */}
           <div className="lg:col-span-8 max-w-none">
+            {post.coverImage && (
+              <div className="mb-8 overflow-hidden rounded-xl border border-[#E4E4E7] bg-[#FAFAFA]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.coverImage}
+                  alt={post.title}
+                  className="w-full aspect-[16/9] object-cover"
+                  loading="eager"
+                  decoding="async"
+                />
+              </div>
+            )}
+
             {/* Lead description quote */}
             <div className="mb-8 p-4 sm:p-5 rounded-lg bg-[#FAFAFA] border-l-2 border-[#171717] text-xs sm:text-sm text-[#52525B] leading-relaxed italic">
               {post.description}
