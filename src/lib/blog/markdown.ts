@@ -66,6 +66,34 @@ function parseInline(text: string): string {
 }
 
 /**
+ * Splits a Markdown table row into trimmed cell strings.
+ */
+function splitTableRow(row: string): string[] {
+  const cleaned = row.trim().replace(/^\|/, '').replace(/\|$/, '');
+  return cleaned.split('|').map((cell) => cell.trim());
+}
+
+/**
+ * Checks whether a trimmed line is a GFM table separator row (e.g. | :--- | :---: |).
+ */
+function isTableSeparatorRow(line: string): boolean {
+  if (!line.includes('|')) return false;
+  const cells = splitTableRow(line);
+  return cells.length > 0 && cells.every((cell) => /^:?-{2,}:?$/.test(cell));
+}
+
+/**
+ * Maps a GFM separator cell to a CSS text-align value.
+ */
+function parseTableAlignment(cell: string): 'left' | 'center' | 'right' {
+  const startsColon = cell.startsWith(':');
+  const endsColon = cell.endsWith(':');
+  if (startsColon && endsColon) return 'center';
+  if (endsColon) return 'right';
+  return 'left';
+}
+
+/**
  * Renders structured markdown content into beautiful, high-readability semantic HTML.
  */
 export function renderMarkdownToHtml(markdown: string): string {
@@ -175,6 +203,49 @@ export function renderMarkdownToHtml(markdown: string): string {
       }
       const itemContent = trimmed.replace(/^\d+\.\s+/, '');
       output.push(`<li class="text-base">${parseInline(itemContent)}</li>`);
+      continue;
+    }
+
+    // Markdown Table: header row followed by | :--- | ... | separator row
+    if (trimmed.startsWith('|') && i + 1 < lines.length && isTableSeparatorRow(lines[i + 1].trim())) {
+      flushBlockquote();
+      flushList();
+
+      const headers = splitTableRow(trimmed);
+      const alignments = splitTableRow(lines[i + 1].trim()).map(parseTableAlignment);
+
+      const headerHtml = headers
+        .map((cell, idx) => {
+          const align = alignments[idx] || 'left';
+          return `<th class="px-4 py-3 font-semibold text-[#171717] whitespace-nowrap" style="text-align:${align}">${parseInline(cell)}</th>`;
+        })
+        .join('');
+
+      const rowsHtml: string[] = [];
+      let j = i + 2;
+      while (j < lines.length && lines[j].trim().startsWith('|')) {
+        const rowCells = splitTableRow(lines[j].trim());
+        const cellsHtml = headers
+          .map((_, idx) => {
+            const align = alignments[idx] || 'left';
+            const content = rowCells[idx] ?? '';
+            return `<td class="px-4 py-3 text-[#27272A] leading-relaxed align-top" style="text-align:${align}">${parseInline(content)}</td>`;
+          })
+          .join('');
+        rowsHtml.push(`<tr class="hover:bg-[#FAFAFA]/60 transition-colors">${cellsHtml}</tr>`);
+        j++;
+      }
+
+      output.push(
+        `<div class="my-6 overflow-x-auto rounded-lg border border-[#E4E4E7]">\n` +
+        `<table class="w-full border-collapse text-left text-sm sm:text-[15px]">\n` +
+        `<thead class="bg-[#FAFAFA] border-b border-[#E4E4E7]"><tr>${headerHtml}</tr></thead>\n` +
+        `<tbody class="divide-y divide-[#E4E4E7] bg-white">${rowsHtml.join('')}</tbody>\n` +
+        `</table>\n` +
+        `</div>`
+      );
+
+      i = j - 1;
       continue;
     }
 
