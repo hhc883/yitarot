@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Sparkles, Search } from 'lucide-react';
+import { BookOpen, Calendar, Clock, Search, Sparkles } from 'lucide-react';
 import { BlogPost } from '@/types/blog';
 import { BLOG_CATEGORIES } from '@/lib/blog/categories';
-import { BlogCard } from './BlogCard';
 import { TarotHandbook } from '@/components/tarot/TarotHandbook';
 
 interface BlogIndexClientProps {
@@ -13,25 +12,69 @@ interface BlogIndexClientProps {
   lang: 'zh' | 'en';
 }
 
+function getCategoryLabel(categoryId: string, isEn: boolean): string {
+  const categoryMeta = BLOG_CATEGORIES.find((c) => c.id === categoryId);
+  return categoryMeta
+    ? isEn
+      ? categoryMeta.nameEn
+      : categoryMeta.nameZh
+    : categoryId;
+}
+
 export function BlogIndexClient({ posts, lang }: BlogIndexClientProps) {
   const isEn = lang === 'en';
   const [activeTab, setActiveTab] = useState<'articles' | 'handbook'>('articles');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [failedFeaturedSrc, setFailedFeaturedSrc] = useState<string | null>(null);
+  const featuredImgRef = useRef<HTMLImageElement | null>(null);
 
-  const featuredPost = posts.find((p) => p.featured) || posts[0];
+  const featuredCandidate = posts.find(
+    (p) => Boolean(p.featured) && Boolean(p.coverImage?.trim())
+  );
+  const featuredCoverSrc = featuredCandidate?.coverImage?.trim() || '';
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const isDefaultUnfilteredView =
+    activeTab === 'articles' &&
+    selectedCategory === 'all' &&
+    normalizedSearchQuery === '';
+
+  const activeFeaturedPost =
+    isDefaultUnfilteredView &&
+    featuredCandidate &&
+    featuredCoverSrc &&
+    failedFeaturedSrc !== featuredCoverSrc
+      ? featuredCandidate
+      : null;
+
+  useEffect(() => {
+    const img = featuredImgRef.current;
+    if (!activeFeaturedPost || !featuredCoverSrc || !img) {
+      return;
+    }
+    if (img.complete && img.naturalWidth === 0) {
+      const frameId = window.requestAnimationFrame(() => {
+        setFailedFeaturedSrc(featuredCoverSrc);
+      });
+      return () => window.cancelAnimationFrame(frameId);
+    }
+  }, [activeFeaturedPost, featuredCoverSrc]);
 
   const filteredPosts = posts.filter((post) => {
     const matchesCategory =
       selectedCategory === 'all' || post.category === selectedCategory;
     const matchesSearch =
-      searchQuery.trim() === '' ||
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      normalizedSearchQuery === '' ||
+      post.title.toLowerCase().includes(normalizedSearchQuery) ||
+      post.description.toLowerCase().includes(normalizedSearchQuery) ||
+      post.tags.some((t) => t.toLowerCase().includes(normalizedSearchQuery));
 
     return matchesCategory && matchesSearch;
   });
+
+  const archivePosts = activeFeaturedPost
+    ? filteredPosts.filter((post) => post.id !== activeFeaturedPost.id)
+    : filteredPosts;
 
   return (
     <div className="space-y-10">
@@ -84,49 +127,69 @@ export function BlogIndexClient({ posts, lang }: BlogIndexClientProps) {
       {activeTab === 'articles' && (
         <div className="space-y-10">
           {/* Featured Post Hero */}
-          {featuredPost && selectedCategory === 'all' && searchQuery.trim() === '' && (
-            <div className="p-6 sm:p-10 rounded-2xl border border-[#E4E4E7] bg-radial from-[#FAFAFA] to-[#FFFFFF] relative overflow-hidden shadow-xs hover:border-[#171717] transition-colors">
-              <div className="max-w-3xl space-y-4">
-                <div className="flex items-center gap-2 text-xs text-[#71717A]">
+          {activeFeaturedPost && (
+            <article className="pb-10 border-b border-[#E4E4E7] space-y-5">
+              <Link
+                href={`/${lang}/blog/${activeFeaturedPost.slug}`}
+                className="block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717] rounded-xl"
+              >
+                <figure className="w-full aspect-[16/9] overflow-hidden rounded-xl border border-[#E4E4E7] bg-[#FAFAFA]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    ref={featuredImgRef}
+                    src={featuredCoverSrc}
+                    alt={activeFeaturedPost.title}
+                    className="w-full h-full object-contain"
+                    loading="eager"
+                    decoding="async"
+                    onError={() => setFailedFeaturedSrc(featuredCoverSrc)}
+                  />
+                </figure>
+              </Link>
+
+              <div className="max-w-3xl space-y-3">
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[#71717A] min-w-0">
                   <span className="bg-[#171717] text-white text-[10px] uppercase font-mono px-2 py-0.5 rounded font-medium">
                     {isEn ? 'Featured' : '头条精选'}
                   </span>
-                  <span>•</span>
-                  <span className="font-mono text-[11px]">{featuredPost.publishedAt}</span>
-                  <span>•</span>
-                  <span className="font-mono text-[11px]">{featuredPost.readingTime} {isEn ? 'min read' : '分钟阅读'}</span>
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-[#171717] font-medium bg-[#F4F4F5] px-2 py-0.5 rounded max-w-full truncate">
+                    {getCategoryLabel(activeFeaturedPost.category, isEn)}
+                  </span>
+                  <span className="inline-flex items-center gap-1 font-mono text-[11px] whitespace-nowrap">
+                    <Calendar size={12} aria-hidden="true" />
+                    {activeFeaturedPost.publishedAt}
+                  </span>
+                  <span className="inline-flex items-center gap-1 font-mono text-[11px] whitespace-nowrap">
+                    <Clock size={12} aria-hidden="true" />
+                    {activeFeaturedPost.readingTime} {isEn ? 'min read' : '分钟阅读'}
+                  </span>
                 </div>
 
-                <Link href={`/${lang}/blog/${featuredPost.slug}`}>
-                  <h2 className="text-2xl sm:text-3xl font-serif font-medium text-[#171717] leading-tight tracking-tight hover:text-black">
-                    {featuredPost.title}
+                <Link
+                  href={`/${lang}/blog/${activeFeaturedPost.slug}`}
+                  className="group block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]"
+                >
+                  <h2 className="text-2xl sm:text-3xl font-serif font-medium text-[#171717] leading-tight tracking-tight group-hover:underline underline-offset-4 decoration-[#171717]/40 break-words">
+                    {activeFeaturedPost.title}
                   </h2>
                 </Link>
 
-                {featuredPost.subtitle && (
-                  <p className="text-sm font-serif italic text-[#52525B]">
-                    {featuredPost.subtitle}
+                {activeFeaturedPost.subtitle && (
+                  <p className="text-sm font-serif italic text-[#52525B] break-words">
+                    {activeFeaturedPost.subtitle}
                   </p>
                 )}
 
-                <p className="text-xs sm:text-sm text-[#52525B] leading-relaxed line-clamp-3">
-                  {featuredPost.description}
+                <p className="text-xs sm:text-sm text-[#52525B] leading-relaxed line-clamp-3 break-words">
+                  {activeFeaturedPost.description}
                 </p>
 
-                <div className="pt-2 flex items-center gap-4">
-                  <Link
-                    href={`/${lang}/blog/${featuredPost.slug}`}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#171717] text-white text-xs sm:text-sm font-medium hover:bg-black transition-colors"
-                  >
-                    <span>{isEn ? 'Read Article' : '阅读完整解析'}</span>
-                    <ArrowRight size={14} />
-                  </Link>
-                  <span className="text-xs text-[#71717A]">
-                    {isEn ? 'By' : '作者：'}{featuredPost.author.name}
-                  </span>
-                </div>
+                <p className="text-xs text-[#71717A] pt-1">
+                  {isEn ? 'By ' : '作者：'}
+                  {activeFeaturedPost.author.name}
+                </p>
               </div>
-            </div>
+            </article>
           )}
 
           {/* Filter Bar & Search */}
@@ -176,24 +239,53 @@ export function BlogIndexClient({ posts, lang }: BlogIndexClientProps) {
             </div>
           </div>
 
-          {/* Posts Grid */}
-          {filteredPosts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-              {filteredPosts.map((post) => (
-                <BlogCard key={post.id} post={post} lang={lang} />
+          {/* Archive List */}
+          {archivePosts.length > 0 ? (
+            <div className="divide-y divide-[#E4E4E7] border-t border-b border-[#E4E4E7]">
+              {archivePosts.map((post) => (
+                <article key={post.id} className="py-6 sm:py-7">
+                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[#71717A] min-w-0">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-[#171717] font-medium bg-[#F4F4F5] px-2 py-0.5 rounded max-w-full truncate">
+                      {getCategoryLabel(post.category, isEn)}
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-mono text-[11px] whitespace-nowrap">
+                      <Calendar size={12} aria-hidden="true" />
+                      {post.publishedAt}
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-mono text-[11px] whitespace-nowrap">
+                      <Clock size={12} aria-hidden="true" />
+                      {post.readingTime} {isEn ? 'min' : '分钟'}
+                    </span>
+                  </div>
+
+                  <Link
+                    href={`/${lang}/blog/${post.slug}`}
+                    className="group block mt-2.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#171717]"
+                  >
+                    <h2 className="text-lg sm:text-xl font-serif font-medium text-[#171717] group-hover:underline underline-offset-4 decoration-[#171717]/40 leading-snug tracking-tight break-words">
+                      {post.title}
+                    </h2>
+                  </Link>
+
+                  <p className="mt-2 text-xs sm:text-sm text-[#52525B] leading-relaxed line-clamp-2 sm:line-clamp-3 max-w-3xl break-words">
+                    {post.description}
+                  </p>
+                </article>
               ))}
             </div>
           ) : (
-            <div className="py-16 text-center border border-dashed border-[#E4E4E7] rounded-xl space-y-2">
-              <p className="text-sm font-serif text-[#171717]">
-                {isEn ? 'No matching articles found' : '未找到相关研习文章'}
-              </p>
-              <p className="text-xs text-[#71717A]">
-                {isEn
-                  ? 'Try searching with different keywords or switch categories.'
-                  : '请尝试更换关键词，或切换至「全部板块」浏览。'}
-              </p>
-            </div>
+            filteredPosts.length === 0 && (
+              <div className="py-16 text-center border border-dashed border-[#E4E4E7] rounded-xl space-y-2">
+                <p className="text-sm font-serif text-[#171717]">
+                  {isEn ? 'No matching articles found' : '未找到相关研习文章'}
+                </p>
+                <p className="text-xs text-[#71717A]">
+                  {isEn
+                    ? 'Try searching with different keywords or switch categories.'
+                    : '请尝试更换关键词，或切换至「全部板块」浏览。'}
+                </p>
+              </div>
+            )
           )}
         </div>
       )}

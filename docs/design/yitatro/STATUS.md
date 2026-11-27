@@ -55,6 +55,12 @@
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
 
+- **博客索引页改版（2026-11-27，Antigravity 实现，Codex 验收通过）**：
+  - 调整 `src/components/blog/BlogIndexClient.tsx`：默认未筛选文章视图改为「单篇宽图头条 + 单栏纯文本发丝分隔归档列表」；头条仅从当前语言下 `featured=true` 且 `coverImage` 非空的文章中确定性选取最新 1 篇，使用 `16:9` 稳定容器配合 `object-contain` 完整展示原图不裁切；若无合格封面（如当前 `zh`）或封面加载失败（含水合前 `complete && naturalWidth === 0` 失败检测），自动移除头条区并将文章回退至常规列表。
+  - 归档列表移除双栏边框卡片、缩略图与重复 `Read` / `阅读` 按钮，改为单栏发丝分隔行（分类/日期/阅读时长响应式换行、链接标题、简短摘要），保留搜索（含标签）、分类筛选、心法手册切换、排序、语言路由及详情页 `BlogCard` 相关推荐行为。
+  - 同步更新 `docs/design/yitatro/README.md`（补充博客封面发布与维护约定）与 `docs/design/yitatro/STATUS.md`。
+  - 验收通过：定向 ESLint、Next.js 生产构建与类型检查；Chromium 实测英文精选和文字列表、中英文 320px、标签搜索、分类、手册切换、封面 404 回退及详情页封面。
+
 - **首页太极开屏动效回补到 `main`（2026-11-27，Antigravity 从 `fix/divination-audit` 提交 `396e9bf` / `7d17f2b` 移植）**：
   - 仅移植 `src/components/site/TaijiIntro.tsx` 与开屏专用的 `src/components/site/HomeMotion.css`（24s 慢速 CSS 自转、sticky 居中滚动缩放渐隐、`#portals` 真实锚点、服务端双语文案与 `prefers-reduced-motion` / `@supports` 降级）；保留 `main` 现有 `src/app/[lang]/page.tsx` 与 `src/components/site/PortalEntry.tsx` 不变，未引入 GSAP/Lenis 或修改全局样式。
   - 工程与浏览器验收：定向 ESLint 与 `git diff --check` 通过；Chromium 1365×900 中文与 390×844 模拟英文实测通过（24s CSS 自转、居中放大至 3.28x、渐隐至 0 并露出双入口、`#portals` 原生点击可用）；模拟减弱动效保持静态开屏、无 sticky 延展且保留锚点；生产构建通过。
