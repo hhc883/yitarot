@@ -6,7 +6,7 @@ import { retrieveKnowledge } from '@/lib/kb/retriever';
 import { buildKnowledgeBlock, buildHexSnapshot, buildLiuYaoSystem } from '@/lib/kb/context-builder';
 import { buildImagerySnapshot } from '@/lib/kb/concepts';
 import { buildCeziInsightSnapshot } from '@/lib/kb/cezi';
-import { retrieveBaziKnowledge } from '@/lib/kb/bazi/rules';
+import { analyzeBaziPastEvents, retrieveBaziKnowledge } from '@/lib/kb/bazi/rules';
 import { retrieveMeihuaKnowledge } from '@/lib/kb/meihua';
 import { retrieveQimenKnowledge } from '@/lib/kb/qimen/rules';
 import { retrieveLiurenKnowledge } from '@/lib/kb/liuren/rules';
@@ -60,49 +60,80 @@ export interface LiuYaoAiRequest {
  * 构造八字深度推演的 System & User Prompt
  */
 export function buildBaziPrompt(data: BaZiCalculationResult, req: BaziAiRequest): string {
+  const past = analyzeBaziPastEvents(data);
+  const daYunText =
+    past.pastDaYunSummary.length > 0 ? past.pastDaYunSummary.join('\n') : '暂无大运序列';
+  const pastEventsText =
+    past.keyPastEvents.length > 0
+      ? past.keyPastEvents
+          .map(
+            (e) =>
+              `- ${e.year}年（${e.age}岁，${e.liuNianGanZhi}年 / ${e.daYunGanZhi}运，流年${e.tenGod}，触发：${e.triggers.join('、')}）：${e.eventHintZh}`
+          )
+          .join('\n')
+      : '- 过往岁运整体平稳，无剧烈天克地冲年份，可结合大运十神交替节点断事。';
+
   if (req.lang === 'en') {
+    const pastEn =
+      past.keyPastEvents.length > 0
+        ? past.keyPastEvents
+            .map(
+              (e) =>
+                `- ${e.year} (Age ${e.age}, ${e.liuNianGanZhi} / ${e.daYunGanZhi} DaYun, ${e.triggers.join(', ')}): ${e.eventHintEn}`
+            )
+            .join('\n')
+        : '- Smooth past annual transitions without severe pillar clashes.';
     return `You are a master of classical Zi Ping BaZi metaphysics and modern Jungian archetypal psychology (YiTatro Architecture).
-Querent: ${req.name || 'Querent'}, Gender: ${req.gender}
+Querent: ${req.name || 'Querent'}, Gender: ${req.gender}, Current Age: ~${past.currentAge}
 Solar Birth: ${data.birthSolar.year}-${data.birthSolar.month}-${data.birthSolar.day} ${data.birthSolar.hour}:00, Lunar: ${data.lunarString}
 【Four Pillars】:
-- Year Pillar: ${data.pillars.year.gan}${data.pillars.year.zhi} (${data.pillars.year.naYin})
-- Month Pillar: ${data.pillars.month.gan}${data.pillars.month.zhi} (${data.pillars.month.naYin})
-- Day Pillar: ${data.pillars.day.gan}${data.pillars.day.zhi} (${data.pillars.day.naYin})
-- Hour Pillar: ${data.pillars.hour.gan}${data.pillars.hour.zhi} (${data.pillars.hour.naYin})
+- Year Pillar: ${data.pillars.year.gan}${data.pillars.year.zhi} (${data.pillars.year.shiShen || ''}, ${data.pillars.year.naYin})
+- Month Pillar: ${data.pillars.month.gan}${data.pillars.month.zhi} (${data.pillars.month.shiShen || ''}, ${data.pillars.month.naYin})
+- Day Pillar: ${data.pillars.day.gan}${data.pillars.day.zhi} (Day Master, ${data.pillars.day.naYin})
+- Hour Pillar: ${data.pillars.hour.gan}${data.pillars.hour.zhi} (${data.pillars.hour.shiShen || ''}, ${data.pillars.hour.naYin})
 
 【Day Master】: ${data.dayMaster.nameEn} (${data.dayMaster.archetypeEn})
 【Five Elements Distribution】:
 ${data.fiveElements.map(e => `- ${e.element}: ${e.count} (${e.percentage}%) - ${e.status}`).join('\n')}
+【Precomputed Past Key Years (for Retrodictive Verification)】:
+${pastEn}
 
-Please write an objective, profound, and modern 【AI BaZi Holographic Insight】 in English with markdown headings:
+Please write an objective, profound 【AI BaZi Holographic Insight】 in English. Start with concrete past-event verification using the precomputed years above so the user can verify accuracy, with markdown headings:
+# 🔍 Past-Event Verification (Retrodiction)
 # 🌟 Day Master Essence & Archetype
 # ⚖️ Five Elements Synergy & Balance
-# 💼 Career Trajectory & Genius Zone
-# 🪙 Wealth Blueprint & Financial Timing
+# 💼 Career & Wealth Trajectory
 # ❤️ Romance & Relational Harmony
-# 🧭 Action Strategy & Cosmic Balance`;
+# 🧭 Timing & Action Strategy`;
   }
 
-  return `你是一位兼具正统子平八字命理精髓与现代荣格心理学视角的资深命理宗师（YiTatro 全息推演架构）。
-求问者：${req.name || '求问者'}，性别：${req.gender === 'male' ? '男（乾造）' : '女（坤造）'}
+  return `你是一位兼具正统子平八字命理精髓与实证验盘功底的资深命理宗师（YiTatro 全息推演架构）。
+求问者：${req.name || '求问者'}，性别：${req.gender === 'male' ? '男（乾造）' : '女（坤造）'}，当前虚岁：约 ${past.currentAge} 岁
 公历出生：${data.birthSolar.year}年${data.birthSolar.month}月${data.birthSolar.day}日${data.birthSolar.hour}时，农历：${data.lunarString}
-【四柱八字】：
-- 年柱：${data.pillars.year.gan}${data.pillars.year.zhi}（${data.pillars.year.naYin}）
-- 月柱：${data.pillars.month.gan}${data.pillars.month.zhi}（${data.pillars.month.naYin}）
-- 日柱：${data.pillars.day.gan}${data.pillars.day.zhi}（${data.pillars.day.naYin}）
-- 时柱：${data.pillars.hour.gan}${data.pillars.hour.zhi}（${data.pillars.hour.naYin}）
+【四柱八字（含十神与纳音）】：
+- 年柱：${data.pillars.year.gan}${data.pillars.year.zhi}（${data.pillars.year.shiShen || ''}，${data.pillars.year.naYin}）
+- 月柱：${data.pillars.month.gan}${data.pillars.month.zhi}（${data.pillars.month.shiShen || ''}，${data.pillars.month.naYin}）
+- 日柱：${data.pillars.day.gan}${data.pillars.day.zhi}（日主，${data.pillars.day.naYin}）
+- 时柱：${data.pillars.hour.gan}${data.pillars.hour.zhi}（${data.pillars.hour.shiShen || ''}，${data.pillars.hour.naYin}）
 
 【日主元神】：${data.dayMaster.nameZh}（${data.dayMaster.archetypeZh}）
 【五行分布】：
 ${data.fiveElements.map(e => `- ${e.elementZh}：${e.count}个 (${e.percentage}%) - ${e.statusZh}`).join('\n')}
 
-请为求问者撰写一份客观、深刻、现代且极具指导意义的【AI 命理全息蓝图】：
+【已行大运轨迹】：
+${daYunText}
+
+【系统预计算 · 过往关键流年触发节点（前事验盘唯一事实依据）】：
+${pastEventsText}
+
+请为求问者撰写一份有血有肉、可核验过往经历的【AI 命理全息蓝图】，**必须严格按以下标题输出，并把「前事验盘」放在第一节**：
+# 🔍 前事验盘（过往经历核验）
+（严格依据上面【已行大运轨迹】与【过往关键流年触发节点】，逐条点出 3~5 个具体年份/年龄段发生过的典型事件倾向，例如学业升迁、离乡变动、换工作、情感分合、破财或压力高峰，并附上典籍引用编号，提示求问者对照核验是否吻合）
 # 🌟 原局元神与性格底色
 # ⚖️ 五行生克与能量调候
-# 💼 事业发展与天赋赛道
-# 🪙 财富格局与进财指南
+# 💼 事业发展与财富格局
 # ❤️ 情感姻缘与相处之道
-# 🧭 后天补运与破局策略（包含颜色、方位、作息与心性修炼建议）`;
+# 🧭 近期岁运走势与破局策略`;
 }
 
 /**
@@ -146,6 +177,25 @@ export function generateLocalBaziReport(
   const dominantElement = data.fiveElements.reduce((prev, curr) => (curr.percentage > prev.percentage ? curr : prev));
   const lackingElement = data.fiveElements.reduce((prev, curr) => (curr.percentage < prev.percentage ? curr : prev));
   const kb = bundle ?? retrieveBaziKnowledge(data);
+  const past = analyzeBaziPastEvents(data);
+  const pastSectionZh =
+    past.keyPastEvents.length > 0
+      ? `### 🔍 前事验盘（过往经历核验）\n以下根据你的大运与原局冲合节点反推过往关键年份，**供你对照核验命盘准确度**：\n${past.keyPastEvents
+          .map(
+            (e) =>
+              `- **${e.year} 年（${e.age} 岁 · ${e.liuNianGanZhi}年 / ${e.daYunGanZhi}运）**〔${e.triggers.join('、')}〕：${e.eventHintZh}。`
+          )
+          .join('\n')}\n\n---\n\n`
+      : '';
+  const pastSectionEn =
+    past.keyPastEvents.length > 0
+      ? `### 🔍 Past-Event Verification\nKey past turning-point years deduced from your DaYun and natal pillar clashes for accuracy verification:\n${past.keyPastEvents
+          .map(
+            (e) =>
+              `- **${e.year} (Age ${e.age}, ${e.liuNianGanZhi} / ${e.daYunGanZhi})** [${e.triggers.join(', ')}]: ${e.eventHintEn}.`
+          )
+          .join('\n')}\n\n---\n\n`
+      : '';
   const topRefs = kb.hits.slice(0, 3);
   const canonSectionZh =
     topRefs.length > 0
@@ -164,7 +214,7 @@ export function generateLocalBaziReport(
       : '';
 
   if (lang === 'en') {
-    return `### 🌟 Day Master Essence & Archetype
+    return `${pastSectionEn}### 🌟 Day Master Essence & Archetype
 Your Day Pillar Heavenly Stem is **【${dm.nameEn}】**, classically recognized as the archetype of “${dm.archetypeEn}”.
 ${dm.essenceEn}
 You possess innate insight, strategic vision, and methodical perseverance.
@@ -199,7 +249,7 @@ In intimate partnerships, you value mental alignment and respected boundaries. C
 - 🌿 **Mindset**: Align with natural rhythm; clarity emerges from inner stillness.${canonSectionEn}`;
   }
 
-  return `### 🌟 原局元神与性格底色
+  return `${pastSectionZh}### 🌟 原局元神与性格底色
 你的日柱天干为**【${dm.nameZh}】**，在古典命理中被称为“${dm.archetypeZh}”。
 ${dm.essenceZh}
 你天生具有深厚的领悟力与稳健的步调，但在面对突如其来的变化时，有时容易陷入过度思虑。

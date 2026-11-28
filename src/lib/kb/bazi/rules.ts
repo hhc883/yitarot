@@ -117,7 +117,197 @@ export const BAZI_CANON_ENTRIES: EastCanonEntry[] = [
     timing: '以十年大运定气候，以逐年流年定应期。',
     credibility: 5,
   },
+  {
+    id: 'smth.chong.01',
+    source: { book: '三命通会', chapter: '论冲合' },
+    keywords: ['冲月令', '冲提纲', '冲日支', '天克地冲', '岁运并临'],
+    isGeneral: true,
+    text: '岁运冲提纲（月令），主门户、学业、职业或居住环境剧变；冲日支（夫妻宫），主婚恋情感、伴侣关系或贴身合作波动；天克地冲或岁运并临，主当年多有重大抉择、迁动或破耗。',
+    timing: '逢冲之年即应其动，尤以四季交节及冲月为甚。',
+    credibility: 5,
+  },
+  {
+    id: 'dts.suiyun.01',
+    source: { book: '滴天髓', chapter: '岁运论' },
+    keywords: ['正官', '七杀', '偏财', '正财', '食神', '伤官', '正印', '偏印'],
+    text: '岁运逢财官印食透清且无刑冲破害，主升迁、学业得名、置产进财或良缘成就；若逢枭神夺食、伤官见官或比劫夺财，则主口舌是非、计划受阻、破财或身心劳顿。',
+    timing: '以流年干支十神与原局喜忌定当年吉凶事象。',
+    credibility: 5,
+  },
 ];
+
+const CHONG_MAP: Record<string, string> = {
+  子: '午', 午: '子', 丑: '未', 未: '丑',
+  寅: '申', 申: '寅', 卯: '酉', 酉: '卯',
+  辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳',
+};
+
+const KE_MAP: Record<string, string> = {
+  Wood: 'Earth',
+  Earth: 'Water',
+  Water: 'Fire',
+  Fire: 'Metal',
+  Metal: 'Wood',
+};
+
+const STEM_EL: Record<string, string> = {
+  甲: 'Wood', 乙: 'Wood', 丙: 'Fire', 丁: 'Fire', 戊: 'Earth',
+  己: 'Earth', 庚: 'Metal', 辛: 'Metal', 壬: 'Water', 癸: 'Water',
+};
+
+const STEM_POLARITY: Record<string, number> = {
+  甲: 1, 丙: 1, 戊: 1, 庚: 1, 壬: 1,
+  乙: 0, 丁: 0, 己: 0, 辛: 0, 癸: 0,
+};
+
+export function getTenGod(dayStem: string, targetStem: string): string {
+  const dEl = STEM_EL[dayStem];
+  const tEl = STEM_EL[targetStem];
+  if (!dEl || !tEl) return '';
+  const samePol = STEM_POLARITY[dayStem] === STEM_POLARITY[targetStem];
+  if (dEl === tEl) return samePol ? '比肩' : '劫财';
+  if (KE_MAP[dEl] === tEl) return samePol ? '偏财' : '正财';
+  if (KE_MAP[tEl] === dEl) return samePol ? '七杀' : '正官';
+  // dEl generates tEl
+  const genMap: Record<string, string> = { Wood: 'Fire', Fire: 'Earth', Earth: 'Metal', Metal: 'Water', Water: 'Wood' };
+  if (genMap[dEl] === tEl) return samePol ? '食神' : '伤官';
+  return samePol ? '偏印' : '正印';
+}
+
+export interface BaziPastEventNode {
+  year: number;
+  age: number;
+  liuNianGanZhi: string;
+  daYunGanZhi: string;
+  tenGod: string;
+  triggers: string[];
+  eventHintZh: string;
+  eventHintEn: string;
+  weight: number;
+}
+
+export function analyzeBaziPastEvents(
+  data: BaZiCalculationResult,
+  referenceYear = new Date().getFullYear()
+): {
+  currentAge: number;
+  pastDaYunSummary: string[];
+  keyPastEvents: BaziPastEventNode[];
+} {
+  const currentAge = Math.max(1, referenceYear - data.birthSolar.year + 1);
+  const dm = data.dayMaster.stem;
+  const { year: yp, month: mp, day: dp, hour: hp } = data.pillars;
+
+  const daYunSteps = data.yun?.daYun || [];
+  const pastDaYunSummary = daYunSteps
+    .filter((d) => !d.isXiaoYun && d.startYear <= referenceYear)
+    .map((d) => {
+      const tg = getTenGod(dm, d.ganZhi[0]);
+      const status = d.endYear >= referenceYear ? '（当前大运）' : '';
+      return `${d.startYear}~${d.endYear}年（${d.startAge}~${d.endAge}岁）：${d.ganZhi}大运（${tg}）${status}`;
+    });
+
+  const candidates: BaziPastEventNode[] = [];
+  for (const dy of daYunSteps) {
+    if (dy.isXiaoYun) continue;
+    for (const ln of dy.liuNian || []) {
+      if (ln.year < data.birthSolar.year + 7 || ln.year > referenceYear) continue;
+      const lnGan = ln.ganZhi[0];
+      const lnZhi = ln.ganZhi[1];
+      const tenGod = getTenGod(dm, lnGan);
+      const triggers: string[] = [];
+      const hintsZh: string[] = [];
+      const hintsEn: string[] = [];
+      let weight = 0;
+
+      if (ln.ganZhi === dy.ganZhi) {
+        triggers.push('岁运并临');
+        hintsZh.push('岁运并临，当年容易出现人生大跨度转折、环境迁移或家宅重大变动');
+        hintsEn.push('Sui-Yun overlap: major life turning point, relocation, or family shift');
+        weight += 5;
+      }
+      if (CHONG_MAP[lnZhi] === mp.zhi) {
+        triggers.push('冲月令提纲');
+        if (ln.age <= 22) {
+          hintsZh.push('月令受冲，多应升学、离开原生家庭外出求学或家境变动');
+          hintsEn.push('Month pillar clashed: school transition, leaving home, or family change');
+        } else {
+          hintsZh.push('月令提纲受冲，多应换工作、岗位调整、行业赛道切换或搬迁');
+          hintsEn.push('Month pillar clashed: job change, career pivot, or relocation');
+        }
+        weight += 4;
+      }
+      if (CHONG_MAP[lnZhi] === dp.zhi) {
+        triggers.push('冲日支夫妻宫');
+        if (ln.age >= 18) {
+          hintsZh.push('日支夫妻宫受冲，主感情分合、婚恋定局或重要合作关系变动');
+          hintsEn.push('Day branch (spouse palace) clashed: relationship milestone or breakup');
+        } else {
+          hintsZh.push('日支受冲，主内心波动较大、生活作息或居住环境变化');
+          hintsEn.push('Day branch clashed: emotional turbulence or living environment shift');
+        }
+        weight += 4;
+      }
+      if (CHONG_MAP[lnZhi] === yp.zhi) {
+        triggers.push('冲年支祖上宫');
+        hintsZh.push('年支受冲，易有远行、长辈健康波动或家庭事务操心');
+        hintsEn.push('Year branch clashed: long travel or elder family concerns');
+        weight += 2;
+      }
+      if (CHONG_MAP[lnZhi] === hp.zhi) {
+        triggers.push('冲时支');
+        hintsZh.push('时支受冲，主项目落地波折、奔波外出或晚辈/下属事务变化');
+        hintsEn.push('Hour branch clashed: project changes, travel, or junior/subordinate matters');
+        weight += 2;
+      }
+      if (
+        (KE_MAP[STEM_EL[lnGan]] === STEM_EL[mp.gan] && CHONG_MAP[lnZhi] === mp.zhi) ||
+        (KE_MAP[STEM_EL[lnGan]] === STEM_EL[dp.gan] && CHONG_MAP[lnZhi] === dp.zhi)
+      ) {
+        triggers.push('天克地冲');
+        hintsZh.push('构成天克地冲，当年压力感明显、需防破耗或突发重大抉择');
+        hintsEn.push('Heavenly-Earthly clash: heightened pressure, expense, or abrupt decision');
+        weight += 3;
+      }
+
+      if (triggers.length > 0) {
+        if (tenGod === '正官' || tenGod === '七杀') {
+          hintsZh.push(`流年透${tenGod}，多伴随职场压力、考核晋升或责任加重`);
+        } else if (tenGod === '正财' || tenGod === '偏财') {
+          hintsZh.push(`流年透${tenGod}，财务收支波动或置产/投资动作明显`);
+        } else if (tenGod === '食神' || tenGod === '伤官') {
+          hintsZh.push(`流年透${tenGod}，想法增多、不甘现状、主动寻求突破或口舌是非`);
+        } else if (tenGod === '正印' || tenGod === '偏印') {
+          hintsZh.push(`流年透${tenGod}，进修考证、贵人/长辈介入或心态内敛调整`);
+        }
+
+        candidates.push({
+          year: ln.year,
+          age: ln.age,
+          liuNianGanZhi: ln.ganZhi,
+          daYunGanZhi: dy.ganZhi,
+          tenGod,
+          triggers,
+          eventHintZh: hintsZh.join('；'),
+          eventHintEn: hintsEn.join('; '),
+          weight,
+        });
+      }
+    }
+  }
+
+  // 按权重与时间跨度挑选最多 5 个代表性过往年份（兼顾早年/青年/近五年）
+  candidates.sort((a, b) => b.weight - a.weight || b.year - a.year);
+  const selected: BaziPastEventNode[] = [];
+  for (const c of candidates) {
+    if (selected.length >= 5) break;
+    if (selected.some((s) => Math.abs(s.year - c.year) <= 1)) continue;
+    selected.push(c);
+  }
+  selected.sort((a, b) => a.year - b.year);
+
+  return { currentAge, pastDaYunSummary, keyPastEvents: selected };
+}
 
 export function retrieveBaziKnowledge(
   data: BaZiCalculationResult,
@@ -133,7 +323,10 @@ export function retrieveBaziKnowledge(
     data.pillars.year.shiShen || '',
     data.pillars.month.shiShen || '',
     data.pillars.hour.shiShen || '',
+    '冲月令',
+    '冲日支',
+    '大运',
     question || '',
   ].join(' ');
-  return retrieveEastCanon('BZ', BAZI_CANON_ENTRIES, summaryParts, 6);
+  return retrieveEastCanon('BZ', BAZI_CANON_ENTRIES, summaryParts, 8);
 }
