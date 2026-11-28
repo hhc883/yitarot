@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { divineMeihua, MeihuaDivinationResult } from '@/lib/metaphysics/meihua';
+import { divineMeihua, MeihuaDivinationResult, type MeihuaCastMode } from '@/lib/metaphysics/meihua';
+import { EastAiReadingPanel } from './EastAiReadingPanel';
 
 const PRESET_DECISIONS_ZH = [
   '当前这笔重要的商业合作，是否应当果断推进？',
@@ -25,10 +26,23 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
   const presetList = isEn ? PRESET_DECISIONS_EN : PRESET_DECISIONS_ZH;
 
   const [question, setQuestion] = useState('');
-  const [mode, setMode] = useState<'time' | 'numbers'>('time');
+  const [mode, setMode] = useState<MeihuaCastMode>('time');
   const [numA, setNumA] = useState(3);
   const [numB, setNumB] = useState(7);
   const [numMoving, setNumMoving] = useState(2);
+  const [numCount, setNumCount] = useState<2 | 3>(2);
+  const [addHour, setAddHour] = useState(false);
+  const [threeNumMethod, setThreeNumMethod] = useState<1 | 2>(1);
+  const [hourMinuteMethod, setHourMinuteMethod] = useState<1 | 2>(1);
+  const [sixLines, setSixLines] = useState<[boolean, boolean, boolean, boolean, boolean, boolean]>([
+    true, true, true, true, true, true,
+  ]);
+  const [sixMoving, setSixMoving] = useState(1);
+  const [castText, setCastText] = useState('');
+  const [showColor, setShowColor] = useState(true);
+  const [showCuoZong, setShowCuoZong] = useState(false);
+  const [showCanGua, setShowCanGua] = useState(true);
+  const [showPalace, setShowPalace] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [result, setResult] = useState<MeihuaDivinationResult | null>(null);
@@ -47,7 +61,7 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
     }
 
     if (
-      mode === 'numbers' &&
+      (mode === 'numbers' || mode === 'hexagram') &&
       (Number.isNaN(numA) ||
         Number.isNaN(numB) ||
         Number.isNaN(numMoving) ||
@@ -68,7 +82,20 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
       const res = divineMeihua(
         trimmedQuestion,
         mode,
-        mode === 'numbers' ? [numA, numB, numMoving] : undefined
+        mode === 'numbers'
+          ? (numCount === 2 ? [numA, numB] : [numA, numB, numMoving])
+          : undefined,
+        {
+          text: mode === 'text' ? (castText.trim() || trimmedQuestion) : undefined,
+          addHour,
+          threeNumMethod,
+          hourMinuteMethod,
+          sixLines: mode === 'six_lines' ? { lines: sixLines, movingLine: sixMoving } : undefined,
+          hexagram:
+            mode === 'hexagram'
+              ? { upper: numA, lower: numB, movingLine: numMoving }
+              : undefined
+        }
       );
       setResult(res);
     } catch {
@@ -156,82 +183,152 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
             </div>
           </div>
 
-          {/* 起卦模式切换与提交 */}
-          <div className="pt-3 border-t border-zinc-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium text-zinc-600 mr-1">
-                {isEn ? 'Method:' : '起卦方式：'}
-              </span>
+          {/* 起卦模式切换与提交（固定顶行 Tab + 独立参数区，切换不跳动） */}
+          <div className="pt-3 border-t border-zinc-200 flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-zinc-600 mr-1">
+                  {isEn ? 'Method:' : '起卦方式：'}
+                </span>
+                {(
+                  [
+                    ['time', isEn ? 'Time' : '时间'],
+                    ['hour_minute', isEn ? 'Hour:Min' : '时分'],
+                    ['numbers', isEn ? 'Numbers' : '报数'],
+                    ['six_lines', isEn ? 'Self-Select' : '自选'],
+                    ['random', isEn ? 'Random' : '随机'],
+                    ['text', isEn ? 'Text' : '文字'],
+                  ] as const
+                ).map(([m, label]) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setMode(m)}
+                    aria-pressed={mode === m}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-900 ${
+                      mode === m
+                        ? 'bg-zinc-900 text-white border-zinc-900'
+                        : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               <button
-                type="button"
-                onClick={() => setMode('time')}
-                aria-pressed={mode === 'time'}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-900 ${
-                  mode === 'time'
-                    ? 'bg-zinc-900 text-white border-zinc-900'
-                    : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
-                }`}
+                type="submit"
+                className="w-full sm:w-auto px-5 py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium tracking-wide transition-colors cursor-pointer border border-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-1"
               >
-                {isEn ? 'Present Time' : '时辰起卦'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('numbers')}
-                aria-pressed={mode === 'numbers'}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-900 ${
-                  mode === 'numbers'
-                    ? 'bg-zinc-900 text-white border-zinc-900'
-                    : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
-                }`}
-              >
-                {isEn ? 'Custom Numbers' : '数字起卦'}
+                {isEn ? 'Cast Hexagram' : '排卦推演'}
               </button>
             </div>
 
-            {mode === 'numbers' && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <label className="flex items-center gap-1 text-xs text-zinc-600">
-                  <span>{isEn ? 'Upper' : '上'}</span>
-                  <input
-                    type="number"
-                    min="1"
-                    aria-label={isEn ? 'Upper Trigram Number' : '上卦数'}
-                    value={numA}
-                    onChange={e => setNumA(Number(e.target.value))}
-                    className="w-14 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-center text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
-                  />
+            {mode === 'hour_minute' && (
+              <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-700">
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" checked={hourMinuteMethod === 1} onChange={() => setHourMinuteMethod(1)} />
+                  <span>{isEn ? 'Method 1 (H=Upper, M=Lower)' : '方法一（时求上，分求下，时+分求动爻）'}</span>
                 </label>
-                <label className="flex items-center gap-1 text-xs text-zinc-600">
-                  <span>{isEn ? 'Lower' : '下'}</span>
-                  <input
-                    type="number"
-                    min="1"
-                    aria-label={isEn ? 'Lower Trigram Number' : '下卦数'}
-                    value={numB}
-                    onChange={e => setNumB(Number(e.target.value))}
-                    className="w-14 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-center text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
-                  />
-                </label>
-                <label className="flex items-center gap-1 text-xs text-zinc-600">
-                  <span>{isEn ? 'Line' : '动爻'}</span>
-                  <input
-                    type="number"
-                    min="1"
-                    aria-label={isEn ? 'Moving Line Number' : '动爻数'}
-                    value={numMoving}
-                    onChange={e => setNumMoving(Number(e.target.value))}
-                    className="w-14 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-center text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
-                  />
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="radio" checked={hourMinuteMethod === 2} onChange={() => setHourMinuteMethod(2)} />
+                  <span>{isEn ? 'Method 2 (Digit sum)' : '方法二（时十位+个位，分十位+个位）'}</span>
                 </label>
               </div>
             )}
 
-            <button
-              type="submit"
-              className="w-full sm:w-auto px-5 py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium tracking-wide transition-colors cursor-pointer border border-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-1"
-            >
-              {isEn ? 'Cast Hexagram' : '排卦推演'}
-            </button>
+            {mode === 'six_lines' && (
+              <div className="w-full rounded-lg border border-zinc-200 bg-zinc-50/70 p-3 space-y-2">
+                <div className="text-[11px] text-zinc-500">{isEn ? 'Click line to toggle Yin/Yang, click "动" for moving line:' : '点击爻线切换阴阳，点击「动」指定动爻：'}</div>
+                {[5, 4, 3, 2, 1, 0].map((idx) => {
+                  const isYang = sixLines[idx];
+                  const isMov = sixMoving === idx + 1;
+                  const labels = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+                  return (
+                    <div key={idx} className="flex items-center gap-3">
+                      <span className="w-10 text-xs text-zinc-600">{labels[idx]}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = [...sixLines] as typeof sixLines;
+                          next[idx] = !next[idx];
+                          setSixLines(next);
+                        }}
+                        className="flex-1 max-w-48 h-4 flex items-center justify-between cursor-pointer"
+                      >
+                        {isYang ? (
+                          <span className="w-full h-2.5 bg-zinc-900 rounded-xs" />
+                        ) : (
+                          <>
+                            <span className="w-[44%] h-2.5 bg-zinc-900 rounded-xs" />
+                            <span className="w-[44%] h-2.5 bg-zinc-900 rounded-xs" />
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSixMoving(idx + 1)}
+                        className={`px-2 py-0.5 text-[11px] rounded border cursor-pointer ${
+                          isMov ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-300'
+                        }`}
+                      >
+                        动
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {mode === 'text' && (
+              <input
+                type="text"
+                value={castText}
+                onChange={e => setCastText(e.target.value)}
+                placeholder={isEn ? 'Optional text for casting (defaults to question)' : '输入起卦文字（留空则按问题起卦）'}
+                className="w-full sm:w-56 px-2.5 py-1.5 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+              />
+            )}
+
+            {mode === 'numbers' && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setNumCount(numCount === 2 ? 3 : 2)}
+                  className="px-2 py-1 rounded border border-zinc-300 text-xs text-zinc-700 bg-zinc-50 cursor-pointer"
+                >
+                  {numCount === 2 ? '两数' : '三数'}
+                </button>
+                <label className="flex items-center gap-1 text-xs text-zinc-600">
+                  <span>{isEn ? '1st' : '一'}</span>
+                  <input type="number" min="1" value={numA} onChange={e => setNumA(Number(e.target.value))} className="w-14 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-center text-zinc-900" />
+                </label>
+                <label className="flex items-center gap-1 text-xs text-zinc-600">
+                  <span>{isEn ? '2nd' : '二'}</span>
+                  <input type="number" min="1" value={numB} onChange={e => setNumB(Number(e.target.value))} className="w-14 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-center text-zinc-900" />
+                </label>
+                {numCount === 3 && (
+                  <label className="flex items-center gap-1 text-xs text-zinc-600">
+                    <span>{isEn ? '3rd' : '三'}</span>
+                    <input type="number" min="1" value={numMoving} onChange={e => setNumMoving(Number(e.target.value))} className="w-14 px-2 py-1 rounded-md bg-zinc-50 border border-zinc-300 text-xs text-center text-zinc-900" />
+                  </label>
+                )}
+                <label className="flex items-center gap-1 text-xs text-zinc-600 cursor-pointer ml-1">
+                  <input type="checkbox" checked={addHour} onChange={e => setAddHour(e.target.checked)} />
+                  <span>{isEn ? '+Hour' : '加时辰'}</span>
+                </label>
+                {numCount === 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setThreeNumMethod(threeNumMethod === 1 ? 2 : 1)}
+                    className="px-2 py-1 rounded border border-zinc-300 text-[11px] text-zinc-600 bg-white cursor-pointer"
+                  >
+                    {threeNumMethod === 1 ? '法一(一上二下三动)' : '法二(一上二三下总动)'}
+                  </button>
+                )}
+              </div>
+            )}
+
           </div>
         </form>
 
@@ -258,140 +355,99 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
         </section>
       ) : (
         <>
-          {/* 卦象推演三联 (本卦 · 互卦 · 变卦) */}
-          <section
-            aria-labelledby="hexagram-cards-heading"
-            className="w-full mb-8"
-          >
-            <h2 id="hexagram-cards-heading" className="sr-only">
-              {isEn ? 'Hexagram Breakdown' : '卦象解析'}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* 本卦 */}
-              <article className="rounded-xl bg-white border border-zinc-200 p-5 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-200">
-                    <span className="text-xs font-semibold text-zinc-900">
-                      {isEn ? 'Primary · Present' : '本卦 · 现状'}
-                    </span>
-                    <span className="text-[11px] font-mono text-zinc-600">
-                      {isEn
-                        ? `Line ${result.movingLine}`
-                        : `第 ${result.movingLine} 爻动`}
-                    </span>
-                  </div>
-
-                  <div className="text-center my-4">
-                    <div className="font-serif font-bold text-xl sm:text-2xl text-zinc-900 mb-1">
-                      {isEn
-                        ? result.primaryHexagram.fullNameEn ||
-                          result.primaryHexagram.fullNameZh
-                        : result.primaryHexagram.fullNameZh}
+          {/* 四柱干支 + 旬空 + 纳音 + 五联卦象（[主] [互] [变] [参I错] [参II综]） */}
+          {result.ganZhiInfo && (
+            <section className="w-full rounded-xl bg-white border border-zinc-200 p-4 sm:p-5 mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="grid grid-cols-4 gap-4 text-center">
+                  {[
+                    [result.ganZhiInfo.year, result.ganZhiInfo.yearKong, result.ganZhiInfo.yearNaYin],
+                    [result.ganZhiInfo.month, result.ganZhiInfo.monthKong, result.ganZhiInfo.monthNaYin],
+                    [result.ganZhiInfo.day, result.ganZhiInfo.dayKong, result.ganZhiInfo.dayNaYin],
+                    [result.ganZhiInfo.hour, result.ganZhiInfo.hourKong, result.ganZhiInfo.hourNaYin],
+                  ].map(([gz, kong, ny], i) => (
+                    <div key={i} className="flex flex-col items-center">
+                      <span className="font-serif text-base font-semibold text-zinc-900">{gz}</span>
+                      <span className="text-[10px] text-zinc-500">{ny} · {kong}空</span>
                     </div>
-                    <span className="text-xs text-zinc-600 block">
-                      {isEn
-                        ? `Upper [${result.primaryHexagram.upper.natureEn}] / Lower [${result.primaryHexagram.lower.natureEn}]`
-                        : `上【${result.primaryHexagram.upper.nameZh}（${result.primaryHexagram.upper.natureZh}）】 / 下【${result.primaryHexagram.lower.nameZh}（${result.primaryHexagram.lower.natureZh}）】`}
-                    </span>
-                  </div>
-
-                  {/* 体用标注 */}
-                  <div className="space-y-1.5 pt-3 border-t border-zinc-200 text-xs">
-                    <div className="flex justify-between items-center p-2 rounded-md bg-zinc-50 border border-zinc-100">
-                      <span className="font-medium text-zinc-800">
-                        {isEn ? 'Body (Self / Core)' : '体卦 (我方/主体)'}
-                      </span>
-                      <span className="text-zinc-600 font-mono">
-                        {isEn
-                          ? `${result.bodyTrigram.trigram.nameEn} · ${result.bodyTrigram.trigram.element}`
-                          : `${result.bodyTrigram.trigram.nameZh} · ${result.bodyTrigram.trigram.elementZh}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center p-2 rounded-md bg-zinc-50 border border-zinc-100">
-                      <span className="font-medium text-zinc-800">
-                        {isEn
-                          ? 'Application (External / Target)'
-                          : '用卦 (对方/客体)'}
-                      </span>
-                      <span className="text-zinc-600 font-mono">
-                        {isEn
-                          ? `${result.applicationTrigram.trigram.nameEn} · ${result.applicationTrigram.trigram.element}`
-                          : `${result.applicationTrigram.trigram.nameZh} · ${result.applicationTrigram.trigram.elementZh}`}
-                      </span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              </article>
+                {result.lunarTimeInfo && (
+                  <span className="text-xs text-zinc-600">{result.lunarTimeInfo.lunarDateText}</span>
+                )}
+              </div>
+            </section>
+          )}
 
-              {/* 互卦 */}
-              <article className="rounded-xl bg-white border border-zinc-200 p-5 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-200">
-                    <span className="text-xs font-semibold text-zinc-900">
-                      {isEn ? 'Nuclear · Process' : '互卦 · 过程'}
-                    </span>
-                    <span className="text-[11px] text-zinc-500">
-                      {isEn ? 'Lines 2-5' : '二至五爻'}
-                    </span>
+          {/* 五联卦象横排（爻线图 + 宫位 + 卦名 + 开关胶囊） */}
+          <section className="w-full rounded-xl bg-white border border-zinc-200 p-4 sm:p-6 mb-6">
+            <div className="flex flex-wrap items-center gap-2 mb-4 pb-3 border-b border-zinc-100">
+              {[
+                { label: '颜色', active: showColor, toggle: () => setShowColor(v => !v) },
+                { label: '错综', active: showCuoZong, toggle: () => setShowCuoZong(v => !v) },
+                { label: '参卦', active: showCanGua, toggle: () => setShowCanGua(v => !v) },
+                { label: '宫位', active: showPalace, toggle: () => setShowPalace(v => !v) },
+              ].map((t) => (
+                <button
+                  key={t.label}
+                  type="button"
+                  onClick={t.toggle}
+                  className={`px-3 py-0.5 rounded-full text-xs border transition-colors cursor-pointer ${
+                    t.active
+                      ? 'border-zinc-900 text-white bg-zinc-900'
+                      : 'border-zinc-200 text-zinc-500 bg-white hover:border-zinc-400'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+              {[
+                { tag: '[主]', palace: `${result.primaryHexagram.upper.nameZh}宫`, name: result.primaryHexagram.fullNameZh, upperEl: result.primaryHexagram.upper.element, lowerEl: result.primaryHexagram.lower.element, lines: result.primaryHexagram.lines, moving: result.movingLine },
+                { tag: '[互]', palace: `${result.mutualHexagram.upper.nameZh}宫`, name: result.mutualHexagram.fullNameZh, upperEl: result.mutualHexagram.upper.element, lowerEl: result.mutualHexagram.lower.element, lines: [...result.mutualHexagram.lower.lines, ...result.mutualHexagram.upper.lines], moving: 0 },
+                { tag: '[变]', palace: `${result.transformedHexagram.upper.nameZh}宫`, name: result.transformedHexagram.fullNameZh, upperEl: result.transformedHexagram.upper.element, lowerEl: result.transformedHexagram.lower.element, lines: [...result.transformedHexagram.lower.lines, ...result.transformedHexagram.upper.lines], moving: 0 },
+                ...(showCanGua && result.cuoGua ? [{ tag: showCuoZong ? '[错]' : '[参I]', palace: `${result.cuoGua.upper.nameZh}宫`, name: result.cuoGua.fullNameZh, upperEl: result.cuoGua.upper.element, lowerEl: result.cuoGua.lower.element, lines: result.cuoGua.lines, moving: 0 }] : []),
+                ...(showCanGua && result.zongGua ? [{ tag: showCuoZong ? '[综]' : '[参II]', palace: `${result.zongGua.upper.nameZh}宫`, name: result.zongGua.fullNameZh, upperEl: result.zongGua.upper.element, lowerEl: result.zongGua.lower.element, lines: result.zongGua.lines, moving: 0 }] : []),
+              ].map((g) => {
+                const EL_COLOR: Record<string, string> = {
+                  Wood: '#16A34A',
+                  Fire: '#DC2626',
+                  Earth: '#CA8A04',
+                  Metal: '#64748B',
+                  Water: '#2563EB',
+                };
+                return (
+                <div key={g.tag} className="flex flex-col items-center rounded-lg border border-zinc-100 bg-zinc-50/40 p-3">
+                  <span className="text-xs font-medium text-zinc-500">{g.tag}</span>
+                  {showPalace && <span className="text-[11px] text-zinc-500 mb-2">「{g.palace}」</span>}
+                  <div className="w-20 space-y-1.5 my-1">
+                    {[5, 4, 3, 2, 1, 0].map((li) => {
+                      const isYang = g.lines[li];
+                      const isMov = g.moving === li + 1;
+                      const barColor = showColor ? EL_COLOR[li >= 3 ? g.upperEl : g.lowerEl] : '#18181B';
+                      return (
+                        <div key={li} className="relative flex items-center justify-between h-2.5">
+                          {isYang ? (
+                            <span className="w-full h-2 rounded-xs" style={{ backgroundColor: barColor }} />
+                          ) : (
+                            <>
+                              <span className="w-[43%] h-2 rounded-xs" style={{ backgroundColor: barColor }} />
+                              <span className="w-[43%] h-2 rounded-xs" style={{ backgroundColor: barColor }} />
+                            </>
+                          )}
+                          {isMov && (
+                            <span className="absolute -right-3.5 text-[10px] font-bold text-red-600">×</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-
-                  <div className="text-center my-4">
-                    <div className="font-serif font-bold text-xl sm:text-2xl text-zinc-900 mb-1">
-                      {isEn
-                        ? result.mutualHexagram.fullNameEn ||
-                          result.mutualHexagram.fullNameZh
-                        : result.mutualHexagram.fullNameZh}
-                    </div>
-                    <span className="text-xs text-zinc-600 block">
-                      {isEn
-                        ? `Upper [${result.mutualHexagram.upper.natureEn}] / Lower [${result.mutualHexagram.lower.natureEn}]`
-                        : `上【${result.mutualHexagram.upper.nameZh}】 / 下【${result.mutualHexagram.lower.nameZh}】`}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-zinc-600 leading-relaxed pt-3 border-t border-zinc-200">
-                    {isEn
-                      ? result.mutualHexagram.summaryEn ||
-                        result.mutualHexagram.summaryZh
-                      : result.mutualHexagram.summaryZh}
-                  </p>
+                  <span className="mt-2 font-serif text-sm font-semibold text-zinc-900">{g.name}</span>
                 </div>
-              </article>
-
-              {/* 变卦 */}
-              <article className="rounded-xl bg-white border border-zinc-200 p-5 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between pb-2 mb-3 border-b border-zinc-200">
-                    <span className="text-xs font-semibold text-zinc-900">
-                      {isEn ? 'Transformed · Outcome' : '变卦 · 终局'}
-                    </span>
-                    <span className="text-[11px] text-zinc-500">
-                      {isEn ? 'Line Shift' : '动爻生变'}
-                    </span>
-                  </div>
-
-                  <div className="text-center my-4">
-                    <div className="font-serif font-bold text-xl sm:text-2xl text-zinc-900 mb-1">
-                      {isEn
-                        ? result.transformedHexagram.fullNameEn ||
-                          result.transformedHexagram.fullNameZh
-                        : result.transformedHexagram.fullNameZh}
-                    </div>
-                    <span className="text-xs text-zinc-600 block">
-                      {isEn
-                        ? `New Application: ${result.transformedHexagram.changedApplication.nameEn} (${result.transformedHexagram.changedApplication.element})`
-                        : `新用卦：${result.transformedHexagram.changedApplication.nameZh} (${result.transformedHexagram.changedApplication.elementZh})`}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-zinc-600 leading-relaxed pt-3 border-t border-zinc-200">
-                    {isEn
-                      ? result.transformedHexagram.summaryEn ||
-                        result.transformedHexagram.summaryZh
-                      : result.transformedHexagram.summaryZh}
-                  </p>
-                </div>
-              </article>
+                );
+              })}
             </div>
           </section>
 
@@ -533,6 +589,29 @@ export function MeihuaDecisionWidget({ lang = 'zh' }: { lang?: string }) {
               </div>
             </section>
           )}
+
+          <EastAiReadingPanel
+            kind="meihua"
+            titleZh="让 AI 深度解盘"
+            titleEn="AI Deep Reading"
+            question={result.question}
+            chartSummary={[
+              `本卦：${result.primaryHexagram.fullNameZh}（上${result.primaryHexagram.upper.nameZh}下${result.primaryHexagram.lower.nameZh}）`,
+              `互卦：${result.mutualHexagram.fullNameZh}，变卦：${result.transformedHexagram.fullNameZh}`,
+              result.cuoGua && result.zongGua
+                ? `错卦：${result.cuoGua.fullNameZh}，综卦：${result.zongGua.fullNameZh}`
+                : '',
+              `体卦：${result.bodyTrigram.trigram.nameZh}（${result.bodyTrigram.trigram.elementZh}），用卦：${result.applicationTrigram.trigram.nameZh}（${result.applicationTrigram.trigram.elementZh}）`,
+              `第 ${result.movingLine} 爻动，体用生克：${result.wuxingRelation}`,
+              result.lunarTimeInfo ? `起卦农历：${result.lunarTimeInfo.lunarDateText}` : '',
+            ]
+              .filter(Boolean)
+              .join('；')}
+            localFallback={action?.verdict}
+            spendType="liuyao"
+            lang={lang}
+            resetKey={`${result.primaryHexagram.fullNameZh}-${result.movingLine}-${result.transformedHexagram.fullNameZh}-${result.question || ''}`}
+          />
         </>
       )}
 

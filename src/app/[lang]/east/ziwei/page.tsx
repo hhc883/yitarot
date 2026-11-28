@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { ZiweiChartWidget } from '@/components/east/ZiweiChartWidget';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -79,7 +79,15 @@ export default async function ZiweiPage({
         </p>
       </div>
 
-      <ZiweiChartWidget lang={lang} />
+      <Suspense
+        fallback={
+          <div className="py-12 text-center text-sm text-[#71717A]">
+            {isEn ? 'Loading Ziwei chart...' : '正在加载紫微斗数排盘...'}
+          </div>
+        }
+      >
+        <ZiweiChartWidget lang={lang} />
+      </Suspense>
     </div>
   );
 }

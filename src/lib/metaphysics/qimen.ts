@@ -19,14 +19,38 @@ export interface QimenPalace {
   currentDeityEn: string | null;
   heavenStem: string | null;
   earthStem: string;
+  /** 暗干（时干入值使宫，按阳顺阴逆飞布九宫） */
+  hiddenStem?: string | null;
+  /** 天盘干十二长生状态 */
+  heavenStemState?: string | null;
+  /** 地盘干十二长生状态 */
+  earthStemState?: string | null;
+  /** 是否空亡宫 */
+  isKong?: boolean;
+  /** 是否驿马宫 */
+  isMa?: boolean;
   companionStar: string | null;
   companionStem: string | null;
   isAuspiciousGate: boolean;
 }
 
+export type QimenMethod = "zhuanpan" | "feipan";
+
+export interface QimenOptions {
+  /** 排盘制式：zhuanpan（转盘，默认）或 feipan（飞盘） */
+  method?: QimenMethod;
+  /** 飞盘星门是否按「阳顺阴逆」飞布（默认 true） */
+  feipanReverseYin?: boolean;
+  /** 中五宫寄宫设置：2（坤二，默认）、8（艮八）或 auto（阳遁寄艮八，阴遁寄坤二） */
+  centerHost?: 2 | 8 | "auto";
+}
+
 export interface QimenChartResult {
   /** Beijing standard wall time (fixed UTC+08:00), independent of device timezone. */
   time: string;
+  method?: QimenMethod;
+  centerHostPalace?: 2 | 8;
+  feipanReverseYin?: boolean;
   ganzhi: { year: string; month: string; day: string; hour: string };
   solarTermZh: string;
   solarTermEn: string;
@@ -43,6 +67,10 @@ export interface QimenChartResult {
   zhishiGate: string;
   zhishiGateEn: string;
   zhishiPalace: OuterPalace;
+  /** 时柱旬空两支 */
+  xunKong?: [string, string];
+  /** 时支驿马 */
+  maXing?: string;
   palaces: QimenPalace[];
 }
 
@@ -115,8 +143,8 @@ function mod(index: number, length: number): number {
   return ((index % length) + length) % length;
 }
 
-function hostedPalace(id: PalaceId): OuterPalace {
-  return id === 5 ? CENTER_HOST : id;
+function hostedPalace(id: PalaceId, centerHost: OuterPalace = CENTER_HOST): OuterPalace {
+  return id === 5 ? centerHost : id;
 }
 
 function cycleIndex(pillar: string): number {
@@ -147,8 +175,48 @@ export function parseQimenBeijingTime(input: string): Date | null {
   return new Date(instant.getTime() + BEIJING_OFFSET_MS).toISOString().slice(0, 19) === wall ? instant : null;
 }
 
-/** 时家转盘 · 拆补。按实际交节、北京时间 23:00 换日、天禽随天芮寄坤二。 */
-export function calculateQimen(targetDate: Date = new Date()): QimenChartResult {
+const CHANG_SHENG_ORDER = ["长生", "沐浴", "冠带", "临官", "帝旺", "衰", "病", "死", "墓", "绝", "胎", "养"] as const;
+const CHANG_SHENG_START: Record<string, { startZhi: string; dir: 1 | -1 }> = {
+  乙: { startZhi: "午", dir: -1 }, 丙: { startZhi: "寅", dir: 1 },
+  丁: { startZhi: "酉", dir: -1 }, 戊: { startZhi: "寅", dir: 1 },
+  己: { startZhi: "酉", dir: -1 }, 庚: { startZhi: "巳", dir: 1 },
+  辛: { startZhi: "子", dir: -1 }, 壬: { startZhi: "申", dir: 1 },
+  癸: { startZhi: "卯", dir: -1 },
+};
+/** 九宫对应地支（用于计算天/地盘干十二状态及空亡/马星落宫） */
+const PALACE_BRANCHES: Record<PalaceId, string[]> = {
+  1: ["子"], 2: ["未", "申"], 3: ["卯"], 4: ["辰", "巳"],
+  5: [], 6: ["戌", "亥"], 7: ["酉"], 8: ["丑", "寅"], 9: ["午"],
+};
+const MA_XING_MAP: Record<string, string> = {
+  申: "寅", 子: "寅", 辰: "寅",
+  寅: "申", 午: "申", 戌: "申",
+  巳: "亥", 酉: "亥", 丑: "亥",
+  亥: "巳", 卯: "巳", 未: "巳",
+};
+
+function getStemPalaceState(stem: string | null, palaceId: PalaceId): string | null {
+  if (!stem || palaceId === 5) return null;
+  const cfg = CHANG_SHENG_START[stem];
+  const branches = PALACE_BRANCHES[palaceId];
+  if (!cfg || !branches.length) return null;
+  const sIdx = BRANCHES.indexOf(cfg.startZhi);
+  return branches
+    .map((b) => {
+      const zIdx = BRANCHES.indexOf(b);
+      const step = mod((zIdx - sIdx) * cfg.dir, 12);
+      return CHANG_SHENG_ORDER[step];
+    })
+    .join("/");
+}
+
+/** 时家转盘/飞盘 · 拆补。按实际交节、北京时间 23:00 换日、支持飞盘星门阳顺阴逆与寄宫配置。 */
+export function calculateQimen(
+  targetDate: Date = new Date(),
+  options: QimenOptions = {}
+): QimenChartResult {
+  const method: QimenMethod = options.method === "feipan" ? "feipan" : "zhuanpan";
+  const feipanReverseYin = options.feipanReverseYin ?? true;
   const beijing = new Date(targetDate.getTime() + BEIJING_OFFSET_MS);
   const time = beijing.toISOString().slice(0, 19);
   if (time < QIMEN_TIME_MIN || time > QIMEN_TIME_MAX) throw new RangeError("Qimen date outside supported range.");
@@ -175,6 +243,8 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
   const juNumber = juByEpoch[epochIndex];
   const yang = YANG_TERMS.has(solarTermZh);
   const sign = yang ? 1 : -1;
+  const centerHostPalace: 2 | 8 =
+    options.centerHost === "auto" ? (yang ? 8 : 2) : (options.centerHost ?? CENTER_HOST);
 
   // 阴遁逆排、阳遁顺排，以局数宫起戊。甲遁入对应旬首仪。
   const earthByPalace = PALACES_ASC.map((id) => EARTH_STEMS[mod(sign * (id - juNumber), 9)]);
@@ -188,49 +258,124 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
   const cycleHeadStem = EARTH_STEMS[cycleHeadIndex];
   const cycleHead = CYCLE_HEADS[cycleHeadIndex];
   const officeHome = palaceOf(cycleHeadStem);
-  const officeRingHome = hostedPalace(officeHome);
+  const officeRingHome = hostedPalace(officeHome, centerHostPalace);
   const hourStep = hourIndex % 10;
-  const zhifuPalace = hostedPalace(palaceOf(hourStep === 0 ? cycleHeadStem : ganzhi.hour[0]));
-  const zhishiPalace = hostedPalace(PALACES_ASC[mod(officeHome - 1 + sign * hourStep, 9)]);
+  const zhifuRawPalace = palaceOf(hourStep === 0 ? cycleHeadStem : ganzhi.hour[0]);
+  const zhifuPalace = hostedPalace(zhifuRawPalace, centerHostPalace);
+  const zhishiRawPalace = PALACES_ASC[mod(officeHome - 1 + sign * hourStep, 9)];
+  const zhishiPalace = hostedPalace(zhishiRawPalace, centerHostPalace);
 
-  // Stars + heaven stems rotate together; gates rotate separately. The eight deities
-  // start at the duty star and run along the outer ring in the dun direction.
-  const starShift = OUTER_RING.indexOf(zhifuPalace) - OUTER_RING.indexOf(officeRingHome);
-  const gateShift = OUTER_RING.indexOf(zhishiPalace) - OUTER_RING.indexOf(officeRingHome);
-  const palaces = PALACES_ASC.map((palaceId): QimenPalace => {
-    const { bagua, directionZh, directionEn, elementZh, elementEn } = PALACE[palaceId];
-    const earthStem = earthByPalace[palaceId - 1];
-    const base = { palaceId, bagua, directionZh, directionEn, elementZh, elementEn, earthStem };
-    if (palaceId === 5) {
+  // 旬空、马星与暗干（时干入值使宫，阳顺阴逆飞布九宫）
+  const xunStartIdx = cycleHeadIndex * 10;
+  const xunKong: [string, string] = [
+    BRANCHES[mod(xunStartIdx + 10, 12)],
+    BRANCHES[mod(xunStartIdx + 11, 12)],
+  ];
+  const maXing = MA_XING_MAP[ganzhi.hour[1]] ?? "寅";
+  const hourStemForAnGan = hourStep === 0 ? cycleHeadStem : ganzhi.hour[0];
+  const hourStemOrderIdx = EARTH_STEMS.indexOf(hourStemForAnGan);
+  const hiddenByPalace = PALACES_ASC.map((id) =>
+    hourStemOrderIdx >= 0 ? EARTH_STEMS[mod(hourStemOrderIdx + sign * (id - zhishiRawPalace), 9)] : null
+  );
+
+  let palaces: QimenPalace[];
+
+  if (method === "feipan") {
+    // 飞盘：九星按洛书九宫（1..9）飞布，阳顺阴逆（feipanReverseYin=false 时固定顺飞）
+    const flyDir = yang || !feipanReverseYin ? 1 : -1;
+    const starOffset = mod(zhifuRawPalace - officeHome, 9);
+    const gateOffset = mod(zhishiRawPalace - officeHome, 9);
+
+    palaces = PALACES_ASC.map((palaceId): QimenPalace => {
+      const { bagua, directionZh, directionEn, elementZh, elementEn } = PALACE[palaceId];
+      const earthStem = earthByPalace[palaceId - 1];
+      const starHome = PALACES_ASC[mod((palaceId - 1) - flyDir * starOffset, 9)];
+      const star = PALACE[starHome];
+      const gateSourceId = PALACES_ASC[mod((palaceId - 1) - flyDir * gateOffset, 9)];
+      const gateHome = hostedPalace(gateSourceId, centerHostPalace);
+      const gate = PALACE[gateHome];
+      const ringIndex = palaceId === 5 ? -1 : OUTER_RING.indexOf(palaceId);
+      const [deity, deityEn] =
+        ringIndex >= 0
+          ? DEITIES[mod(sign * (ringIndex - OUTER_RING.indexOf(zhifuPalace)), 8)]
+          : [null, null];
+
+      const heavenStem = earthByPalace[starHome - 1];
       return {
-        ...base, currentStar: null, currentStarEn: null, currentGate: null, currentGateEn: null,
-        currentDeity: null, currentDeityEn: null, heavenStem: null,
-        companionStar: null, companionStem: null, isAuspiciousGate: false,
+        palaceId,
+        bagua,
+        directionZh,
+        directionEn,
+        elementZh,
+        elementEn,
+        currentStar: star.star,
+        currentStarEn: star.starEn,
+        currentGate: palaceId === 5 ? null : gate.gate,
+        currentGateEn: palaceId === 5 ? null : gate.gateEn,
+        currentDeity: deity,
+        currentDeityEn: deityEn,
+        heavenStem,
+        earthStem,
+        hiddenStem: hiddenByPalace[palaceId - 1],
+        heavenStemState: getStemPalaceState(heavenStem, palaceId),
+        earthStemState: getStemPalaceState(earthStem, palaceId),
+        isKong: PALACE_BRANCHES[palaceId].some((b) => xunKong.includes(b)),
+        isMa: PALACE_BRANCHES[palaceId].includes(maXing),
+        companionStar: null,
+        companionStem: null,
+        isAuspiciousGate: palaceId !== 5 && ["生门", "开门", "休门"].includes(gate.gate),
       };
-    }
-    const ringIndex = OUTER_RING.indexOf(palaceId);
-    const starHome = OUTER_RING[mod(ringIndex - starShift, 8)];
-    const star = PALACE[starHome];
-    const gate = PALACE[OUTER_RING[mod(ringIndex - gateShift, 8)]];
-    const [deity, deityEn] = DEITIES[mod(sign * (ringIndex - OUTER_RING.indexOf(zhifuPalace)), 8)];
-    const hostsCenter = starHome === CENTER_HOST;
-    return {
-      ...base,
-      currentStar: star.star,
-      currentStarEn: star.starEn,
-      currentGate: gate.gate,
-      currentGateEn: gate.gateEn,
-      currentDeity: deity,
-      currentDeityEn: deityEn,
-      heavenStem: earthByPalace[starHome - 1],
-      companionStar: hostsCenter ? PALACE[5].star : null,
-      companionStem: hostsCenter ? earthByPalace[4] : null,
-      isAuspiciousGate: ["生门", "开门", "休门"].includes(gate.gate),
-    };
-  });
+    });
+  } else {
+    // 转盘：Stars + heaven stems rotate together; gates rotate separately along outer ring.
+    const starShift = OUTER_RING.indexOf(zhifuPalace) - OUTER_RING.indexOf(officeRingHome);
+    const gateShift = OUTER_RING.indexOf(zhishiPalace) - OUTER_RING.indexOf(officeRingHome);
+    palaces = PALACES_ASC.map((palaceId): QimenPalace => {
+      const { bagua, directionZh, directionEn, elementZh, elementEn } = PALACE[palaceId];
+      const earthStem = earthByPalace[palaceId - 1];
+      const base = { palaceId, bagua, directionZh, directionEn, elementZh, elementEn, earthStem };
+      if (palaceId === 5) {
+        return {
+          ...base, currentStar: null, currentStarEn: null, currentGate: null, currentGateEn: null,
+          currentDeity: null, currentDeityEn: null, heavenStem: null,
+          hiddenStem: hiddenByPalace[4], heavenStemState: null, earthStemState: null,
+          isKong: false, isMa: false,
+          companionStar: null, companionStem: null, isAuspiciousGate: false,
+        };
+      }
+      const ringIndex = OUTER_RING.indexOf(palaceId);
+      const starHome = OUTER_RING[mod(ringIndex - starShift, 8)];
+      const star = PALACE[starHome];
+      const gate = PALACE[OUTER_RING[mod(ringIndex - gateShift, 8)]];
+      const [deity, deityEn] = DEITIES[mod(sign * (ringIndex - OUTER_RING.indexOf(zhifuPalace)), 8)];
+      const hostsCenter = starHome === centerHostPalace;
+      const heavenStem = earthByPalace[starHome - 1];
+      return {
+        ...base,
+        currentStar: star.star,
+        currentStarEn: star.starEn,
+        currentGate: gate.gate,
+        currentGateEn: gate.gateEn,
+        currentDeity: deity,
+        currentDeityEn: deityEn,
+        heavenStem,
+        hiddenStem: hiddenByPalace[palaceId - 1],
+        heavenStemState: getStemPalaceState(heavenStem, palaceId),
+        earthStemState: getStemPalaceState(earthStem, palaceId),
+        isKong: PALACE_BRANCHES[palaceId].some((b) => xunKong.includes(b)),
+        isMa: PALACE_BRANCHES[palaceId].includes(maXing),
+        companionStar: hostsCenter ? PALACE[5].star : null,
+        companionStem: hostsCenter ? earthByPalace[4] : null,
+        isAuspiciousGate: ["生门", "开门", "休门"].includes(gate.gate),
+      };
+    });
+  }
 
   return {
     time,
+    method,
+    centerHostPalace,
+    feipanReverseYin,
     ganzhi,
     solarTermZh,
     solarTermEn,
@@ -247,6 +392,8 @@ export function calculateQimen(targetDate: Date = new Date()): QimenChartResult 
     zhishiGate: PALACE[officeRingHome].gate,
     zhishiGateEn: PALACE[officeRingHome].gateEn,
     zhishiPalace,
+    xunKong,
+    maXing,
     palaces,
   };
 }

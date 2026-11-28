@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { ZiweiMarriageWidget } from '@/components/east/ZiweiMarriageWidget';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -63,7 +63,15 @@ export default async function ZiweiMarriagePage({
   return (
     <div className="w-full max-w-5xl mx-auto px-4 py-12 sm:py-16">
       <JsonLd data={structuredData} />
-      <ZiweiMarriageWidget lang={lang} />
+      <Suspense
+        fallback={
+          <div className="py-12 text-center text-sm text-[#71717A]">
+            {isEn ? 'Loading Ziwei marriage synastry...' : '正在加载紫微合婚...'}
+          </div>
+        }
+      >
+        <ZiweiMarriageWidget lang={lang} />
+      </Suspense>
     </div>
   );
 }

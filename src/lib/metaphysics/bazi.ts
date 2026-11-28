@@ -31,6 +31,52 @@ export interface PillarData {
   naYin: string;
   lifeDomainEn: string;
   lifeDomainZh: string;
+  /** 十神（日柱主星为「日主/元神」） */
+  shiShen?: string;
+  /** 地支藏干 */
+  hideGan?: string[];
+  /** 地支藏干十神 */
+  shiShenZhi?: string[];
+  /** 旬空 */
+  xunKong?: string;
+  /** 星运（日主对本柱地支十二长生） */
+  xingYun?: string;
+  /** 自坐（本柱天干对本柱地支十二长生） */
+  ziZuo?: string;
+  /** 本柱神煞列表 */
+  shenSha?: string[];
+}
+
+export interface BaZiOptions {
+  /** 性别：1/"male" 为男，0/"female" 为女（用于排大运流年） */
+  gender?: "male" | "female" | 1 | 0;
+  /** 早晚子时流派：2 为区分早晚子时（23点日柱不变，默认），1 为 23 点换日柱 */
+  sect?: 1 | 2;
+  /** 返回大运步数（默认 8 步） */
+  daYunCount?: number;
+}
+
+export interface LiuYueItem {
+  termName: string;
+  termDate: string;
+  ganZhi: string;
+}
+
+export interface DaYunStep {
+  index: number;
+  isXiaoYun?: boolean;
+  ganZhi: string;
+  startAge: number;
+  endAge: number;
+  startYear: number;
+  endYear: number;
+  liuNian: Array<{
+    year: number;
+    age: number;
+    ganZhi: string;
+    xiaoYunGanZhi?: string;
+    liuYue?: LiuYueItem[];
+  }>;
 }
 
 export interface DayMasterProfile {
@@ -85,6 +131,36 @@ export interface BaZiCalculationResult {
   lackingElement: WuXing | null;
   elementRecommendationsEn: string;
   elementRecommendationsZh: string;
+  /** 早晚子时流派（1=23点换日柱，2=区分早晚子时） */
+  sect?: 1 | 2;
+  /** 胎元 */
+  taiYuan?: string;
+  /** 胎息 */
+  taiXi?: string;
+  /** 命宫 */
+  mingGong?: string;
+  /** 身宫 */
+  shenGong?: string;
+  /** 日柱旬空 */
+  dayXunKong?: string;
+  /** 月令司令藏干 */
+  siLing?: string;
+  /** 小运与流年完整柱信息 */
+  extraPillars?: {
+    xiaoYun?: PillarData;
+    liuNian?: PillarData;
+  };
+  /** 起运与大运流年 */
+  yun?: {
+    gender: "male" | "female";
+    startYear: number;
+    startMonth: number;
+    startDay: number;
+    startDate: string;
+    xiaoYunGanZhi?: string;
+    currentYearGanZhi?: string;
+    daYun: DaYunStep[];
+  };
 }
 
 export const STEMS_MAP: Record<string, StemInfo> = {
@@ -304,19 +380,214 @@ export const ELEMENT_ZH_MAP: Record<WuXing, string> = {
   Water: "水"
 };
 
+const CHANG_SHENG_ORDER = ["长生", "沐浴", "冠带", "临官", "帝旺", "衰", "病", "死", "墓", "绝", "胎", "养"] as const;
+const ZHI_ORDER = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"] as const;
+const CHANG_SHENG_START: Record<string, { startZhi: string; dir: 1 | -1 }> = {
+  甲: { startZhi: "亥", dir: 1 }, 乙: { startZhi: "午", dir: -1 },
+  丙: { startZhi: "寅", dir: 1 }, 丁: { startZhi: "酉", dir: -1 },
+  戊: { startZhi: "寅", dir: 1 }, 己: { startZhi: "酉", dir: -1 },
+  庚: { startZhi: "巳", dir: 1 }, 辛: { startZhi: "子", dir: -1 },
+  壬: { startZhi: "申", dir: 1 }, 癸: { startZhi: "卯", dir: -1 },
+};
+
+const STEMS_10 = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"] as const;
+const HIDE_GAN_MAP: Record<string, string[]> = {
+  子: ["癸"], 丑: ["己", "癸", "辛"], 寅: ["甲", "丙", "戊"], 卯: ["乙"],
+  辰: ["戊", "乙", "癸"], 巳: ["丙", "庚", "戊"], 午: ["丁", "己"], 未: ["己", "丁", "乙"],
+  申: ["庚", "壬", "戊"], 酉: ["辛"], 戌: ["戊", "辛", "丁"], 亥: ["壬", "甲"],
+};
+const NAYIN_60: Record<string, string> = {
+  甲子: "海中金", 乙丑: "海中金", 丙寅: "炉中火", 丁卯: "炉中火", 戊辰: "大林木", 己巳: "大林木",
+  庚午: "路旁土", 辛未: "路旁土", 壬申: "剑锋金", 癸酉: "剑锋金", 甲戌: "山头火", 乙亥: "山头火",
+  丙子: "涧下水", 丁丑: "涧下水", 戊寅: "城头土", 己卯: "城头土", 庚辰: "白蜡金", 辛巳: "白蜡金",
+  壬午: "杨柳木", 癸未: "杨柳木", 甲申: "泉中水", 乙酉: "泉中水", 丙戌: "屋上土", 丁亥: "屋上土",
+  戊子: "霹雳火", 己丑: "霹雳火", 庚寅: "松柏木", 辛卯: "松柏木", 壬辰: "长流水", 癸巳: "长流水",
+  甲午: "沙中金", 乙未: "沙中金", 丙申: "山下火", 丁酉: "山下火", 戊戌: "平地木", 己亥: "平地木",
+  庚子: "壁上土", 辛丑: "壁上土", 壬寅: "金箔金", 癸卯: "金箔金", 甲辰: "覆灯火", 乙巳: "覆灯火",
+  丙午: "天河水", 丁未: "天河水", 戊申: "大驿土", 己酉: "大驿土", 庚戌: "钗钏金", 辛亥: "钗钏金",
+  壬子: "桑柘木", 癸丑: "桑柘木", 甲寅: "大溪水", 乙卯: "大溪水", 丙辰: "沙中土", 丁巳: "沙中土",
+  戊午: "天上火", 己未: "天上火", 庚申: "石榴木", 辛酉: "石榴木", 壬戌: "大海水", 癸亥: "大海水",
+};
+
+export function getShiShen(dayGan: string, targetGan: string): string {
+  const d = STEMS_MAP[dayGan];
+  const t = STEMS_MAP[targetGan];
+  if (!d || !t) return "";
+  const samePol = d.polarity === t.polarity;
+  const gen: Record<WuXing, WuXing> = { Wood: "Fire", Fire: "Earth", Earth: "Metal", Metal: "Water", Water: "Wood" };
+  const ke: Record<WuXing, WuXing> = { Wood: "Earth", Earth: "Water", Water: "Fire", Fire: "Metal", Metal: "Wood" };
+  if (d.element === t.element) return samePol ? "比肩" : "劫财";
+  if (gen[d.element] === t.element) return samePol ? "食神" : "伤官";
+  if (gen[t.element] === d.element) return samePol ? "偏印" : "正印";
+  if (ke[d.element] === t.element) return samePol ? "偏财" : "正财";
+  return samePol ? "七杀" : "正官";
+}
+
+export const SHISHEN_SHORT: Record<string, string> = {
+  比肩: "比", 劫财: "劫", 食神: "食", 伤官: "伤",
+  偏财: "才", 正财: "财", 七杀: "杀", 正官: "官",
+  偏印: "枭", 正印: "印",
+};
+
+function getXunKongOf(gan: string, zhi: string): string {
+  const gIdx = STEMS_10.indexOf(gan as (typeof STEMS_10)[number]);
+  const zIdx = ZHI_ORDER.indexOf(zhi as (typeof ZHI_ORDER)[number]);
+  if (gIdx < 0 || zIdx < 0) return "";
+  const start = ((zIdx - gIdx) % 12 + 12) % 12;
+  return `${ZHI_ORDER[(start + 10) % 12]}${ZHI_ORDER[(start + 11) % 12]}`;
+}
+
+function getPillarShenSha(
+  gan: string,
+  zhi: string,
+  dayGan: string,
+  dayZhi: string,
+  yearZhi: string,
+  monthZhi: string,
+  isDayPillar: boolean
+): string[] {
+  const list: string[] = [];
+  const tianYi: Record<string, string> = { 甲: "丑未", 戊: "丑未", 庚: "丑未", 乙: "子申", 己: "子申", 丙: "亥酉", 丁: "亥酉", 壬: "巳卯", 癸: "巳卯", 辛: "午寅" };
+  const taiJi: Record<string, string> = { 甲: "子午", 乙: "子午", 丙: "卯酉", 丁: "卯酉", 戊: "辰戌丑未", 己: "辰戌丑未", 庚: "寅亥", 辛: "寅亥", 壬: "巳申", 癸: "巳申" };
+  const wenChang: Record<string, string> = { 甲: "巳", 乙: "午", 丙: "申", 丁: "酉", 戊: "申", 己: "酉", 庚: "亥", 辛: "子", 壬: "寅", 癸: "卯" };
+  const tianChu: Record<string, string> = { 甲: "巳", 乙: "午", 丙: "子", 丁: "巳", 戊: "午", 己: "申", 庚: "寅", 辛: "午", 壬: "酉", 癸: "亥" };
+  const fuXing: Record<string, string> = { 甲: "寅", 丙: "寅", 乙: "丑", 癸: "丑", 戊: "申", 己: "未", 丁: "亥", 庚: "午", 辛: "巳", 壬: "辰" };
+  const guoYin: Record<string, string> = { 甲: "戌", 乙: "亥", 丙: "丑", 丁: "寅", 戊: "丑", 己: "寅", 庚: "辰", 辛: "巳", 壬: "未", 癸: "申" };
+  const hongYan: Record<string, string> = { 甲: "午", 乙: "午", 丙: "寅", 丁: "未", 戊: "辰", 己: "辰", 庚: "戌", 辛: "酉", 壬: "子", 癸: "申" };
+  const jinYu: Record<string, string> = { 甲: "辰", 乙: "巳", 丙: "未", 丁: "申", 戊: "未", 己: "申", 庚: "戌", 辛: "亥", 壬: "丑", 癸: "寅" };
+  const tianDe: Record<string, string> = { 寅: "丁", 卯: "申", 辰: "壬", 巳: "辛", 午: "亥", 未: "甲", 申: "癸", 酉: "寅", 戌: "丙", 亥: "乙", 子: "巳", 丑: "庚" };
+  const deXiu: Record<string, string> = { 寅: "丙丁", 午: "丙丁", 戌: "丙丁", 申: "壬癸", 子: "壬癸", 辰: "壬癸", 巳: "庚辛", 酉: "庚辛", 丑: "庚辛", 亥: "甲乙", 卯: "甲乙", 未: "甲乙" };
+  const sanHe: Record<string, { jiang: string; tao: string; ma: string; jie: string; zai: string; wang: string }> = {
+    申: { jiang: "子", tao: "酉", ma: "寅", jie: "巳", zai: "午", wang: "亥" },
+    子: { jiang: "子", tao: "酉", ma: "寅", jie: "巳", zai: "午", wang: "亥" },
+    辰: { jiang: "子", tao: "酉", ma: "寅", jie: "巳", zai: "午", wang: "亥" },
+    寅: { jiang: "午", tao: "卯", ma: "申", jie: "亥", zai: "子", wang: "巳" },
+    午: { jiang: "午", tao: "卯", ma: "申", jie: "亥", zai: "子", wang: "巳" },
+    戌: { jiang: "午", tao: "卯", ma: "申", jie: "亥", zai: "子", wang: "巳" },
+    巳: { jiang: "酉", tao: "午", ma: "亥", jie: "寅", zai: "卯", wang: "申" },
+    酉: { jiang: "酉", tao: "午", ma: "亥", jie: "寅", zai: "卯", wang: "申" },
+    丑: { jiang: "酉", tao: "午", ma: "亥", jie: "寅", zai: "卯", wang: "申" },
+    亥: { jiang: "卯", tao: "子", ma: "巳", jie: "申", zai: "酉", wang: "寅" },
+    卯: { jiang: "卯", tao: "子", ma: "巳", jie: "申", zai: "酉", wang: "寅" },
+    未: { jiang: "卯", tao: "子", ma: "巳", jie: "申", zai: "酉", wang: "寅" },
+  };
+  if (tianYi[dayGan]?.includes(zhi)) list.push("天乙贵人");
+  if (tianDe[monthZhi] === gan || tianDe[monthZhi] === zhi) list.push("天德贵人");
+  if (deXiu[monthZhi]?.includes(gan)) list.push("德秀贵人");
+  if (wenChang[dayGan] === zhi) list.push("文昌贵人");
+  if (tianChu[dayGan] === zhi) list.push("天厨贵人");
+  if (fuXing[dayGan] === zhi) list.push("福星贵人");
+  if (taiJi[dayGan]?.includes(zhi)) list.push("太极贵人");
+  if (guoYin[dayGan] === zhi) list.push("国印贵人");
+  const grpDay = sanHe[dayZhi];
+  const grpYear = sanHe[yearZhi];
+  if (grpDay?.jiang === zhi || grpYear?.jiang === zhi) list.push("将星");
+  if (hongYan[dayGan] === zhi) list.push("红艳");
+  if (grpDay?.tao === zhi || grpYear?.tao === zhi) list.push("桃花");
+  if (grpDay?.jie === zhi || grpYear?.jie === zhi) list.push("劫煞");
+  if (grpDay?.zai === zhi || grpYear?.zai === zhi) list.push("灾煞");
+  if (grpDay?.ma === zhi) list.push("日马");
+  if (grpDay?.wang === zhi || grpYear?.wang === zhi) list.push("亡神");
+  if (jinYu[dayGan] === zhi) list.push("金舆");
+  if (isDayPillar) {
+    if (["甲辰", "乙巳", "丙申", "丁亥", "戊戌", "己丑", "庚辰", "辛巳", "壬申", "癸亥"].includes(`${gan}${zhi}`)) list.push("十恶大败");
+    if (["乙巳", "丁巳", "辛亥", "戊申", "壬寅", "戊午", "壬子", "丙午"].includes(`${gan}${zhi}`)) list.push("孤鸾煞");
+  }
+  return Array.from(new Set(list)).slice(0, 7);
+}
+
+function buildDynamicPillar(
+  nameZh: string,
+  nameEn: string,
+  ganZhi: string,
+  dayGan: string,
+  dayZhi: string,
+  yearZhi: string,
+  monthZhi: string
+): PillarData {
+  const gan = ganZhi[0] || "甲";
+  const zhi = ganZhi[1] || "子";
+  const ganInfo = STEMS_MAP[gan] || STEMS_MAP["甲"];
+  const zhiInfo = BRANCHES_MAP[zhi] || BRANCHES_MAP["子"];
+  const hideGan = HIDE_GAN_MAP[zhi] || [];
+  return {
+    nameEn,
+    nameZh,
+    gan,
+    ganInfo,
+    zhi,
+    zhiInfo,
+    naYin: NAYIN_60[ganZhi] || "",
+    lifeDomainEn: nameEn,
+    lifeDomainZh: nameZh,
+    shiShen: getShiShen(dayGan, gan),
+    hideGan,
+    shiShenZhi: hideGan.map((hg) => getShiShen(dayGan, hg)),
+    xunKong: getXunKongOf(gan, zhi),
+    xingYun: getChangSheng(dayGan, zhi),
+    ziZuo: getChangSheng(gan, zhi),
+    shenSha: getPillarShenSha(gan, zhi, dayGan, dayZhi, yearZhi, monthZhi, false),
+  };
+}
+
+function getSiLingStem(solar: Solar, monthZhi: string): string {
+  const prevJie = solar.getLunar().getPrevJie(false);
+  const daysSince = Math.max(0, Math.floor((solar.getJulianDay() - prevJie.getSolar().getJulianDay())));
+  const rules: Record<string, Array<[string, number]>> = {
+    寅: [["戊", 7], ["丙", 7], ["甲", 16]],
+    卯: [["甲", 10], ["乙", 20]],
+    辰: [["乙", 9], ["癸", 3], ["戊", 18]],
+    巳: [["戊", 5], ["庚", 9], ["丙", 16]],
+    午: [["丙", 10], ["己", 9], ["丁", 11]],
+    未: [["丁", 9], ["乙", 3], ["己", 18]],
+    申: [["戊", 7], ["壬", 7], ["庚", 16]],
+    酉: [["庚", 10], ["辛", 20]],
+    戌: [["辛", 9], ["丁", 3], ["戊", 18]],
+    亥: [["戊", 7], ["甲", 5], ["壬", 18]],
+    子: [["壬", 10], ["癸", 20]],
+    丑: [["癸", 9], ["辛", 3], ["己", 18]],
+  };
+  const segs = rules[monthZhi];
+  if (!segs) return HIDE_GAN_MAP[monthZhi]?.[0] || "壬";
+  let acc = 0;
+  for (const [stem, days] of segs) {
+    acc += days;
+    if (daysSince < acc) return stem;
+  }
+  return segs[segs.length - 1][0];
+}
+  const LIU_YUE_TERMS = [
+  ["立春", "2.4"], ["惊蛰", "3.5"], ["清明", "4.5"], ["立夏", "5.5"],
+  ["芒种", "6.5"], ["小暑", "7.7"], ["立秋", "8.7"], ["白露", "9.7"],
+  ["寒露", "10.8"], ["立冬", "11.7"], ["大雪", "12.7"], ["小寒", "1.5"],
+] as const;
+
+function getChangSheng(gan: string, zhi: string): string {
+  const cfg = CHANG_SHENG_START[gan];
+  if (!cfg) return "";
+  const sIdx = ZHI_ORDER.indexOf(cfg.startZhi as (typeof ZHI_ORDER)[number]);
+  const zIdx = ZHI_ORDER.indexOf(zhi as (typeof ZHI_ORDER)[number]);
+  if (sIdx < 0 || zIdx < 0) return "";
+  const step = (((zIdx - sIdx) * cfg.dir) % 12 + 12) % 12;
+  return CHANG_SHENG_ORDER[step];
+}
+
 /**
- * Calculates BaZi Four Pillars, Day Master and Five Elements distribution
+ * Calculates BaZi Four Pillars, Day Master, Five Elements, Ten Gods, XunKong, and DaYun
  */
 export function calculateBaZi(
   year: number,
   month: number,
   day: number,
   hour: number = 12,
-  minute: number = 0
+  minute: number = 0,
+  options: BaZiOptions = {}
 ): BaZiCalculationResult {
+  const sect: 1 | 2 = options.sect === 1 ? 1 : 2;
   const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
   const lunar = solar.getLunar();
   const eightChar = lunar.getEightChar();
+  eightChar.setSect(sect);
 
   const yearGan = eightChar.getYearGan();
   const yearZhi = eightChar.getYearZhi();
@@ -346,7 +617,14 @@ export function calculateBaZi(
       zhiInfo: yearZhiInfo,
       naYin: eightChar.getYearNaYin(),
       lifeDomainEn: "Ancestry, Social Persona & Generational Theme",
-      lifeDomainZh: "祖业根基、外在气象与早年社会运势"
+      lifeDomainZh: "祖业根基、外在气象与早年社会运势",
+      shiShen: eightChar.getYearShiShenGan(),
+      hideGan: eightChar.getYearHideGan(),
+      shiShenZhi: eightChar.getYearShiShenZhi(),
+      xunKong: eightChar.getYearXunKong(),
+      xingYun: eightChar.getYearDiShi(),
+      ziZuo: getChangSheng(yearGan, yearZhi),
+      shenSha: getPillarShenSha(yearGan, yearZhi, dayGan, dayZhi, yearZhi, monthZhi, false),
     },
     month: {
       nameEn: "Month Pillar",
@@ -357,7 +635,14 @@ export function calculateBaZi(
       zhiInfo: monthZhiInfo,
       naYin: eightChar.getMonthNaYin(),
       lifeDomainEn: "Career Calling, Parents & Societal Drive",
-      lifeDomainZh: "事业格局、父母家风与青年进取运势"
+      lifeDomainZh: "事业格局、父母家风与青年进取运势",
+      shiShen: eightChar.getMonthShiShenGan(),
+      hideGan: eightChar.getMonthHideGan(),
+      shiShenZhi: eightChar.getMonthShiShenZhi(),
+      xunKong: eightChar.getMonthXunKong(),
+      xingYun: eightChar.getMonthDiShi(),
+      ziZuo: getChangSheng(monthGan, monthZhi),
+      shenSha: getPillarShenSha(monthGan, monthZhi, dayGan, dayZhi, yearZhi, monthZhi, false),
     },
     day: {
       nameEn: "Day Pillar (The Core)",
@@ -368,7 +653,14 @@ export function calculateBaZi(
       zhiInfo: dayZhiInfo,
       naYin: eightChar.getDayNaYin(),
       lifeDomainEn: "The True Self (Day Master) & Intimate Palace",
-      lifeDomainZh: "本命日主元神与夫妻婚姻内宫"
+      lifeDomainZh: "本命日主元神与夫妻婚姻内宫",
+      shiShen: options.gender === "female" || options.gender === 0 ? "元女" : "元男",
+      hideGan: eightChar.getDayHideGan(),
+      shiShenZhi: eightChar.getDayShiShenZhi(),
+      xunKong: eightChar.getDayXunKong(),
+      xingYun: eightChar.getDayDiShi(),
+      ziZuo: getChangSheng(dayGan, dayZhi),
+      shenSha: getPillarShenSha(dayGan, dayZhi, dayGan, dayZhi, yearZhi, monthZhi, true),
     },
     hour: {
       nameEn: "Hour Pillar",
@@ -379,7 +671,14 @@ export function calculateBaZi(
       zhiInfo: timeZhiInfo,
       naYin: eightChar.getTimeNaYin(),
       lifeDomainEn: "Inner Ambition, Children & Late-Life Legacy",
-      lifeDomainZh: "深层潜意识、子女晚景与归宿归宿"
+      lifeDomainZh: "深层潜意识、子女晚景与归宿归宿",
+      shiShen: eightChar.getTimeShiShenGan(),
+      hideGan: eightChar.getTimeHideGan(),
+      shiShenZhi: eightChar.getTimeShiShenZhi(),
+      xunKong: eightChar.getTimeXunKong(),
+      xingYun: eightChar.getTimeDiShi(),
+      ziZuo: getChangSheng(timeGan, timeZhi),
+      shenSha: getPillarShenSha(timeGan, timeZhi, dayGan, dayZhi, yearZhi, monthZhi, false),
     }
   };
 
@@ -463,6 +762,47 @@ export function calculateBaZi(
     elementRecommendationsZh = "五行气场流转相对中和平衡，平日重在修心养性、顺应四时节气，自得安泰吉祥。";
   }
 
+  const genderNum = options.gender === "female" || options.gender === 0 ? 0 : 1;
+  const yunObj = eightChar.getYun(genderNum);
+  const maxSteps = Math.max(1, Math.min(12, options.daYunCount ?? 10));
+  const allDaYun = yunObj.getDaYun(1 + maxSteps);
+  const firstXiaoYun = allDaYun[0]?.getXiaoYun()?.[0]?.getGanZhi();
+  const firstLiuNian = allDaYun[0]?.getLiuNian()?.[0]?.getGanZhi();
+  // 包含第 0 步「小运」以及后续 maxSteps 步「大运」
+  const daYun: DaYunStep[] = allDaYun.slice(0, 1 + maxSteps).map((dy, idx) => {
+    const xiaoList = dy.getXiaoYun();
+    return {
+      index: dy.getIndex(),
+      isXiaoYun: idx === 0,
+      ganZhi: idx === 0 ? "小运" : dy.getGanZhi(),
+      startAge: dy.getStartAge(),
+      endAge: dy.getEndAge(),
+      startYear: dy.getStartYear(),
+      endYear: dy.getEndYear(),
+      liuNian: dy.getLiuNian().map((ln, lIdx) => ({
+        year: ln.getYear(),
+        age: ln.getAge(),
+        ganZhi: ln.getGanZhi(),
+        xiaoYunGanZhi: xiaoList[lIdx]?.getGanZhi() ?? firstXiaoYun,
+        liuYue: ln.getLiuYue().map((ly, mIdx) => ({
+          termName: LIU_YUE_TERMS[mIdx]?.[0] ?? ly.getMonthInChinese(),
+          termDate: LIU_YUE_TERMS[mIdx]?.[1] ?? "",
+          ganZhi: ly.getGanZhi(),
+        })),
+      })),
+    };
+  });
+
+  const siLing = getSiLingStem(solar, monthZhi);
+  const extraPillars = {
+    xiaoYun: firstXiaoYun
+      ? buildDynamicPillar("小运", "XiaoYun", firstXiaoYun, dayGan, dayZhi, yearZhi, monthZhi)
+      : undefined,
+    liuNian: firstLiuNian
+      ? buildDynamicPillar("流年", "LiuNian", firstLiuNian, dayGan, dayZhi, yearZhi, monthZhi)
+      : undefined,
+  };
+
   return {
     birthSolar: { year, month, day, hour, minute },
     lunarString: `${lunar.getYearInGanZhi()}年 (${lunar.getYearShengXiao()}) ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`,
@@ -474,6 +814,24 @@ export function calculateBaZi(
     dominantElement,
     lackingElement,
     elementRecommendationsEn,
-    elementRecommendationsZh
+    elementRecommendationsZh,
+    sect,
+    taiYuan: eightChar.getTaiYuan(),
+    taiXi: eightChar.getTaiXi(),
+    mingGong: eightChar.getMingGong(),
+    shenGong: eightChar.getShenGong(),
+    dayXunKong: eightChar.getDayXunKong(),
+    siLing,
+    extraPillars,
+    yun: {
+      gender: genderNum === 1 ? "male" : "female",
+      startYear: yunObj.getStartYear(),
+      startMonth: yunObj.getStartMonth(),
+      startDay: yunObj.getStartDay(),
+      startDate: yunObj.getStartSolar().toYmd(),
+      xiaoYunGanZhi: firstXiaoYun,
+      currentYearGanZhi: firstLiuNian,
+      daYun,
+    },
   };
 }

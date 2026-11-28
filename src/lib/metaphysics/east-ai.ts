@@ -446,3 +446,60 @@ ${snapshot}
   }
 }
 
+export type EastChartKind = 'meihua' | 'qimen' | 'liuren' | 'ziwei';
+
+export interface EastChartAiRequest {
+  kind: EastChartKind;
+  question?: string;
+  chartSummary: string;
+  localFallback?: string;
+  lang?: string;
+  points_ref?: string;
+}
+
+const EAST_KIND_SYSTEM_PROMPTS: Record<EastChartKind, { zh: string; en: string }> = {
+  meihua: {
+    zh: '你是一位精通邵雍《梅花易数》的易学宗师（YiTatro 全息推演架构）。严格依据传入的本卦、互卦、变卦、错综卦与体用五行生克断事，给出清晰、务实、有针对性的吉凶判断、应期与行动策略。',
+    en: 'You are a master of Shao Yong\'s Plum Blossom Yi (Meihua Yishu). Ground your analysis strictly in the provided Primary, Nuclear, Transformed, Opposite, and Reverse hexagrams and Body-Application Five Elements dynamics.',
+  },
+  qimen: {
+    zh: '你是一位精通奇门遁甲（时家转盘/飞盘拆补法）的实战宗师（YiTatro 全息推演架构）。严格依据传入的局数、节气、值符、值使、九宫星门神干格局、空亡与马星进行吉凶分析、方位抉择与行动建议。',
+    en: 'You are a master of Qimen Dunjia. Analyze strictly from the provided Dun bureau, solar term, Zhifu, Zhishi, nine-palace stars/gates/deities/stems, void, and horse star.',
+  },
+  liuren: {
+    zh: '你是一位精通大六壬（《大六壬指南》《毕法赋》）的实战宗师（YiTatro 全息推演架构）。严格依据传入的月将、昼夜贵人、天地盘、四课、九宗门三传、十二天将与旬空进行深度断课，直指事态起因、过程转折与最终结果。',
+    en: 'You are a master of Da Liu Ren. Analyze strictly from the provided Monthly General, GuiRen, Four Lessons, Nine ZongMen Three Transmissions, Twelve Generals, and Void.',
+  },
+  ziwei: {
+    zh: '你是一位精通紫微斗数（三合派与四化飞星）的资深命理宗师（YiTatro 全息推演架构）。严格依据传入的命宫、身宫、五行局、命主身主、十二宫星曜庙旺与生年/运限四化进行命格、事业、财运、感情与大限剖析。',
+    en: 'You are a master of Zi Wei Dou Shu. Analyze strictly from the provided Life/Body palaces, Five Elements Bureau, star brightness, and Four Transformations.',
+  },
+};
+
+export async function* streamEastChartReading(req: EastChartAiRequest): AsyncGenerator<string, void, unknown> {
+  const isEn = req.lang === 'en';
+  const sys = EAST_KIND_SYSTEM_PROMPTS[req.kind]?.[isEn ? 'en' : 'zh'] ?? EAST_KIND_SYSTEM_PROMPTS.meihua.zh;
+  const userPrompt = isEn
+    ? `${req.question ? `Inquiry: "${req.question}"\n\n` : ''}Chart Data:\n${req.chartSummary}\n\nProvide a structured, insightful Markdown reading covering: 1) Core Verdict, 2) Structural Dynamics, 3) Timing & Key Turning Points, 4) Actionable Advice.`
+    : `${req.question ? `求问事项：「${req.question}」\n\n` : ''}排盘数据：\n${req.chartSummary}\n\n请以清晰分节的 Markdown 格式进行深度解析，涵盖：1）核心定局与吉凶总断；2）盘面关键结构与生克机理；3）应期与转折关键；4）具体行动建议与趋避指南。`;
+
+  try {
+    yield* streamLLM({
+      systemInstruction: sys,
+      messages: [{ role: 'user', content: userPrompt }],
+    });
+    return;
+  } catch (err) {
+    console.warn(`大模型调用受限，切换内置 ${req.kind} 本地解读:`, err);
+  }
+
+  const fallbackText =
+    req.localFallback ||
+    `### 核心定局与盘面解析\n\n${req.chartSummary}\n\n> 当前已基于本地排盘引擎生成结构化推演，请结合盘面生克与自身处境审慎决策。`;
+  const parts = fallbackText.split(/(?<=\n|。|！|？|：|；|\*\*)/);
+  for (const p of parts) {
+    yield p;
+    await new Promise((r) => setTimeout(r, 20));
+  }
+}
+

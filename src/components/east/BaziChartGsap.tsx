@@ -7,12 +7,17 @@ import {
   calculateBaZi,
   BaZiCalculationResult,
   ELEMENT_ZH_MAP,
-  ELEMENT_COLORS
+  ELEMENT_COLORS,
+  STEMS_MAP,
+  BRANCHES_MAP,
+  getShiShen,
+  SHISHEN_SHORT
 } from '@/lib/metaphysics/bazi';
 import { Sparkles, Compass } from 'lucide-react';
 import { usePointsGate } from '@/components/site/PointsGateProvider';
 import { MarkdownView } from '@/components/common/MarkdownView';
 import { saveReading, getSavedReadings } from '@/lib/storage/reading-history';
+import { DateTimePickerPopover } from './DateTimePickerPopover';
 
 gsap.registerPlugin(useGSAP);
 
@@ -60,11 +65,25 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
   const [month, setMonth] = useState(8);
   const [day, setDay] = useState(18);
   const [hour, setHour] = useState(12);
+  const [yearText, setYearText] = useState('1996');
+  const [monthText, setMonthText] = useState('8');
+  const [dayText, setDayText] = useState('18');
+  const [hourText, setHourText] = useState('12');
   const [gender, setGender] = useState<'male' | 'female'>('male');
+  const [sect, setSect] = useState<1 | 2>(2);
+  const [selectedDaYunIdx, setSelectedDaYunIdx] = useState(0);
+  const [selectedLiuNianIdx, setSelectedLiuNianIdx] = useState(0);
 
   const [baziResult, setBaziResult] = useState<BaZiCalculationResult>(() =>
-    calculateBaZi(1996, 8, 18, 12, 0)
+    calculateBaZi(1996, 8, 18, 12, 0, { gender: 'male', sect: 2 })
   );
+
+  const syncNumericFields = (y: number, m: number, d: number, h: number) => {
+    setYear(y); setYearText(String(y));
+    setMonth(m); setMonthText(String(m));
+    setDay(d); setDayText(String(d));
+    setHour(h); setHourText(String(h));
+  };
 
   const [aiReport, setAiReport] = useState<string>(() => {
     if (typeof window === 'undefined') return '';
@@ -80,8 +99,15 @@ export function BaziChartGsap({ lang = 'zh' }: { lang?: string }) {
   // 当输入变化时重新推演八字
   const handleCalculate = (e: React.FormEvent) => {
     e.preventDefault();
-    const res = calculateBaZi(year, month, day, hour, 0);
+    const y = Math.min(2100, Math.max(1900, parseInt(yearText, 10) || year));
+    const m = Math.min(12, Math.max(1, parseInt(monthText, 10) || month));
+    const d = Math.min(31, Math.max(1, parseInt(dayText, 10) || day));
+    const h = Math.min(23, Math.max(0, Number.isNaN(parseInt(hourText, 10)) ? hour : parseInt(hourText, 10)));
+    syncNumericFields(y, m, d, h);
+    const res = calculateBaZi(y, m, d, h, 0, { gender, sect });
     setBaziResult(res);
+    setSelectedDaYunIdx(0);
+    setSelectedLiuNianIdx(0);
     setAiReport('');
   };
 
@@ -269,16 +295,62 @@ ${dm.cosmicAdviceZh}
         </div>
 
         <form onSubmit={handleCalculate} className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {/* 现代农历日历选择器 + 一键当前时间 */}
+          <div className="col-span-2 sm:col-span-5 flex flex-wrap items-center justify-between gap-2 pb-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-medium text-[#52525B]">
+                {isEn ? 'Calendar:' : '日历选择：'}
+              </span>
+              <DateTimePickerPopover
+                year={year}
+                month={month}
+                day={day}
+                hour={hour}
+                isEn={isEn}
+                onChange={(y, m, d, h) => {
+                  syncNumericFields(y, m, d, h);
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const now = new Date();
+                const y = now.getFullYear();
+                const m = now.getMonth() + 1;
+                const d = now.getDate();
+                const h = now.getHours();
+                syncNumericFields(y, m, d, h);
+                setBaziResult(calculateBaZi(y, m, d, h, 0, { gender, sect }));
+                setSelectedDaYunIdx(0);
+                setSelectedLiuNianIdx(0);
+              }}
+              className="px-2.5 py-1 rounded-sm border border-[#E4E4E7] bg-white hover:bg-[#F5F5F6] text-[11px] text-[#171717] cursor-pointer"
+            >
+              {isEn ? 'Use Current Time' : '填入当前时间'}
+            </button>
+          </div>
+
           <div>
             <label className="block text-[11px] font-medium text-[#52525B] mb-1">
               {isEn ? 'Year' : '出生年份'}
             </label>
             <input
-              type="number"
-              value={year}
-              onChange={e => setYear(Number(e.target.value))}
-              min={1920}
-              max={2035}
+              type="text"
+              inputMode="numeric"
+              value={yearText}
+              onChange={e => {
+                const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+                setYearText(raw);
+                const n = parseInt(raw, 10);
+                if (n >= 1900 && n <= 2100) setYear(n);
+              }}
+              onBlur={() => {
+                const n = Math.min(2100, Math.max(1900, parseInt(yearText, 10) || year));
+                setYear(n);
+                setYearText(String(n));
+              }}
+              placeholder="1996"
               className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
@@ -288,11 +360,21 @@ ${dm.cosmicAdviceZh}
               {isEn ? 'Month' : '月份'}
             </label>
             <input
-              type="number"
-              value={month}
-              onChange={e => setMonth(Number(e.target.value))}
-              min={1}
-              max={12}
+              type="text"
+              inputMode="numeric"
+              value={monthText}
+              onChange={e => {
+                const raw = e.target.value.replace(/\D/g, '').slice(0, 2);
+                setMonthText(raw);
+                const n = parseInt(raw, 10);
+                if (n >= 1 && n <= 12) setMonth(n);
+              }}
+              onBlur={() => {
+                const n = Math.min(12, Math.max(1, parseInt(monthText, 10) || month));
+                setMonth(n);
+                setMonthText(String(n));
+              }}
+              placeholder="1-12"
               className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
@@ -302,11 +384,21 @@ ${dm.cosmicAdviceZh}
               {isEn ? 'Day' : '日期'}
             </label>
             <input
-              type="number"
-              value={day}
-              onChange={e => setDay(Number(e.target.value))}
-              min={1}
-              max={31}
+              type="text"
+              inputMode="numeric"
+              value={dayText}
+              onChange={e => {
+                const raw = e.target.value.replace(/\D/g, '').slice(0, 2);
+                setDayText(raw);
+                const n = parseInt(raw, 10);
+                if (n >= 1 && n <= 31) setDay(n);
+              }}
+              onBlur={() => {
+                const n = Math.min(31, Math.max(1, parseInt(dayText, 10) || day));
+                setDay(n);
+                setDayText(String(n));
+              }}
+              placeholder="1-31"
               className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
@@ -316,11 +408,22 @@ ${dm.cosmicAdviceZh}
               {isEn ? 'Hour (0-23)' : '出生时辰（0-23点）'}
             </label>
             <input
-              type="number"
-              value={hour}
-              onChange={e => setHour(Number(e.target.value))}
-              min={0}
-              max={23}
+              type="text"
+              inputMode="numeric"
+              value={hourText}
+              onChange={e => {
+                const raw = e.target.value.replace(/\D/g, '').slice(0, 2);
+                setHourText(raw);
+                const n = parseInt(raw, 10);
+                if (!Number.isNaN(n) && n >= 0 && n <= 23) setHour(n);
+              }}
+              onBlur={() => {
+                const parsed = parseInt(hourText, 10);
+                const n = Math.min(23, Math.max(0, Number.isNaN(parsed) ? hour : parsed));
+                setHour(n);
+                setHourText(String(n));
+              }}
+              placeholder="0-23"
               className="w-full min-h-[40px] px-3 py-2 rounded-sm bg-[#F5F5F6] border border-[#E4E4E7] text-[13px] text-[#171717] transition-colors focus:bg-white focus:border-[#171717] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
             />
           </div>
@@ -355,7 +458,30 @@ ${dm.cosmicAdviceZh}
             </div>
           </div>
 
-          <div className="col-span-2 sm:col-span-5 pt-2">
+          <div className="col-span-2 sm:col-span-5 flex flex-wrap items-center justify-between gap-3 pt-1">
+            <div className="flex items-center gap-2 text-[12px] text-[#52525B]">
+              <span>{isEn ? 'Late Zi (23:00):' : '早晚子时：'}</span>
+              {([
+                [2, isEn ? 'Split (Keep Day)' : '区分早晚子时'],
+                [1, isEn ? 'Rollover at 23:00' : '23点换日柱'],
+              ] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setSect(val)}
+                  className={`px-2.5 py-1 rounded-sm text-[11px] font-medium border transition-colors cursor-pointer ${
+                    sect === val
+                      ? 'bg-[#171717] text-white border-[#171717]'
+                      : 'bg-[#F5F5F6] text-[#52525B] border-[#E4E4E7] hover:text-[#171717]'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="col-span-2 sm:col-span-5 pt-1">
             <button
               type="submit"
               className="w-full min-h-[44px] rounded-sm bg-[#171717] hover:bg-[#333333] text-white text-[14px] font-medium tracking-wide transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#171717]"
@@ -366,64 +492,221 @@ ${dm.cosmicAdviceZh}
         </form>
       </div>
 
-      {/* 四柱八字盘面展示 (GSAP 飞入动效) */}
-      <div ref={pillarsRef} className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
-        {[
-          {
-            label: isEn ? 'Year Pillar · Ancestry' : '年柱 · 祖荫',
-            p: baziResult.pillars.year
-          },
-          {
-            label: isEn ? 'Month Pillar · Season' : '月柱 · 提纲',
-            p: baziResult.pillars.month
-          },
-          {
-            label: isEn ? 'Day Pillar · Day Master' : '日柱 · 元神',
-            p: baziResult.pillars.day,
-            isSelf: true
-          },
-          {
-            label: isEn ? 'Hour Pillar · Legacy' : '时柱 · 归宿',
-            p: baziResult.pillars.hour
-          }
-        ].map((item, idx) => (
-          <div
-            key={idx}
-            className={`pillar-box p-3.5 sm:p-4 rounded-sm text-center flex flex-col justify-between transition-colors ${
-              item.isSelf
-                ? 'border-2 border-[#171717] bg-[#F5F5F6]/40'
-                : 'border border-[#E4E4E7] bg-white'
-            }`}
-          >
-            <div>
-              <span className="text-[11px] font-medium text-[#52525B] block mb-2">
-                {item.label}
-              </span>
+      {/* 四柱八字专业排盘表（对齐易瑞笔记 6 列 + 神煞 + 大运流年流月） */}
+      <div ref={pillarsRef} className="w-full rounded-xl bg-white border border-zinc-200 overflow-hidden mb-6 shadow-xs">
+        <div className="px-4 py-2.5 bg-zinc-50 border-b border-zinc-200 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-700">
+          <span>
+            {baziResult.birthSolar.year}年{String(baziResult.birthSolar.month).padStart(2, '0')}月{String(baziResult.birthSolar.day).padStart(2, '0')}日 ({baziResult.lunarString.split(' ').slice(2).join('')}) {String(baziResult.birthSolar.hour).padStart(2, '0')}:00
+          </span>
+          <span className="text-zinc-500">{gender === 'male' ? '乾造' : '坤造'} · {sect === 2 ? '区分早晚子时' : '23点换日柱'}</span>
+        </div>
 
-              {/* 天干 */}
-              <div className="text-3xl font-serif font-normal text-[#171717] mb-1">
-                {item.p.gan}
+        {(() => {
+          const cols = [
+            baziResult.pillars.year,
+            baziResult.pillars.month,
+            baziResult.pillars.day,
+            baziResult.pillars.hour,
+            ...(baziResult.extraPillars?.xiaoYun ? [baziResult.extraPillars.xiaoYun] : []),
+            ...(baziResult.extraPillars?.liuNian ? [baziResult.extraPillars.liuNian] : []),
+          ];
+          const headers = ['年柱', '月柱', '日柱', '时柱', ...(baziResult.extraPillars?.xiaoYun ? ['小运'] : []), ...(baziResult.extraPillars?.liuNian ? ['流年'] : [])];
+          const dayGan = baziResult.pillars.day.gan;
+
+          return (
+            <div className="overflow-x-auto">
+              <table className="w-full text-center border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-zinc-100 text-zinc-500">
+                    <th className="py-2 px-2 font-normal w-12 text-left pl-3"></th>
+                    {headers.map((h, i) => (
+                      <th key={h} className={`py-2 px-2 font-normal ${i === 2 ? 'font-medium text-zinc-900' : ''} ${i === 4 ? 'border-l border-zinc-100' : ''}`}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100">
+                  <tr>
+                    <td className="py-1.5 px-2 text-left pl-3 text-zinc-400">主星</td>
+                    {cols.map((p, i) => (
+                      <td key={i} className={`py-1.5 px-2 text-zinc-700 font-medium ${i === 4 ? 'border-l border-zinc-100' : ''}`}>{p.shiShen || '—'}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-2 text-left pl-3 text-zinc-400">{gender === 'male' ? '乾造' : '坤造'}</td>
+                    {cols.map((p, i) => (
+                      <td key={i} className={`pillar-box py-2 px-2 ${i === 4 ? 'border-l border-zinc-100' : ''}`}>
+                        <div className="text-2xl sm:text-3xl font-serif font-medium" style={{ color: ELEMENT_COLORS[p.ganInfo.element] }}>
+                          {p.gan}
+                        </div>
+                        <div className="text-2xl sm:text-3xl font-serif font-medium mt-0.5" style={{ color: ELEMENT_COLORS[p.zhiInfo.element] }}>
+                          {p.zhi}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-2 text-left pl-3 text-zinc-400">藏干</td>
+                    {cols.map((p, i) => (
+                      <td key={i} className={`py-2 px-2 align-top ${i === 4 ? 'border-l border-zinc-100' : ''}`}>
+                        {(p.hideGan || []).map((hg, hi) => (
+                          <div key={hi} className="text-[11px] leading-5">
+                            <span className="font-medium" style={{ color: ELEMENT_COLORS[STEMS_MAP[hg]?.element ?? 'Earth'] }}>{hg}</span>
+                            <span className="text-zinc-500 ml-0.5">{p.shiShenZhi?.[hi] || ''}</span>
+                          </div>
+                        ))}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 px-2 text-left pl-3 text-zinc-400">空亡</td>
+                    {cols.map((p, i) => (
+                      <td key={i} className={`py-1.5 px-2 text-zinc-600 ${i === 4 ? 'border-l border-zinc-100' : ''}`}>{p.xunKong || '—'}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 px-2 text-left pl-3 text-zinc-400">星运</td>
+                    {cols.map((p, i) => (
+                      <td key={i} className={`py-1.5 px-2 text-zinc-700 ${i === 4 ? 'border-l border-zinc-100' : ''}`}>{p.xingYun || '—'}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 px-2 text-left pl-3 text-zinc-400">自坐</td>
+                    {cols.map((p, i) => (
+                      <td key={i} className={`py-1.5 px-2 text-zinc-600 ${i === 4 ? 'border-l border-zinc-100' : ''}`}>{p.ziZuo || '—'}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td className="py-1.5 px-2 text-left pl-3 text-zinc-400">纳音</td>
+                    {cols.map((p, i) => (
+                      <td key={i} className={`py-1.5 px-2 text-zinc-600 ${i === 4 ? 'border-l border-zinc-100' : ''}`}>{p.naYin || '—'}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-2 text-left pl-3 text-zinc-400 align-top">神煞</td>
+                    {cols.map((p, i) => (
+                      <td key={i} className={`py-2 px-1 align-top text-[11px] leading-5 text-zinc-600 ${i === 4 ? 'border-l border-zinc-100' : ''}`}>
+                        {(p.shenSha && p.shenSha.length > 0) ? p.shenSha.map((s) => <div key={s}>{s}</div>) : '—'}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+
+              {/* 胎元 / 胎息 / 命宫 / 身宫 */}
+              <div className="px-4 py-2.5 bg-zinc-50/70 border-t border-zinc-200 flex flex-wrap justify-between gap-3 text-xs text-zinc-700">
+                <span>胎元:{baziResult.taiYuan}</span>
+                <span>胎息:{baziResult.taiXi}</span>
+                <span>命宫:{baziResult.mingGong}</span>
+                <span>身宫:{baziResult.shenGong}</span>
               </div>
-              <span className="text-[11px] text-[#52525B] font-mono block mb-2">
-                {isEn
-                  ? `${item.p.ganInfo.element} · ${item.p.ganInfo.archetypeEn}`
-                  : `${ELEMENT_ZH_MAP[item.p.ganInfo.element]} · ${item.p.ganInfo.archetypeZh}`}
-              </span>
 
-              {/* 地支 */}
-              <div className="text-3xl font-serif font-normal text-[#171717] mb-1">
-                {item.p.zhi}
-              </div>
-              <span className="text-[11px] text-[#52525B] block">
-                {isEn ? `Zodiac: ${item.p.zhiInfo.animalEn}` : `生肖：${item.p.zhiInfo.animalZh}`}
-              </span>
-            </div>
+              {/* 起运 + 司令 + 大运 / 流年 / 流月 三层联动 */}
+              {baziResult.yun && (() => {
+                const activeDy = baziResult.yun.daYun[selectedDaYunIdx] ?? baziResult.yun.daYun[0];
+                const activeLn = activeDy?.liuNian[selectedLiuNianIdx] ?? activeDy?.liuNian[0];
+                const renderGzBadge = (gz: string) => {
+                  const g = gz[0];
+                  const z = gz[1];
+                  const gEl = STEMS_MAP[g]?.element ?? 'Earth';
+                  const zEl = BRANCHES_MAP[z]?.element ?? 'Earth';
+                  const gShort = SHISHEN_SHORT[getShiShen(dayGan, g)] ?? '';
+                  const zMain = z === '子' ? '癸' : z === '丑' ? '己' : z === '寅' ? '甲' : z === '卯' ? '乙' : z === '辰' ? '戊' : z === '巳' ? '丙' : z === '午' ? '丁' : z === '未' ? '己' : z === '申' ? '庚' : z === '酉' ? '辛' : z === '戌' ? '戊' : '壬';
+                  const zShort = SHISHEN_SHORT[getShiShen(dayGan, zMain)] ?? '';
+                  return (
+                    <div className="mt-1 space-y-0.5 leading-tight">
+                      <div className="flex items-baseline justify-center gap-0.5">
+                        <span className="font-serif text-sm font-semibold" style={{ color: ELEMENT_COLORS[gEl] }}>{g}</span>
+                        <span className="text-[9px] text-zinc-400">{gShort}</span>
+                      </div>
+                      <div className="flex items-baseline justify-center gap-0.5">
+                        <span className="font-serif text-sm font-semibold" style={{ color: ELEMENT_COLORS[zEl] }}>{z}</span>
+                        <span className="text-[9px] text-zinc-400">{zShort}</span>
+                      </div>
+                    </div>
+                  );
+                };
 
-            <div className="mt-3 pt-2 border-t border-[#E4E4E7] text-[11px] text-[#52525B]">
-              {isEn ? `Sound: ${NAYIN_EN_MAP[item.p.naYin] || item.p.naYin}` : `纳音：${item.p.naYin}`}
+                return (
+                  <div className="p-4 border-t border-zinc-200 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-600">
+                      <span>起运 出生{baziResult.yun.startYear}年{baziResult.yun.startMonth}个月{baziResult.yun.startDay}天 时间 {baziResult.yun.startDate}</span>
+                      {baziResult.siLing && (
+                        <span>
+                          司令：<strong style={{ color: ELEMENT_COLORS[STEMS_MAP[baziResult.siLing]?.element ?? 'Water'] }}>{baziResult.siLing}</strong>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 大运行 */}
+                    <div className="flex items-stretch gap-1 overflow-x-auto pb-1">
+                      <div className="w-7 shrink-0 flex items-center justify-center text-xs text-zinc-500 leading-tight text-center">大<br />运</div>
+                      {baziResult.yun.daYun.map((dy, idx) => {
+                        const active = selectedDaYunIdx === idx;
+                        return (
+                          <button
+                            key={dy.index}
+                            type="button"
+                            onClick={() => { setSelectedDaYunIdx(idx); setSelectedLiuNianIdx(0); }}
+                            className={`min-w-13 rounded-md border px-1.5 py-1.5 text-center transition-colors cursor-pointer ${
+                              active ? 'border-zinc-900 bg-zinc-100' : 'border-zinc-200 bg-white hover:border-zinc-400'
+                            }`}
+                          >
+                            <div className="text-[10px] text-zinc-500">{dy.startYear}</div>
+                            <div className="text-[10px] text-zinc-500">{dy.startAge}岁</div>
+                            {dy.isXiaoYun ? (
+                              <div className="mt-1 font-serif text-sm text-zinc-800 leading-tight">小<br />运</div>
+                            ) : renderGzBadge(dy.ganZhi)}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* 流年行 */}
+                    {activeDy?.liuNian && (
+                      <div className="flex items-stretch gap-1 overflow-x-auto pb-1 border-t border-zinc-100 pt-2">
+                        <div className="w-7 shrink-0 flex items-center justify-center text-xs text-zinc-500 leading-tight text-center">流<br />年</div>
+                        {activeDy.liuNian.map((ln, idx) => {
+                          const active = selectedLiuNianIdx === idx;
+                          return (
+                            <button
+                              key={ln.year}
+                              type="button"
+                              onClick={() => setSelectedLiuNianIdx(idx)}
+                              className={`min-w-13 rounded-md border px-1.5 py-1.5 text-center transition-colors cursor-pointer ${
+                                active ? 'border-zinc-900 bg-zinc-100' : 'border-zinc-200 bg-white hover:border-zinc-400'
+                              }`}
+                            >
+                              <div className="text-[10px] text-zinc-500">{ln.year}</div>
+                              <div className="text-[10px] text-zinc-500">{ln.age}岁</div>
+                              {renderGzBadge(ln.ganZhi)}
+                              {ln.xiaoYunGanZhi && <div className="mt-1 text-[10px] text-zinc-400">{ln.xiaoYunGanZhi}</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* 流月行 */}
+                    {activeLn?.liuYue && (
+                      <div className="flex items-stretch gap-1 overflow-x-auto pb-1 border-t border-zinc-100 pt-2">
+                        <div className="w-7 shrink-0 flex items-center justify-center text-xs text-zinc-500 leading-tight text-center">流<br />月</div>
+                        {activeLn.liuYue.map((ly) => (
+                          <div key={ly.termName} className="min-w-12 rounded-md border border-zinc-100 bg-zinc-50/50 px-1 py-1.5 text-center">
+                            <div className="text-[10px] text-zinc-500">{ly.termName}</div>
+                            <div className="text-[10px] text-zinc-400">{ly.termDate}</div>
+                            {renderGzBadge(ly.ganZhi)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
-          </div>
-        ))}
+          );
+        })()}
       </div>
 
       {/* 五行能量雷达与平衡进度 (GSAP 动态拉伸) */}

@@ -1,3 +1,4 @@
+import { Solar } from "lunar-typescript";
 import { findMatchingMeihuaCase, getTrigramImagery, type MeihuaCaseEntry, type TrigramWanwuDetail } from '@/lib/kb/meihua';
 import { lookupEntryByBinary } from './hexagrams64';
 
@@ -24,10 +25,68 @@ export const TRIGRAMS: Record<number, TrigramInfo> = {
   8: { number: 8, nameZh: "坤", nameEn: "Kun (Earth)", symbol: "☷", natureZh: "地", natureEn: "Earth", element: "Earth", elementZh: "土", lines: [false, false, false] }
 };
 
+export type MeihuaCastMode = "time" | "hour_minute" | "numbers" | "random" | "text" | "hexagram" | "six_lines";
+
+export interface MeihuaOptions {
+  /** 指定起卦时间（默认当前北京时间） */
+  date?: Date;
+  /** 文字起卦文本 */
+  text?: string;
+  /** 直接指定上下卦与动爻 */
+  hexagram?: { upper: number; lower: number; movingLine: number };
+  /** 时分起卦法：1=时数求上/分数求下/时+分求动爻；2=时个+十求上/分个+十求下/相加求动爻 */
+  hourMinuteMethod?: 1 | 2;
+  /** 两数/三数起卦是否加时辰数 */
+  addHour?: boolean;
+  /** 三数起卦法：1=一上二下三动爻；2=一上、二三下、一二三动爻 */
+  threeNumMethod?: 1 | 2;
+  /** 自选六爻（自下而上 true=阳, false=阴）与动爻（1..6） */
+  sixLines?: { lines: [boolean, boolean, boolean, boolean, boolean, boolean]; movingLine: number };
+}
+
+export interface MeihuaRefHexagram {
+  upper: TrigramInfo;
+  lower: TrigramInfo;
+  fullNameZh: string;
+  fullNameEn?: string;
+  lines: boolean[];
+}
+
 export interface MeihuaDivinationResult {
   question: string;
-  castMode: "time" | "numbers";
+  castMode: MeihuaCastMode;
   numbers: [number, number, number];
+  /** 农历时间起卦详情（time 模式或参考时间） */
+  lunarTimeInfo?: {
+    yearZhi: string;
+    yearNum: number;
+    lunarMonth: number;
+    lunarDay: number;
+    hourZhi: string;
+    hourNum: number;
+    lunarDateText: string;
+  };
+  /** 随机起卦生成的 6 爻 0/1 序列（自下而上） */
+  randomYaoBits?: (0 | 1)[];
+  /** 起卦四柱干支、旬空与纳音 */
+  ganZhiInfo?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+    yearKong: string;
+    monthKong: string;
+    dayKong: string;
+    hourKong: string;
+    yearNaYin: string;
+    monthNaYin: string;
+    dayNaYin: string;
+    hourNaYin: string;
+  };
+  /** 错卦（[参I]：六爻全反） */
+  cuoGua?: MeihuaRefHexagram;
+  /** 综卦（[参II]：六爻倒置） */
+  zongGua?: MeihuaRefHexagram;
   primaryHexagram: {
     upper: TrigramInfo;
     lower: TrigramInfo;
@@ -123,32 +182,146 @@ const ELEMENT_OVERCOMING: Record<string, string> = {
   Wood: "Earth", Earth: "Water", Water: "Fire", Fire: "Metal", Metal: "Wood"
 };
 
+const BRANCH_NUM_MAP: Record<string, number> = {
+  子: 1, 丑: 2, 寅: 3, 卯: 4, 辰: 5, 巳: 6,
+  午: 7, 未: 8, 申: 9, 酉: 10, 戌: 11, 亥: 12,
+};
+
+const BEIJING_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+function getBeijingLunar(targetDate: Date = new Date()) {
+  const bj = new Date(targetDate.getTime() + BEIJING_OFFSET_MS);
+  const solar = Solar.fromYmdHms(
+    bj.getUTCFullYear(),
+    bj.getUTCMonth() + 1,
+    bj.getUTCDate(),
+    bj.getUTCHours(),
+    bj.getUTCMinutes(),
+    bj.getUTCSeconds()
+  );
+  return solar.getLunar();
+}
+
 /**
- * 梅花易数核心推演函数
+ * 梅花易数核心推演函数（对标传统农历时空 / 报数 / 随机 / 文字 / 指定卦）
  */
 export function divineMeihua(
   question: string,
-  mode: "time" | "numbers" = "time",
-  customNumbers?: [number, number, number]
+  mode: MeihuaCastMode = "time",
+  customNumbers?: [number, number, number] | [number, number],
+  options: MeihuaOptions = {}
 ): MeihuaDivinationResult {
   let numUpper = 1;
   let numLower = 1;
   let numMoving = 1;
+  const lunar = getBeijingLunar(options.date ?? new Date());
+  const ec = lunar.getEightChar();
+  const yearZhi = lunar.getYearZhiExact();
+  const yearNum = BRANCH_NUM_MAP[yearZhi] ?? 1;
+  const lunarMonth = Math.abs(lunar.getMonth());
+  const lunarDay = lunar.getDay();
+  const hourZhi = lunar.getTimeZhi();
+  const hourNum = BRANCH_NUM_MAP[hourZhi] ?? 1;
+
+  const lunarTimeInfo: MeihuaDivinationResult["lunarTimeInfo"] = {
+    yearZhi,
+    yearNum,
+    lunarMonth,
+    lunarDay,
+    hourZhi,
+    hourNum,
+    lunarDateText: `${lunar.getYearInGanZhiExact()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()} ${hourZhi}时`,
+  };
+  const ganZhiInfo: MeihuaDivinationResult["ganZhiInfo"] = {
+    year: ec.getYear(),
+    month: ec.getMonth(),
+    day: ec.getDay(),
+    hour: ec.getTime(),
+    yearKong: ec.getYearXunKong(),
+    monthKong: ec.getMonthXunKong(),
+    dayKong: ec.getDayXunKong(),
+    hourKong: ec.getTimeXunKong(),
+    yearNaYin: ec.getYearNaYin(),
+    monthNaYin: ec.getMonthNaYin(),
+    dayNaYin: ec.getDayNaYin(),
+    hourNaYin: ec.getTimeNaYin(),
+  };
+
+  let randomYaoBits: (0 | 1)[] | undefined;
 
   if (mode === "numbers" && customNumbers) {
-    numUpper = customNumbers[0];
-    numLower = customNumbers[1];
-    numMoving = customNumbers[2];
-  } else {
-    // 依据当下时空年月日时起卦
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth() + 1;
-    const d = now.getDate();
-    const h = now.getHours();
+    const n1 = Math.max(1, Math.abs(Math.trunc(customNumbers[0])));
+    const n2 = Math.max(1, Math.abs(Math.trunc(customNumbers[1])));
+    const n3 = customNumbers[2] && customNumbers[2] > 0 ? Math.trunc(customNumbers[2]) : 0;
+    const extraHour = options.addHour ? hourNum : 0;
 
-    const sumA = y + m + d;
-    const sumB = sumA + h;
+    if (n3 > 0 && options.threeNumMethod === 2) {
+      // 三数方法二：一数求上卦，二三数之和求下卦，一二三数之和(+时辰)求动爻
+      numUpper = (n1 % 8) || 8;
+      numLower = ((n2 + n3) % 8) || 8;
+      numMoving = ((n1 + n2 + n3 + extraHour) % 6) || 6;
+    } else if (n3 > 0) {
+      // 三数方法一：一数上、二数下、三数(+时辰)动爻
+      numUpper = (n1 % 8) || 8;
+      numLower = (n2 % 8) || 8;
+      numMoving = ((n3 + extraHour) % 6) || 6;
+    } else {
+      // 两数：一数上、二数下，两数之和(+时辰)求动爻
+      numUpper = (n1 % 8) || 8;
+      numLower = (n2 % 8) || 8;
+      numMoving = ((n1 + n2 + extraHour) % 6) || 6;
+    }
+  } else if (mode === "hour_minute") {
+    const bj = new Date((options.date ?? new Date()).getTime() + BEIJING_OFFSET_MS);
+    const hh = bj.getUTCHours();
+    const mm = bj.getUTCMinutes();
+    if (options.hourMinuteMethod === 2) {
+      const sH = Math.floor(hh / 10) + (hh % 10);
+      const sM = Math.floor(mm / 10) + (mm % 10);
+      numUpper = (sH % 8) || 8;
+      numLower = (sM % 8) || 8;
+      numMoving = ((sH + sM) % 6) || 6;
+    } else {
+      numUpper = (hh % 8) || 8;
+      numLower = (mm % 8) || 8;
+      numMoving = ((hh + mm) % 6) || 6;
+    }
+  } else if (mode === "six_lines" && options.sixLines) {
+    const ls = options.sixLines.lines;
+    const lowerTri = trigramFromLines([ls[0], ls[1], ls[2]]);
+    const upperTri = trigramFromLines([ls[3], ls[4], ls[5]]);
+    numUpper = upperTri.number;
+    numLower = lowerTri.number;
+    numMoving = ((Math.trunc(options.sixLines.movingLine) - 1 + 600) % 6) + 1;
+  } else if (mode === "random") {
+    // 生成长度为 6 的 0/1 列表（自下而上：初爻到上爻）
+    randomYaoBits = Array.from({ length: 6 }, () => (Math.random() >= 0.5 ? 1 : 0)) as (0 | 1)[];
+    const lowerTri = trigramFromLines([randomYaoBits[0] === 1, randomYaoBits[1] === 1, randomYaoBits[2] === 1]);
+    const upperTri = trigramFromLines([randomYaoBits[3] === 1, randomYaoBits[4] === 1, randomYaoBits[5] === 1]);
+    numUpper = upperTri.number;
+    numLower = lowerTri.number;
+    numMoving = Math.floor(Math.random() * 6) + 1;
+  } else if (mode === "text") {
+    const raw = (options.text || question || "梅花").replace(/\s+/g, "");
+    const chars = Array.from(raw.length > 0 ? raw : "梅花");
+    const mid = Math.max(1, Math.floor(chars.length / 2));
+    const left = chars.slice(0, mid);
+    const right = chars.slice(mid);
+    const charWeight = (arr: string[]) =>
+      arr.reduce((acc, ch) => acc + ((ch.codePointAt(0) ?? 1) % 64 || 1), 0);
+    const sumL = charWeight(left);
+    const sumR = charWeight(right.length > 0 ? right : left);
+    numUpper = (sumL % 8) || 8;
+    numLower = (sumR % 8) || 8;
+    numMoving = ((sumL + sumR) % 6) || 6;
+  } else if (mode === "hexagram" && options.hexagram) {
+    numUpper = ((Math.trunc(options.hexagram.upper) - 1 + 800) % 8) + 1;
+    numLower = ((Math.trunc(options.hexagram.lower) - 1 + 800) % 8) + 1;
+    numMoving = ((Math.trunc(options.hexagram.movingLine) - 1 + 600) % 6) + 1;
+  } else {
+    // 传统梅花农历时间起卦：(年支 + 农历月 + 农历日) % 8 为上卦，加时支 % 8 为下卦，总数 % 6 为动爻
+    const sumA = yearNum + lunarMonth + lunarDay;
+    const sumB = sumA + hourNum;
 
     numUpper = (sumA % 8) || 8;
     numLower = (sumB % 8) || 8;
@@ -283,10 +456,38 @@ export function divineMeihua(
     application: getTrigramImagery(useTri.nameZh)
   };
 
+  // 错卦（[参I]：六爻阴阳全反）与 综卦（[参II]：六爻倒置）
+  const cuoLines = allLines.map((b) => !b);
+  const cuoLower = trigramFromLines([cuoLines[0], cuoLines[1], cuoLines[2]]);
+  const cuoUpper = trigramFromLines([cuoLines[3], cuoLines[4], cuoLines[5]]);
+  const cuoName = HEXAGRAM_NAMES[`${cuoUpper.number}_${cuoLower.number}`] || "错卦";
+
+  const zongLines = [...allLines].reverse();
+  const zongLower = trigramFromLines([zongLines[0], zongLines[1], zongLines[2]]);
+  const zongUpper = trigramFromLines([zongLines[3], zongLines[4], zongLines[5]]);
+  const zongName = HEXAGRAM_NAMES[`${zongUpper.number}_${zongLower.number}`] || "综卦";
+
   return {
     question: question || "当前关键决策与事态走向",
     castMode: mode,
     numbers: [numUpper, numLower, numMoving],
+    lunarTimeInfo,
+    ganZhiInfo,
+    randomYaoBits,
+    cuoGua: {
+      upper: cuoUpper,
+      lower: cuoLower,
+      fullNameZh: cuoName,
+      fullNameEn: `${cuoUpper.nameEn || cuoUpper.nameZh} over ${cuoLower.nameEn || cuoLower.nameZh}`,
+      lines: cuoLines,
+    },
+    zongGua: {
+      upper: zongUpper,
+      lower: zongLower,
+      fullNameZh: zongName,
+      fullNameEn: `${zongUpper.nameEn || zongUpper.nameZh} over ${zongLower.nameEn || zongLower.nameZh}`,
+      lines: zongLines,
+    },
     primaryHexagram: {
       upper: upperTri,
       lower: lowerTri,

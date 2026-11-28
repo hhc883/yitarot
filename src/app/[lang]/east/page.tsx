@@ -123,10 +123,19 @@ export default async function EastLandingPage({ params }: { params: Promise<{ la
       href: `/${lang}/east/qimen`,
       titleEn: 'Qimen Dunjia',
       titleZh: '奇门遁甲',
-      descEn: 'Cast a rotating nine-palace chart using Beijing time and explore its gates, stars, and directions.',
-      descZh: '按北京时间排出时家转盘拆补局，查看各宫位的门、星和方位。',
+      descEn: 'Cast a rotating or flying nine-palace chart using Beijing time and explore its gates, stars, and directions.',
+      descZh: '按北京时间排出时家转盘/飞盘拆补局，查看各宫位的门、星和方位。',
       actionEn: 'Open Qimen',
       actionZh: '排奇门局'
+    },
+    {
+      href: `/${lang}/east/liuren`,
+      titleEn: 'Da Liu Ren',
+      titleZh: '大六壬',
+      descEn: 'Solar-term monthly general, day/night GuiRen, Four Lessons, and Nine ZongMen transmissions.',
+      descZh: '按中气月将、昼夜贵人排出天地盘、四课、九宗门三传与十二天将。',
+      actionEn: 'Open Liu Ren',
+      actionZh: '起六壬课'
     },
     {
       href: `/${lang}/east/almanac`,
