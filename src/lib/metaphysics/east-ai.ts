@@ -6,6 +6,18 @@ import { retrieveKnowledge } from '@/lib/kb/retriever';
 import { buildKnowledgeBlock, buildHexSnapshot, buildLiuYaoSystem } from '@/lib/kb/context-builder';
 import { buildImagerySnapshot } from '@/lib/kb/concepts';
 import { buildCeziInsightSnapshot } from '@/lib/kb/cezi';
+import { retrieveBaziKnowledge } from '@/lib/kb/bazi/rules';
+import { retrieveMeihuaKnowledge } from '@/lib/kb/meihua';
+import { retrieveQimenKnowledge } from '@/lib/kb/qimen/rules';
+import { retrieveLiurenKnowledge } from '@/lib/kb/liuren/rules';
+import { retrieveZiweiKnowledge } from '@/lib/kb/ziwei/rules';
+import {
+  EAST_OUTPUT_CONTRACT_EN,
+  EAST_OUTPUT_CONTRACT_ZH,
+  EAST_REFERENCE_RULES_EN,
+  EAST_REFERENCE_RULES_ZH,
+  type EastCanonBundle,
+} from '@/lib/kb/east-canon';
 import type { KnowledgeBundle } from '@/lib/kb/types';
 
 export { buildHexSnapshot } from '@/lib/kb/context-builder';
@@ -125,10 +137,31 @@ export function buildLiuYaoPrompt(req: LiuYaoAiRequest): string {
 /**
  * 本地智能八字解读引擎（离线/免 Key 降级保障）
  */
-export function generateLocalBaziReport(data: BaZiCalculationResult, lang: string = 'zh'): string {
+export function generateLocalBaziReport(
+  data: BaZiCalculationResult,
+  lang: string = 'zh',
+  bundle?: EastCanonBundle
+): string {
   const dm = data.dayMaster;
   const dominantElement = data.fiveElements.reduce((prev, curr) => (curr.percentage > prev.percentage ? curr : prev));
   const lackingElement = data.fiveElements.reduce((prev, curr) => (curr.percentage < prev.percentage ? curr : prev));
+  const kb = bundle ?? retrieveBaziKnowledge(data);
+  const topRefs = kb.hits.slice(0, 3);
+  const canonSectionZh =
+    topRefs.length > 0
+      ? `\n\n---\n\n### 📜 典籍依据与应期\n${topRefs
+          .map(
+            (h) =>
+              `- **〔${h.entry.source.book}·${h.entry.source.chapter}〕**：${h.entry.text}（[${h.ref}]）`
+          )
+          .join('\n')}`
+      : '';
+  const canonSectionEn =
+    topRefs.length > 0
+      ? `\n\n---\n\n### 📜 Canonical Evidence\n${topRefs
+          .map((h) => `- **${h.entry.source.book} (${h.entry.source.chapter})**: ${h.entry.text} ([${h.ref}])`)
+          .join('\n')}`
+      : '';
 
   if (lang === 'en') {
     return `### 🌟 Day Master Essence & Archetype
@@ -163,7 +196,7 @@ In intimate partnerships, you value mental alignment and respected boundaries. C
 
 ### 🧭 Action Strategy & Cosmic Balance
 - 💡 **Harmonization**: ${data.elementRecommendationsEn}
-- 🌿 **Mindset**: Align with natural rhythm; clarity emerges from inner stillness.`;
+- 🌿 **Mindset**: Align with natural rhythm; clarity emerges from inner stillness.${canonSectionEn}`;
   }
 
   return `### 🌟 原局元神与性格底色
@@ -198,7 +231,7 @@ ${dm.cosmicAdviceZh}
 
 ### 🧭 后天补运与破局策略
 - 💡 **调和建议**：${data.elementRecommendationsZh}
-- 🌿 **心性修炼**：顺应自然节律，知止而有定，定而后能安。`;
+- 🌿 **心性修炼**：顺应自然节律，知止而有定，定而后能安。${canonSectionZh}`;
 }
 
 /**
@@ -373,14 +406,18 @@ export async function* streamLiuYaoReading(
  * 八字命理流式输出适配器
  */
 export async function* streamBaziReading(data: BaZiCalculationResult, req: BaziAiRequest): AsyncGenerator<string, void, unknown> {
+  const isEn = req.lang === 'en';
+  const bundle = retrieveBaziKnowledge(data, req.focusArea);
   const userPrompt = buildBaziPrompt(data, req);
+  const systemInstruction = isEn
+    ? `You are a master of classical Zi Ping BaZi metaphysics grounded in canonical texts (Qiong Tong Bao Jian, Zi Ping Zhen Quan, Di Tian Sui, Yuan Hai Zi Ping).\n\n${EAST_REFERENCE_RULES_EN}\n\n${EAST_OUTPUT_CONTRACT_EN}\n\n${bundle.block}`
+    : `你是一位精通《穷通宝鉴》《子平真栓》《滴天髓》《渊海子平》的正统子平八字命理宗师（YiTatro 全息推演架构）。\n\n${EAST_REFERENCE_RULES_ZH}\n\n${EAST_OUTPUT_CONTRACT_ZH}\n\n${bundle.block}`;
 
   try {
     yield* streamLLM({
-      systemInstruction: req.lang === 'en'
-        ? 'You are a master of classical Zi Ping BaZi metaphysics and modern psychological counseling (YiTatro Architecture).'
-        : '你是一位兼具正统子平八字命理精髓与现代心理学视角的资深命理宗师（YiTatro 全息推演架构）。',
-      messages: [{ role: 'user', content: userPrompt }]
+      systemInstruction,
+      messages: [{ role: 'user', content: userPrompt }],
+      maxContextChars: 24000,
     });
     return;
   } catch (err) {
@@ -388,7 +425,7 @@ export async function* streamBaziReading(data: BaZiCalculationResult, req: BaziA
   }
 
   // 本地专家引擎流式输出
-  const fullText = generateLocalBaziReport(data, req.lang);
+  const fullText = generateLocalBaziReport(data, req.lang, bundle);
   const parts = fullText.split(/(?<=\n|。|！|？|：|；|\*\*)/);
   for (const p of parts) {
     yield p;
@@ -476,26 +513,53 @@ const EAST_KIND_SYSTEM_PROMPTS: Record<EastChartKind, { zh: string; en: string }
   },
 };
 
+const EAST_KNOWLEDGE_RETRIEVERS: Record<
+  EastChartKind,
+  (chartSummary: string, question?: string) => EastCanonBundle
+> = {
+  meihua: retrieveMeihuaKnowledge,
+  qimen: retrieveQimenKnowledge,
+  liuren: retrieveLiurenKnowledge,
+  ziwei: retrieveZiweiKnowledge,
+};
+
 export async function* streamEastChartReading(req: EastChartAiRequest): AsyncGenerator<string, void, unknown> {
   const isEn = req.lang === 'en';
-  const sys = EAST_KIND_SYSTEM_PROMPTS[req.kind]?.[isEn ? 'en' : 'zh'] ?? EAST_KIND_SYSTEM_PROMPTS.meihua.zh;
+  const baseSys = EAST_KIND_SYSTEM_PROMPTS[req.kind]?.[isEn ? 'en' : 'zh'] ?? EAST_KIND_SYSTEM_PROMPTS.meihua.zh;
+  const bundle = EAST_KNOWLEDGE_RETRIEVERS[req.kind](req.chartSummary, req.question);
+  const sys = isEn
+    ? `${baseSys}\n\n${EAST_REFERENCE_RULES_EN}\n\n${EAST_OUTPUT_CONTRACT_EN}\n\n${bundle.block}`
+    : `${baseSys}\n\n${EAST_REFERENCE_RULES_ZH}\n\n${EAST_OUTPUT_CONTRACT_ZH}\n\n${bundle.block}`;
+
   const userPrompt = isEn
-    ? `${req.question ? `Inquiry: "${req.question}"\n\n` : ''}Chart Data:\n${req.chartSummary}\n\nProvide a structured, insightful Markdown reading covering: 1) Core Verdict, 2) Structural Dynamics, 3) Timing & Key Turning Points, 4) Actionable Advice.`
-    : `${req.question ? `求问事项：「${req.question}」\n\n` : ''}排盘数据：\n${req.chartSummary}\n\n请以清晰分节的 Markdown 格式进行深度解析，涵盖：1）核心定局与吉凶总断；2）盘面关键结构与生克机理；3）应期与转折关键；4）具体行动建议与趋避指南。`;
+    ? `${req.question ? `Inquiry: "${req.question}"\n\n` : ''}Chart Data:\n${req.chartSummary}\n\nStrictly follow the Output Contract and Reference Rules above.`
+    : `${req.question ? `求问事项：「${req.question}」\n\n` : ''}排盘数据：\n${req.chartSummary}\n\n请严格遵循上述【输出契约】与【引用铁律】，依据【知识库】与盘面数据逐条推演。`;
 
   try {
     yield* streamLLM({
       systemInstruction: sys,
       messages: [{ role: 'user', content: userPrompt }],
+      maxContextChars: 24000,
     });
     return;
   } catch (err) {
     console.warn(`大模型调用受限，切换内置 ${req.kind} 本地解读:`, err);
   }
 
-  const fallbackText =
-    req.localFallback ||
-    `### 核心定局与盘面解析\n\n${req.chartSummary}\n\n> 当前已基于本地排盘引擎生成结构化推演，请结合盘面生克与自身处境审慎决策。`;
+  const canonEvidence = bundle.hits
+    .slice(0, 4)
+    .map(
+      (h) =>
+        `- **〔${h.entry.source.book}·${h.entry.source.chapter}〕**：${h.entry.text}（[${h.ref}]）`
+    )
+    .join('\n');
+
+  const fallbackText = isEn
+    ? `## 1. Core Verdict\n${req.localFallback || 'Chart generated cleanly; evaluate key structure and timing below.'}\n\n## 2. Canonical Evidence\n${bundle.hits
+        .slice(0, 4)
+        .map((h) => `- ${h.entry.source.book} (${h.entry.source.chapter}): ${h.entry.text} ([${h.ref}])`)
+        .join('\n')}`
+    : `## 一、核心定局\n${req.localFallback || '当前已基于本地排盘引擎完成定局推演。'}\n\n## 二、典籍依据\n${canonEvidence}\n\n## 三、盘面快照\n${req.chartSummary}`;
   const parts = fallbackText.split(/(?<=\n|。|！|？|：|；|\*\*)/);
   for (const p of parts) {
     yield p;
