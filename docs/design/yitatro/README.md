@@ -104,3 +104,7 @@ v1.0 · 2026-11-17 · 黑白方案 · 仓库基线 main / cdeeb52
   - `coverImage`：封面图 URL。无封面或留空仍为合法可发布文章，不强求每篇配图。
   - `featured`：设为 `true` 表示标记为头条候选。博客索引页默认未筛选视图仅从当前语言下 `featured: true` 且 `coverImage` 非空的文章中按发布时间倒序确定性选取 1 篇；若当前语言没有合格封面或图片加载失败，则自动省略头条区并将文章回退至常规列表。
 - **发布核对**：新增或更新封面后，需同时检查桌面端与移动端（含 `320px` 窄屏）列表及文章详情页展示效果。
+- **双语博客后台（Phase 1）**：
+  - 入口为 `/zh/admin/blog` 与 `/en/admin/blog`（`noindex`），服务端通过 `getSupabaseUser()` 与 `YITATRO_BLOG_ADMIN_USER_IDS`（逗号分隔 UUID 白名单，留空默认拒绝）鉴权。
+  - 封面上传需配置 `SUPABASE_SERVICE_ROLE_KEY`，校验 RIFF WebP 与 `16:9` 比例（推荐 `1600×900` / 约 `200 KB`，上限 `512 KiB`）后写入 `blog-covers` 公开桶。
+  - 审稿发布需配置仓库级 Fine-grained GitHub Token（`YITATRO_BLOG_GITHUB_TOKEN`，仅授予目标仓库 `Contents` 与 `Pull requests` 读写权限）及 `YITATRO_BLOG_GITHUB_REPOSITORY`（默认 `hhc883/yitarot`）。后台仅修改 `src/content/blog/<lang>/<slug>.md` 并向 `main` 发起 Pull Request，不直接写 `main` 或自动合并；生产发布通过现有 GitHub-Vercel 审稿合入流程完成。若未配置 GitHub Token，可直接使用界面导出 `.md` 文件。

@@ -55,6 +55,11 @@
 
 每批完成后更新上面的状态与下一项。本节只保留会影响接手的事实。
 
+- **双语博客后台 Phase 1（2026-11-28，Antigravity 实现，Codex 本地验收通过）**：
+  - 在当前工作树新增 `/zh/admin/blog` 与 `/en/admin/blog`（`noindex`）：服务端页面、Loader 与所有 Server Actions 均通过 `getSupabaseUser()` + `YITATRO_BLOG_ADMIN_USER_IDS` 白名单（留空默认拒绝）鉴权；复用 `parseMarkdownFrontmatter` 与 `renderMarkdownToHtml`，并收窄加固 `src/lib/blog/markdown.ts` 的链接渲染（仅允许 `http`/`https` 与安全相对路径/锚点，转义 `href` 属性含引号）。
+  - 支持当前语言文章列表、保留原源码编辑（锁定 `lang`/`slug`）、新建文章模板、服务端预览、WebP 封面上传（服务端校验 RIFF WebP 与 `16:9` 尺寸及 `512 KiB` 上限后写入 Supabase `blog-covers` 桶并回填 `coverImage`）、以及基于 GitHub REST `2022-11-28` 的审稿 PR 发布（对比 `main` 内容哈希防覆盖、确定性分支与断点恢复、未配置时支持导出 `.md`）。
+  - 生产构建、定向 ESLint 和 SEO 检查通过。浏览器用本地模拟服务验证管理员授权、320px 布局、日期校验、Markdown 预览和导出、封面比例校验与上传、GitHub 审核 PR 创建和重试复用。生产编译产物确认后台有登录门槛且排除在站点地图之外。正式启用需配置管理员 UUID 和 GitHub 令牌并联调。
+
 - **拆分 Sitemap 落地 `main`（2026-11-27，Antigravity 实现，Codex 验收通过）**：
   - 参照 `fix/divination-audit` 已批准提交 `34b218a` / `3379d6e` 的拆分架构，在当前 `main` 上新增 `src/lib/seo/site-url.ts`、`src/lib/seo/sitemap-xml.ts`、`src/lib/seo/blog-sitemap.ts` 与五个 Route Handler（`src/app/sitemap.xml/route.ts`、`src/app/sitemap-landing.xml/route.ts`、`src/app/sitemap-cards.xml/route.ts`、`src/app/sitemap-blog-zh.xml/route.ts`、`src/app/sitemap-blog-en.xml/route.ts`）；`src/app/robots.ts` 复用 `getSiteUrl()` 归一化尾斜杠并保持仅暴露根 `/sitemap.xml`。
   - `/sitemap-landing.xml` 仅保留当前 `main` 实际存在的独立落地页（含 `/cards` 列表页）与规范的 `/east/relationship/{type}` 页面，排除不存在的 3 个英文指南、博客与卡牌详情页以及已指向其它页面 canonical 的已知别名路由（共排除 26 个已知别名）；`scripts/verify-seo.mjs` 改为校验 5 个 sitemap route。

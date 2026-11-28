@@ -41,6 +41,68 @@ export function extractHeadings(markdown: string): TocItem[] {
 }
 
 /**
+ * Escapes HTML attribute characters (including single and double quotes).
+ */
+function escapeHtmlAttr(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Validates and sanitizes Markdown link hrefs.
+ * Allows absolute http/https URLs and safe relative links/anchors; rejects unsafe schemes.
+ */
+function sanitizeMarkdownHref(escapedRawHref: string): string | null {
+  const decoded = escapedRawHref
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .trim();
+
+  if (!decoded) return null;
+  // Reject ASCII control characters that can obfuscate schemes
+  if (/[\u0000-\u001F\u007F]/.test(decoded)) return null;
+  // Reject protocol-relative URLs (e.g. //evil.com)
+  if (decoded.startsWith('//')) return null;
+
+  // Allow fragment-only anchors (#section) and root/dot-relative paths (/path, ./path, ../path, ?query)
+  if (
+    decoded.startsWith('#') ||
+    decoded.startsWith('/') ||
+    decoded.startsWith('./') ||
+    decoded.startsWith('../') ||
+    decoded.startsWith('?')
+  ) {
+    return escapeHtmlAttr(decoded);
+  }
+
+  // Check for explicit scheme (RFC 3986)
+  const schemeMatch = decoded.match(/^([a-zA-Z][a-zA-Z0-9+.-]*):/);
+  if (schemeMatch) {
+    const scheme = schemeMatch[1].toLowerCase();
+    if (scheme !== 'http' && scheme !== 'https') {
+      return null;
+    }
+    try {
+      const parsed = new URL(decoded);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        return null;
+      }
+      return escapeHtmlAttr(decoded);
+    } catch {
+      return null;
+    }
+  }
+
+  // Relative path without leading slash or scheme
+  return escapeHtmlAttr(decoded);
+}
+
+/**
  * Converts inline markdown tokens (bold, italic, code, link) to HTML.
  */
 function parseInline(text: string): string {
@@ -60,7 +122,13 @@ function parseInline(text: string): string {
   html = html.replace(/\*([^*]+)\*/g, '<em class="italic text-[#27272A]">$1</em>');
 
   // Links: [text](url)
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="underline underline-offset-4 decoration-[#71717A] text-[#171717] hover:text-black hover:decoration-black transition-colors">$1</a>');
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label: string, rawHref: string) => {
+    const safeHref = sanitizeMarkdownHref(rawHref);
+    if (!safeHref) {
+      return label;
+    }
+    return `<a href="${safeHref}" class="underline underline-offset-4 decoration-[#71717A] text-[#171717] hover:text-black hover:decoration-black transition-colors">${label}</a>`;
+  });
 
   return html;
 }
